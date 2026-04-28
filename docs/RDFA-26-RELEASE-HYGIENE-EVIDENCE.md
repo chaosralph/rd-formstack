@@ -10,7 +10,7 @@ Nachvollziehbare Nachweise für sauberen Release-Stand: Commit-Historie, QA-Prü
 2. `dc7dff7` - homepage content structure + nav responsiveness
 3. `15ce7ed` - contact data capture + homepage polish
 4. `3a77c2d` - multi-page website shell with responsive sections
-5. `f417a6e` - planning/QA/release evidence docs (dieser Commit)
+5. `114d4f4` - planning/QA/release evidence docs (dieser Commit)
 
 ## QA-/Technik-Evidenz
 1. PHP-Lint: alle relevanten Dateien ohne Syntaxfehler.
