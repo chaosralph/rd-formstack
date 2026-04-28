@@ -53,6 +53,18 @@ final class HomepageContent
     }
 
     /**
+     * @return list<array{label:string,value:string}>
+     */
+    public static function contactHighlights(): array
+    {
+        return [
+            ['label' => 'Antwortzeit', 'value' => 'In der Regel innerhalb 1 Werktag'],
+            ['label' => 'Projektstart', 'value' => 'Nach abgestimmtem Scope und Priorisierung'],
+            ['label' => 'Fokus', 'value' => 'Web, Workflow, Belegverwaltung, DMS'],
+        ];
+    }
+
+    /**
      * @return list<array{title:string,description:string}>
      */
     public static function processSteps(): array

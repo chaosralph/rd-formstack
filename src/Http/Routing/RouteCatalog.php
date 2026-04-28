@@ -33,12 +33,12 @@ final class RouteCatalog
             '/login' => [
                 'title' => 'Login',
                 'headline' => 'Kundenportal in Vorbereitung',
-                'intro' => 'Der geschützte Login-Bereich wird in der nächsten Ausbaustufe bereitgestellt.',
+                'intro' => 'Der geschützte Login-Bereich ist als Platzhalter integriert und wird in der nächsten Ausbaustufe freigeschaltet.',
             ],
             '/dms' => [
                 'title' => 'DMS',
                 'headline' => 'DMS-Bereich als technischer Platzhalter',
-                'intro' => 'Die DMS-Fläche wird in Stufen mit Freigabe, Historie und Suchlogik ergänzt.',
+                'intro' => 'Die DMS-Fläche ist vorbereitet und wird stufenweise mit Freigabe, Historie und Suchlogik ergänzt.',
             ],
         ];
     }

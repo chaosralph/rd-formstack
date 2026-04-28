@@ -79,6 +79,7 @@ $references = HomepageContent::references();
 $processSteps = HomepageContent::processSteps();
 $loginFeatures = HomepageContent::loginFeatures();
 $dmsRoadmap = HomepageContent::dmsRoadmap();
+$contactHighlights = HomepageContent::contactHighlights();
 
 function e(string $value): string
 {
@@ -169,7 +170,7 @@ function navLink(string $href, string $label, string $currentPath): string
     <?php endif; ?>
 
     <?php if ($path === '/' || $path === '/leistungen'): ?>
-        <section class="section">
+        <section class="section" id="leistungen">
             <div class="shell">
                 <p class="eyebrow">Leistungsbereiche</p>
                 <h2>Von der Konzeption bis zur produktiven Lösung</h2>
@@ -191,7 +192,7 @@ function navLink(string $href, string $label, string $currentPath): string
     <?php endif; ?>
 
     <?php if ($path === '/' || $path === '/referenzen'): ?>
-        <section class="section <?= $path === '/referenzen' ? 'section-alt' : '' ?>">
+        <section class="section <?= $path === '/referenzen' ? 'section-alt' : '' ?>" id="referenzen">
             <div class="shell">
                 <p class="eyebrow">Referenzen</p>
                 <h2>Ausgewählte Projektbeispiele</h2>
@@ -212,12 +213,12 @@ function navLink(string $href, string $label, string $currentPath): string
     <?php endif; ?>
 
     <?php if ($path === '/' || $path === '/login'): ?>
-        <section class="section section-alt">
+        <section class="section section-alt" id="login">
             <div class="shell placeholder-wrap">
                 <div>
                     <p class="eyebrow">Login</p>
                     <h2>Kundenportal in Vorbereitung</h2>
-                    <p>Der geschützte Login-Bereich wird in der nächsten Ausbaustufe bereitgestellt. Geplant sind rollenbasierte Zugriffe, persönliche Dashboards und sichere Dokumentenansichten.</p>
+                    <p>Der geschützte Login-Bereich ist als technischer Platzhalter integriert. Geplant sind rollenbasierte Zugriffe, persönliche Dashboards und sichere Dokumentenansichten.</p>
                     <p class="placeholder-note">Status: Platzhalterseite für die Integrationsphase. Zugriff wird nach technischer Freigabe aktiviert.</p>
                 </div>
                 <aside class="placeholder-card" aria-label="Login-Platzhalter">
@@ -227,13 +228,14 @@ function navLink(string $href, string $label, string $currentPath): string
                             <li><?= e($feature) ?></li>
                         <?php endforeach; ?>
                     </ul>
+                    <a class="text-link" href="/kontakt">Interesse am Pilotzugang melden</a>
                 </aside>
             </div>
         </section>
     <?php endif; ?>
 
     <?php if ($path === '/' || $path === '/dms'): ?>
-        <section class="section">
+        <section class="section" id="dms">
             <div class="shell placeholder-wrap">
                 <div>
                     <p class="eyebrow">DMS-Platzhalter</p>
@@ -248,6 +250,7 @@ function navLink(string $href, string $label, string $currentPath): string
                             <li><?= e($item) ?></li>
                         <?php endforeach; ?>
                     </ul>
+                    <a class="text-link" href="/kontakt">DMS-Use-Case besprechen</a>
                 </aside>
             </div>
         </section>
@@ -320,6 +323,15 @@ function navLink(string $href, string $label, string $currentPath): string
 
                     <button class="btn btn-primary" type="submit">Projektanfrage senden</button>
                 </form>
+
+                <aside class="callout-card contact-sidecard" aria-label="Kontaktinformationen">
+                    <h3>Was Sie im Erstgespräch erwarten können</h3>
+                    <ul class="feature-list">
+                        <?php foreach ($contactHighlights as $highlight): ?>
+                            <li><strong><?= e($highlight['label']) ?>:</strong> <?= e($highlight['value']) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </aside>
             </div>
         </section>
     <?php endif; ?>

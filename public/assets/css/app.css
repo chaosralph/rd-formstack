@@ -426,6 +426,18 @@ textarea:focus-visible {
     align-items: start;
 }
 
+.contact-sidecard {
+    grid-column: span 2;
+}
+
+.contact-sidecard h3 {
+    margin-bottom: 0.75rem;
+}
+
+.contact-sidecard strong {
+    color: var(--primary);
+}
+
 .form-helper {
     color: var(--muted);
     font-size: 0.95rem;
@@ -546,6 +558,10 @@ textarea:focus {
     .card-grid,
     .steps-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .contact-sidecard {
+        grid-column: span 1;
     }
 
     .reference-grid {
