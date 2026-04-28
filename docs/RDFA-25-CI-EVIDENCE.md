@@ -47,6 +47,7 @@ Use the latest successful run URL from that page as ticket evidence for green re
 ## Current blocker for live GitHub run evidence
 
 Status: `blocked` (runtime/access)
+Dependency: `RDFA-28` (external unblock ticket for GitHub access/runtime prerequisites)
 
 Minimal reproducible context:
 - `git push -u origin main` fails with `Host key verification failed.`
