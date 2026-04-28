@@ -1,0 +1,19 @@
+{
+  "name": "rd/formstack-solutions",
+  "description": "Technische Grundlage für RD Formstack Solutions",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "scripts": {
+    "check:runtime": "bash scripts/check-runtime.sh"
+  }
+}
