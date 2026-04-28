@@ -26,6 +26,14 @@ final class ContactController
         $email = Request::post('email');
         $phone = Request::post('phone');
         $message = Request::post('message');
+        $website = Request::post('website');
+
+        // Honeypot: bots tend to fill hidden fields; drop silently.
+        if ($website !== '') {
+            $_SESSION['flash_success'] = 'Vielen Dank, Ihre Nachricht wurde gespeichert.';
+            unset($_SESSION['old']);
+            Response::redirect('/kontakt');
+        }
 
         $errors = [];
         if ($name === '') {

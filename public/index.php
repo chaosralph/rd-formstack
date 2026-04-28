@@ -335,6 +335,10 @@ function navLink(string $href, string $label, string $currentPath): string
                 <form method="post" action="/kontakt" id="contact-form" class="form-card" novalidate>
                     <input type="hidden" name="_action" value="contact.submit">
                     <input type="hidden" name="_csrf" value="<?= e(Csrf::token()) ?>">
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="website">Website</label>
+                        <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+                    </div>
                     <p id="required-note" class="required-note">Felder mit <span class="req" aria-hidden="true">*</span> sind Pflichtfelder.</p>
 
                     <div class="form-grid">
