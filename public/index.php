@@ -86,6 +86,23 @@ $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
 $metaTitle = $siteName . ' | ' . $page['title'];
+$heroSecondaryByPath = [
+    '/' => ['/leistungen', 'Leistungen entdecken'],
+    '/leistungen' => ['/referenzen', 'Referenzen ansehen'],
+    '/referenzen' => ['/kontakt', 'Projektanfrage starten'],
+    '/kontakt' => ['/leistungen', 'Leistungen entdecken'],
+    '/login' => ['/kontakt', 'Pilotzugang anfragen'],
+    '/dms' => ['/kontakt', 'DMS-Use-Case besprechen'],
+];
+[$heroSecondaryHref, $heroSecondaryLabel] = $heroSecondaryByPath[$path] ?? ['/leistungen', 'Leistungen entdecken'];
+$mobileActionByPath = [
+    '/' => ['/kontakt', 'Erstgespräch'],
+    '/leistungen' => ['/referenzen', 'Referenzen'],
+    '/referenzen' => ['/kontakt', 'Projektstart'],
+    '/login' => ['/kontakt', 'Pilotzugang'],
+    '/dms' => ['/kontakt', 'DMS-Anfrage'],
+];
+[$mobileActionHref, $mobileActionLabel] = $mobileActionByPath[$path] ?? ['/kontakt', 'Erstgespräch'];
 
 function e(string $value): string
 {
@@ -160,7 +177,7 @@ function navLink(string $href, string $label, string $currentPath): string
                 <p class="lead"><?= e($page['intro']) ?></p>
                 <div class="hero-actions">
                     <a class="btn btn-primary" href="/kontakt">Kostenloses Erstgespräch anfragen</a>
-                    <a class="btn btn-secondary" href="/leistungen">Leistungen entdecken</a>
+                    <a class="btn btn-secondary" href="<?= e($heroSecondaryHref) ?>"><?= e($heroSecondaryLabel) ?></a>
                 </div>
                 <?php if ($path === '/'): ?>
                     <div class="hero-metrics" aria-label="Wertversprechen">
@@ -391,7 +408,7 @@ function navLink(string $href, string $label, string $currentPath): string
 <div class="mobile-action-bar" aria-label="Schnellaktionen">
     <a href="/leistungen">Leistungen</a>
     <a href="/kontakt">Kontakt</a>
-    <a href="/kontakt">Erstgespräch</a>
+    <a href="<?= e($mobileActionHref) ?>"><?= e($mobileActionLabel) ?></a>
 </div>
 
 <script src="/assets/js/app.js" defer></script>
