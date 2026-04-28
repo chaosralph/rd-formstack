@@ -5,6 +5,11 @@ Status: `provisional`
 Note: `Final GitHub/Connector re-validation pending RDFA-32/40/42`
 Status: conditional_accept (temporaerer Fallback gemaess RDFA-44)
 
+## RDFA-45 Konsolidiertes Zwischenpaket
+Aktueller konsolidierter Snapshot fuer RDFA-25/26:
+- `docs/RDFA-45-PROVISIONAL-CI-RELEASE-EVIDENCE-PACKAGE.md`
+- Artefakte: `docs/evidence/rdfa-45/` (Timestamp: `2026-04-28T23:38:36Z`)
+
 ## Temporärer Fallback-Status (RDFA-44)
 Da der externe GitHub-Access-Blocker weiterhin aktiv ist, gilt bis zum Unblock:
 1. Lokale CI-Checks sind die verbindliche technische Mindest-Evidence.

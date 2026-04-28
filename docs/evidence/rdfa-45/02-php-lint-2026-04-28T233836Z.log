@@ -1,0 +1,17 @@
+timestamp_utc=2026-04-28T233836Z
+command=bash scripts/ci/php-lint.sh
+lint OK: config/database.php
+lint OK: config/env.php
+lint OK: public/index.php
+lint OK: src/Bootstrap/AppBootstrap.php
+lint OK: src/Database/Connection.php
+lint OK: src/Http/ContactController.php
+lint OK: src/Http/ErrorHandler.php
+lint OK: src/Http/Request.php
+lint OK: src/Http/Response.php
+lint OK: src/Http/Routing/RouteCatalog.php
+lint OK: src/Repository/ContactRepository.php
+lint OK: src/Security/Csrf.php
+lint OK: src/Support/Logger.php
+lint OK: src/View/HomepageContent.php
+Linted 14 PHP files successfully.

@@ -1,0 +1,12 @@
+timestamp_utc=2026-04-28T233836Z
+command=bash scripts/check-runtime.sh
+[RDFA-22] Runtime Readiness Check
+- Checking Git trusted directory
+  OK: safe.directory contains /paperclip/workspaces/rd-formstack-solutions
+- Checking PHP
+PHP 8.4.16 (cli) (built: Dec 18 2025 21:19:25) (NTS)
+- Checking Composer
+Composer version 2.8.8 2025-04-04 16:56:46
+- Checking write permissions
+  OK: repository is writable
+\nResult: READY

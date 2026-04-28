@@ -1,0 +1,11 @@
+timestamp_utc=2026-04-28T233836Z
+command=bash scripts/check-rdfa40-unblock.sh
+[RDFA-40] Unblock Verification
+Timestamp: 2026-04-28T23:38:38Z
+FAIL: GitHub CLI access checks
+FAIL: Git push dry-run (refs/heads/rdfa-40-access-check)
+---
+Summary: 0 PASS / 2 FAIL
+Logs:
+- /paperclip/workspaces/rd-formstack-solutions/artifacts/infra-access/github-access-check-rdfa40.log
+- /paperclip/workspaces/rd-formstack-solutions/artifacts/infra-access/git-push-dry-run-rdfa40.log

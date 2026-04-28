@@ -4,6 +4,11 @@ Stand: 2026-04-28 (UTC)
 Status: provisional
 Note: Final GitHub/Connector re-validation pending RDFA-32/40/42.
 
+## RDFA-45 Konsolidiertes Zwischenpaket
+Aktueller konsolidierter Snapshot fuer RDFA-25/26:
+- `docs/RDFA-45-PROVISIONAL-CI-RELEASE-EVIDENCE-PACKAGE.md`
+- Artefakte: `docs/evidence/rdfa-45/` (Timestamp: `2026-04-28T23:38:36Z`)
+
 ## Temporärer Fallback-Status (RDFA-44)
 Bis zur Aufloesung des GitHub-Access-Blockers gilt:
 1. Lokale Release-Hygiene-Nachweise (Commitstand, QA-Checks, Runtime-Checks) bleiben verbindlich.
