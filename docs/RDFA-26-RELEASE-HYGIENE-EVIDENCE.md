@@ -33,8 +33,9 @@ Nachvollziehbare Nachweise für sauberen Release-Stand: Commit-Historie, QA-Prü
 - PR-/Review-Nachweis erfolgt im Git-Hosting-System nach Push (außerhalb dieses lokalen Workspaces).
 
 ## Tag-Evidenz
-- Geplanter Hygiene-Tag: `rdfa-26-release-hygiene-2026-04-28`
-- Zweck: Markierung des dokumentierten Hygiene-Zwischenstands.
+1. `rdfa-26-release-hygiene-2026-04-28` - initialer Hygiene-Zwischenstand
+2. `rdfa-26-release-hygiene-final-2026-04-28` - finalisierter lokaler Hygiene-Stand
+3. `rdfa-26-release-hygiene-provisional-2026-04-28` - aktueller CTO-provisional Snapshot (RDFA-44)
 
 ## Access Re-Validation (RDFA-40 Bezug)
 Stand: 2026-04-28T18:56:17Z
