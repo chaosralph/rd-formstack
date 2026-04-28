@@ -7,6 +7,39 @@ namespace App\View;
 final class HomepageContent
 {
     /**
+     * @return array{0:string,1:string}
+     */
+    public static function heroSecondaryCta(string $path): array
+    {
+        $map = [
+            '/' => ['/leistungen', 'Leistungen entdecken'],
+            '/leistungen' => ['/referenzen', 'Referenzen ansehen'],
+            '/referenzen' => ['/kontakt', 'Projektanfrage starten'],
+            '/kontakt' => ['/leistungen', 'Leistungen entdecken'],
+            '/login' => ['/kontakt', 'Pilotzugang anfragen'],
+            '/dms' => ['/kontakt', 'DMS-Use-Case besprechen'],
+        ];
+
+        return $map[$path] ?? ['/leistungen', 'Leistungen entdecken'];
+    }
+
+    /**
+     * @return array{0:string,1:string}
+     */
+    public static function mobileActionCta(string $path): array
+    {
+        $map = [
+            '/' => ['/kontakt', 'Erstgespräch'],
+            '/leistungen' => ['/referenzen', 'Referenzen'],
+            '/referenzen' => ['/kontakt', 'Projektstart'],
+            '/login' => ['/kontakt', 'Pilotzugang'],
+            '/dms' => ['/kontakt', 'DMS-Anfrage'],
+        ];
+
+        return $map[$path] ?? ['/kontakt', 'Erstgespräch'];
+    }
+
+    /**
      * @return list<array{title:string,description:string}>
      */
     public static function services(): array

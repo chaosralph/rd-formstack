@@ -86,23 +86,8 @@ $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
 $metaTitle = $siteName . ' | ' . $page['title'];
-$heroSecondaryByPath = [
-    '/' => ['/leistungen', 'Leistungen entdecken'],
-    '/leistungen' => ['/referenzen', 'Referenzen ansehen'],
-    '/referenzen' => ['/kontakt', 'Projektanfrage starten'],
-    '/kontakt' => ['/leistungen', 'Leistungen entdecken'],
-    '/login' => ['/kontakt', 'Pilotzugang anfragen'],
-    '/dms' => ['/kontakt', 'DMS-Use-Case besprechen'],
-];
-[$heroSecondaryHref, $heroSecondaryLabel] = $heroSecondaryByPath[$path] ?? ['/leistungen', 'Leistungen entdecken'];
-$mobileActionByPath = [
-    '/' => ['/kontakt', 'Erstgespräch'],
-    '/leistungen' => ['/referenzen', 'Referenzen'],
-    '/referenzen' => ['/kontakt', 'Projektstart'],
-    '/login' => ['/kontakt', 'Pilotzugang'],
-    '/dms' => ['/kontakt', 'DMS-Anfrage'],
-];
-[$mobileActionHref, $mobileActionLabel] = $mobileActionByPath[$path] ?? ['/kontakt', 'Erstgespräch'];
+[$heroSecondaryHref, $heroSecondaryLabel] = HomepageContent::heroSecondaryCta($path);
+[$mobileActionHref, $mobileActionLabel] = HomepageContent::mobileActionCta($path);
 
 function e(string $value): string
 {
