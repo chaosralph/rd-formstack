@@ -1,7 +1,8 @@
 # RDFA-26 / RDFA-25 Release-Hygiene Evidence
 
 Stand: 2026-04-28 (UTC)
-Status: conditional_accept (temporaerer Fallback gemaess RDFA-44)
+Status: provisional
+Note: Final GitHub/Connector re-validation pending RDFA-32/40/42.
 
 ## Temporärer Fallback-Status (RDFA-44)
 Bis zur Aufloesung des GitHub-Access-Blockers gilt:
@@ -65,4 +66,17 @@ Fehlende Admin-Schritte:
 1. Access-Revalidation ohne FAIL (`scripts/check-rdfa40-unblock.sh` Exit `0`).
 2. Push/PR/Workflow-Evidence fuer den finalen Hygiene-Stand dokumentiert.
 3. Tag-Strategie auf tatsaechlich erstellten Tag aktualisiert.
-4. Statuswechsel dieses Dokuments von `conditional_accept` auf `final_accept`.
+4. Statuswechsel dieses Dokuments von `provisional` auf `final_accept`.
+
+## Provisional local evidence snapshot
+Timestamp (UTC): 2026-04-28T19:55:08Z
+
+Executed commands:
+1. `git status --short`
+2. `git rev-parse --short HEAD`
+3. `git tag --list 'rdfa-26-release-hygiene*' --sort=-creatordate`
+4. `bash scripts/check-runtime.sh`
+5. `command -v gh || true`
+
+Artifact path:
+- `docs/evidence/rdfa-26/provisional-local-evidence-2026-04-28T1955Z.log`
