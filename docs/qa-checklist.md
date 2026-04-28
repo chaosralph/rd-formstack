@@ -81,33 +81,32 @@ grep -RIn --exclude-dir=.git -E "(eval\(|shell_exec\(|exec\(|system\(|passthru\(
 ## 4) Smoke-Ausführung 2026-04-28 (Pflichtpunkte)
 
 ### 4.1 Responsive Smoke 360/768/1280
-- Status: **FAIL (blockiert)**
+- Status: **PASS**
 - Evidenz:
-  1. Lokaler Start: `php -S 127.0.0.1:8000 -t public`
-  2. Request: `curl -i http://127.0.0.1:8000/`
-  3. Ergebnis: `HTTP/1.0 500 Internal Server Error`
-  4. Server-Log: `PDOException SQLSTATE[HY000] [2002] Connection refused` in `src/Database/Connection.php:19`
-- Bewertung: Responsive-Verifikation nicht durchführbar, da keine renderbare Seite vorliegt.
+  1. Script: `bash scripts/ci/responsive-evidence.sh`
+  2. Ergebnis: `Responsive evidence created in .../artifacts/qa/responsive`
+  3. Artefakte:
+     - `artifacts/qa/responsive/home-360x800.png`
+     - `artifacts/qa/responsive/home-768x1024.png`
+     - `artifacts/qa/responsive/home-1280x800.png`
+     - `artifacts/qa/responsive/kontakt-360x800.png`
+     - `artifacts/qa/responsive/report.txt`
+- Bewertung: Viewport-basierte Browser-Evidence ist reproduzierbar erzeugt.
 
 ### 4.2 Accessibility Smoke (Keyboard + sichtbare Fokuszustände)
-- Status: **FAIL (blockiert)**
+- Status: **OFFEN (manueller Pflichtschritt)**
 - Evidenz:
-  1. Voraussetzung für Keyboard/Fokus-Smoke ist eine erfolgreich geladene Seite.
-  2. Aktueller Lauf endet bei `HTTP 500` wegen DB-Verbindungsfehler.
-- Bewertung: Accessibility-Smoke kann nicht valide ausgeführt werden.
-
-### 4.3 Browser-Automation
-- Status: **BLOCKER dokumentiert**
-- Evidenz:
-  1. Playwright CLI ist verfügbar: `npx --yes playwright --version` -> `Version 1.59.1`
-  2. Technischer Blocker bleibt unabhängig von Automation bestehen, da die Applikation wegen DB-Connection-Fehler nicht rendert.
+  1. Seite rendert in allen Smoke-Routen mit `200` (`bash scripts/ci/smoke-routes.sh`).
+  2. Fokus-Styles sind im Stylesheet definiert (`a/button/input/textarea:focus-visible`).
+  3. Keyboard- und Skip-Link-Prüfung muss im Zielbrowser noch manuell protokolliert werden.
+- Bewertung: Kein Runtime-Blocker mehr vorhanden; finale Accessibility-Freigabe bleibt manuell.
 
 ## 5) Freigabeentscheidung P0
 
-Aktueller Status: **FAIL (NO-GO)**
+Aktueller Status: **TEILWEISE PASS / GO AUSSTEHEND**
 
 Begründung:
-- Technische Basischecks sind bestanden.
-- Pflicht-Smokes sind versucht und durch Runtime-Blocker fehlgeschlagen (`HTTP 500`, DB Connection refused).
+- Runtime-, Lint-, Security- und Responsive-Pflichtprüfungen sind bestanden.
+- Einzig der manuelle Accessibility-Smoke (Keyboard/Fokus im Zielbrowser) ist noch offen.
 
-Freigabe auf **PASS/GO** erst nach behobenem Runtime-Blocker und erneut erfolgreich durchgeführten Pflicht-Smokes.
+Freigabe auf **PASS/GO** nach dokumentierter manueller Accessibility-Prüfung.
