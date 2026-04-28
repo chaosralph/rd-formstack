@@ -333,11 +333,12 @@ function navLink(string $href, string $label, string $currentPath): string
                 <form method="post" action="/kontakt" id="contact-form" class="form-card" novalidate>
                     <input type="hidden" name="_action" value="contact.submit">
                     <input type="hidden" name="_csrf" value="<?= e(Csrf::token()) ?>">
+                    <p id="required-note" class="required-note">Felder mit <span class="req" aria-hidden="true">*</span> sind Pflichtfelder.</p>
 
                     <div class="form-grid">
                         <div class="field">
                             <label for="name">Name <span class="req" aria-hidden="true">*</span></label>
-                            <input id="name" name="name" required value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
+                            <input id="name" name="name" required aria-describedby="required-note" value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
                         </div>
 
                         <div class="field">
@@ -347,7 +348,7 @@ function navLink(string $href, string $label, string $currentPath): string
 
                         <div class="field">
                             <label for="email">E-Mail <span class="req" aria-hidden="true">*</span></label>
-                            <input id="email" name="email" type="email" required value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">
+                            <input id="email" name="email" type="email" required aria-describedby="required-note" value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">
                         </div>
 
                         <div class="field">
@@ -357,7 +358,7 @@ function navLink(string $href, string $label, string $currentPath): string
                     </div>
 
                     <label for="message">Nachricht <span class="req" aria-hidden="true">*</span></label>
-                    <textarea id="message" name="message" rows="5" required><?= e((string) ($old['message'] ?? '')) ?></textarea>
+                    <textarea id="message" name="message" rows="5" required aria-describedby="required-note"><?= e((string) ($old['message'] ?? '')) ?></textarea>
 
                     <button class="btn btn-primary" type="submit">Projektanfrage senden</button>
                 </form>

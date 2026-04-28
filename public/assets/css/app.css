@@ -553,6 +553,12 @@ label {
     color: #9d1e1e;
 }
 
+.required-note {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
 .form-grid {
     display: grid;
     gap: 12px;

@@ -1,6 +1,16 @@
 # RDFA-26 / RDFA-25 Release-Hygiene Evidence
 
 Stand: 2026-04-28 (UTC)
+Status: conditional_accept (temporaerer Fallback gemaess RDFA-44)
+
+## Temporärer Fallback-Status (RDFA-44)
+Bis zur Aufloesung des GitHub-Access-Blockers gilt:
+1. Lokale Release-Hygiene-Nachweise (Commitstand, QA-Checks, Runtime-Checks) bleiben verbindlich.
+2. Remote-/PR-/Workflow-Nachweise sind nachziehpflichtig, sobald Access verfuegbar ist.
+3. Abschluss als `done` ist ohne Nachzug nicht zulaessig.
+
+Referenz:
+- `docs/RDFA-44-CTO-DECISION-TEMP-FALLBACK-RDFA25-26.md`
 
 ## Ziel
 Nachvollziehbare Nachweise für sauberen Release-Stand: Commit-Historie, QA-Prüfung, Tag-Markierung.
@@ -50,3 +60,9 @@ Fehlende Admin-Schritte:
 1. Infra/DevOps: `gh` Auth/API in Runtime aktivieren.
 2. Infra/DevOps: HTTPS Credential Flow fuer Git (`git ls-remote`/`git push`) aktivieren.
 3. GitHub Org/App Admin: Connector-Installation inkl. Repo-Scope fuer `chaosralph/rd-formstack` freischalten.
+
+## Exit criteria for final_accept
+1. Access-Revalidation ohne FAIL (`scripts/check-rdfa40-unblock.sh` Exit `0`).
+2. Push/PR/Workflow-Evidence fuer den finalen Hygiene-Stand dokumentiert.
+3. Tag-Strategie auf tatsaechlich erstellten Tag aktualisiert.
+4. Statuswechsel dieses Dokuments von `conditional_accept` auf `final_accept`.
