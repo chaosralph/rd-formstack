@@ -659,6 +659,10 @@ textarea:focus {
 }
 
 @media (max-width: 760px) {
+    body.nav-open {
+        overflow: hidden;
+    }
+
     body {
         font-size: 1rem;
         padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
