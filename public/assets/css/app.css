@@ -125,13 +125,20 @@ textarea:focus-visible {
     gap: 22px;
 }
 
-.main-nav > a {
+.nav-link {
     font-weight: 600;
     color: var(--muted);
 }
 
-.main-nav > a:hover {
+.nav-link:hover {
     color: var(--primary);
+}
+
+.nav-link.is-active {
+    color: var(--primary);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 7px;
 }
 
 .nav-toggle {
@@ -156,6 +163,10 @@ textarea:focus-visible {
     gap: 26px;
     grid-template-columns: 1.35fr 0.95fr;
     align-items: center;
+}
+
+.hero-grid-single {
+    grid-template-columns: 1fr;
 }
 
 .eyebrow {
@@ -474,6 +485,10 @@ textarea:focus {
         flex-direction: column;
         gap: 12px;
         align-items: flex-start;
+    }
+
+    .nav-link.is-active {
+        text-underline-offset: 4px;
     }
 
     .main-nav.open {
