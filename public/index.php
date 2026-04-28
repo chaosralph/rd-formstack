@@ -383,7 +383,8 @@ function navLink(string $href, string $label, string $currentPath): string
                     </div>
 
                     <label for="message">Nachricht <span class="req" aria-hidden="true">*</span></label>
-                    <textarea id="message" name="message" rows="5" required aria-describedby="required-note"><?= e((string) ($old['message'] ?? '')) ?></textarea>
+                    <textarea id="message" name="message" rows="5" maxlength="6000" required aria-describedby="required-note message-counter"><?= e((string) ($old['message'] ?? '')) ?></textarea>
+                    <p id="message-counter" class="char-counter" aria-live="polite">0 / 6000 Zeichen</p>
 
                     <button class="btn btn-primary" type="submit">Projektanfrage senden</button>
                 </form>

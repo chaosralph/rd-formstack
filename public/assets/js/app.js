@@ -102,6 +102,18 @@
         return;
     }
 
+    const messageInput = document.getElementById('message');
+    const messageCounter = document.getElementById('message-counter');
+    if (messageInput instanceof HTMLTextAreaElement && messageCounter) {
+        const maxLength = Number(messageInput.getAttribute('maxlength') || '6000');
+        const updateCounter = () => {
+            messageCounter.textContent = `${messageInput.value.length} / ${maxLength} Zeichen`;
+        };
+
+        updateCounter();
+        messageInput.addEventListener('input', updateCounter);
+    }
+
     form.addEventListener('submit', (event) => {
         if (!form.checkValidity()) {
             event.preventDefault();
