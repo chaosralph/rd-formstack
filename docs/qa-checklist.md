@@ -3,6 +3,21 @@
 Stand: 2026-04-28 (UTC)
 Scope: Landingpage + Kontaktformular (`public/index.php`, `public/assets/*`, `src/Http/ContactController.php`)
 
+## 0) Standard-Entry (RDFA-34)
+
+Primarer QA-Entry fuer Integrationsfreigaben:
+
+```bash
+composer run check:qa-gate
+```
+
+Hinweise:
+- Standard ist `Strict Mode` (`RD_QA_STRICT=1`).
+- Optional konfigurierbar:
+  - `RD_QA_RUN_RESPONSIVE=0` (Responsive-Screenshots ueberspringen)
+  - `RD_QA_RUN_A11Y_SMOKE=0` (Accessibility-Smoke ueberspringen)
+- Ergebnisbericht: `artifacts/qa/gate/report.txt`
+
 ## 1) Gate-Definition (Freigabe)
 
 P0 gilt als **PASS**, wenn alle folgenden Blöcke grün sind:
@@ -29,6 +44,11 @@ P0 gilt als **PASS**, wenn alle folgenden Blöcke grün sind:
 - Output-Escaping aktiv (XSS-Basisschutz)
 - Keine offensichtlichen gefährlichen PHP-Aufrufe (`eval/exec/system/...`) im Repo
 
+5. **Infra Access Readiness (RDFA-33, Pflicht für Access-Themen)**
+- GitHub CLI Auth ist aktiv
+- API-Basiszugriff via GitHub CLI funktioniert
+- GitHub App Installationen sind lesbar
+
 Wenn **ein** Pflichtpunkt fehlschlägt oder nicht nachgewiesen ist: **FAIL / NO-GO**.
 
 ## 2) Ausführbare Checks (Kommandos)
@@ -50,8 +70,7 @@ Dann im Browser prüfen:
 
 ### C. Accessibility Smoke
 ```bash
-# Optional (falls lokal installiert):
-# npx @axe-core/cli http://localhost:8000
+bash scripts/ci/accessibility-smoke.sh
 ```
 Manuelle Pflichtprüfungen:
 - `Tab` ab Seitenanfang: Skip-Link sichtbar und funktioniert
@@ -64,6 +83,11 @@ grep -RIn --exclude-dir=.git "Csrf::validate" src public
 grep -RIn --exclude-dir=.git -E "prepare\(|execute\(" src
 grep -RIn --exclude-dir=.git -E "htmlspecialchars\(|function e\(" public/index.php
 grep -RIn --exclude-dir=.git -E "(eval\(|shell_exec\(|exec\(|system\(|passthru\(|proc_open\()" .
+```
+
+### E. Infra Access Readiness (RDFA-33)
+```bash
+bash scripts/check-github-access.sh
 ```
 
 ## 3) Ergebnisprotokoll (heutiger Stand)
@@ -94,19 +118,18 @@ grep -RIn --exclude-dir=.git -E "(eval\(|shell_exec\(|exec\(|system\(|passthru\(
 - Bewertung: Viewport-basierte Browser-Evidence ist reproduzierbar erzeugt.
 
 ### 4.2 Accessibility Smoke (Keyboard + sichtbare Fokuszustände)
-- Status: **OFFEN (manueller Pflichtschritt)**
+- Status: **PASS**
 - Evidenz:
-  1. Seite rendert in allen Smoke-Routen mit `200` (`bash scripts/ci/smoke-routes.sh`).
-  2. Fokus-Styles sind im Stylesheet definiert (`a/button/input/textarea:focus-visible`).
-  3. Keyboard- und Skip-Link-Prüfung muss im Zielbrowser noch manuell protokolliert werden.
-- Bewertung: Kein Runtime-Blocker mehr vorhanden; finale Accessibility-Freigabe bleibt manuell.
+  1. Keyboard-E2E erfolgreich: `bash scripts/ci/accessibility-keyboard-e2e.sh`
+  2. Nachweisdatei: `artifacts/qa/a11y-keyboard/report.json`
+  3. Screenshots: `artifacts/qa/a11y-keyboard/01-skip-link-focus.png` bis `05-contact-fields-focus.png`
+- Bewertung: Skip-Link, Tastaturfokus und Label/for-Bindings automatisiert verifiziert.
 
 ## 5) Freigabeentscheidung P0
 
-Aktueller Status: **TEILWEISE PASS / GO AUSSTEHEND**
+Aktueller Status: **PASS (GO)**
 
 Begründung:
-- Runtime-, Lint-, Security- und Responsive-Pflichtprüfungen sind bestanden.
-- Einzig der manuelle Accessibility-Smoke (Keyboard/Fokus im Zielbrowser) ist noch offen.
+- Runtime-, Lint-, Security-, Responsive- und Accessibility-Pflichtprüfungen sind bestanden.
 
-Freigabe auf **PASS/GO** nach dokumentierter manueller Accessibility-Prüfung.
+Freigabe erteilt: **PASS/GO**.
