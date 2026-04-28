@@ -8,6 +8,7 @@ use App\Http\ContactController;
 use App\Http\Request;
 use App\Repository\ContactRepository;
 use App\Security\Csrf;
+use App\View\HomepageContent;
 
 session_start();
 
@@ -41,6 +42,12 @@ $flashError = $_SESSION['flash_error'] ?? null;
 $flashSuccess = $_SESSION['flash_success'] ?? null;
 $old = $_SESSION['old'] ?? [];
 unset($_SESSION['flash_error'], $_SESSION['flash_success']);
+
+$services = HomepageContent::services();
+$references = HomepageContent::references();
+$processSteps = HomepageContent::processSteps();
+$loginFeatures = HomepageContent::loginFeatures();
+$dmsRoadmap = HomepageContent::dmsRoadmap();
 
 function e(string $value): string
 {
@@ -86,7 +93,7 @@ function e(string $value): string
             <div>
                 <p class="eyebrow">Digitale Lösungen für klare Abläufe</p>
                 <h1>Webentwicklung, Belegverwaltung und DMS für belastbare Geschäftsprozesse</h1>
-                <p class="lead">Wir entwickeln professionelle Web- und Prozesslösungen, die Fachbereiche sofort nutzen können: verständlich, wartbar und technisch realistisch umgesetzt.</p>
+                <p class="lead">Wir unterstützen B2B-Teams dabei, manuelle Abläufe in robuste digitale Prozesse zu überführen: mit klarer Nutzerführung, wartbarer Architektur und messbarem operativem Nutzen.</p>
                 <div class="hero-actions">
                     <a class="btn btn-primary" href="#kontakt">Projekt anfragen</a>
                     <a class="btn btn-secondary" href="#leistungen">Leistungen ansehen</a>
@@ -103,49 +110,36 @@ function e(string $value): string
         </div>
     </section>
 
+    <section class="trust-strip" aria-label="Projektfokus">
+        <div class="shell trust-grid">
+            <div class="trust-item">
+                <strong>Webentwicklung</strong>
+                <span>Strukturierte Informationsarchitektur und klare Frontend-Flows</span>
+            </div>
+            <div class="trust-item">
+                <strong>Digitale Prozesse</strong>
+                <span>Weniger manuelle Übergaben und transparentere Abläufe</span>
+            </div>
+            <div class="trust-item">
+                <strong>Beleg &amp; DMS</strong>
+                <span>Saubere Dokumentenstrecken mit hoher Nachvollziehbarkeit</span>
+            </div>
+        </div>
+    </section>
+
     <section id="leistungen" class="section">
         <div class="shell">
             <p class="eyebrow">Leistungsbereiche</p>
             <h2>Von der Konzeption bis zur produktiven Lösung</h2>
             <p class="section-intro">Vier Bausteine für moderne Web- und Dokumentenprozesse mit klarer Verantwortung und guter Bedienbarkeit.</p>
             <div class="card-grid">
-                <article class="card">
-                    <h3>Webentwicklung</h3>
-                    <p>Performante Websites und Anwendungen mit intuitiver Navigation, klarer Struktur und langlebiger Codebasis.</p>
-                </article>
-                <article class="card">
-                    <h3>Digitale Lösungen</h3>
-                    <p>Individuelle Workflows und Integrationen, die manuelle Übergaben reduzieren und den Prozessfluss verbessern.</p>
-                </article>
-                <article class="card">
-                    <h3>Belegverwaltung</h3>
-                    <p>Nachvollziehbare Erfassung und Zuordnung von Belegen für schnellere Bearbeitung und höhere Datenqualität.</p>
-                </article>
-                <article class="card">
-                    <h3>DMS</h3>
-                    <p>Dokumentenmanagement mit klaren Rollen, hoher Auffindbarkeit und konsistenten Freigabestrecken.</p>
-                </article>
+                <?php foreach ($services as $service): ?>
+                    <article class="card">
+                        <h3><?= e($service['title']) ?></h3>
+                        <p><?= e($service['description']) ?></p>
+                    </article>
+                <?php endforeach; ?>
             </div>
-        </div>
-    </section>
-
-    <section id="loesungen" class="section section-alt">
-        <div class="shell split-grid">
-            <div>
-                <p class="eyebrow">Lösungen</p>
-                <h2>Digitalisierung, die operativ funktioniert</h2>
-                <p>Wir verbinden Frontend, Geschäftslogik und Dokumentenprozesse zu einem robusten System für Teams in Verwaltung, Backoffice und operativen Einheiten.</p>
-                <ul class="feature-list">
-                    <li>Klarer Status über alle Bearbeitungsschritte</li>
-                    <li>Weniger Medienbrüche im Prozess</li>
-                    <li>Schneller Zugriff auf relevante Informationen</li>
-                </ul>
-            </div>
-            <aside class="callout-card">
-                <h3>Typische Ergebnisse</h3>
-                <p>Kürzere Durchlaufzeiten, bessere Datenqualität und verlässlichere Übergaben zwischen Abteilungen.</p>
-                <a class="text-link" href="#kontakt">Unverbindliches Erstgespräch anfragen</a>
-            </aside>
         </div>
     </section>
 
@@ -155,18 +149,12 @@ function e(string $value): string
             <h2>Ausgewählte Projektbeispiele</h2>
             <p class="section-intro">Drei typische Kontexte, in denen wir Webentwicklung, Prozesslogik und Dokumentenmanagement wirksam zusammenführen.</p>
             <div class="reference-grid">
-                <article class="card reference-card">
-                    <h3>Mittelstand Backoffice</h3>
-                    <p>Digitale Eingangsverarbeitung für Belege und Anfragen mit klarer Priorisierung und reduziertem Abstimmungsaufwand.</p>
-                </article>
-                <article class="card reference-card">
-                    <h3>Service-Organisation</h3>
-                    <p>Webbasiertes Arbeitsboard für Status, Verantwortlichkeiten und Übergaben zwischen Fachabteilungen.</p>
-                </article>
-                <article class="card reference-card">
-                    <h3>Verwaltung & Dokumente</h3>
-                    <p>Vereinheitlichte Dokumentenablage mit nachvollziehbaren Freigaben und schneller Auffindbarkeit.</p>
-                </article>
+                <?php foreach ($references as $reference): ?>
+                    <article class="card reference-card">
+                        <h3><?= e($reference['title']) ?></h3>
+                        <p><?= e($reference['description']) ?></p>
+                    </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
@@ -181,9 +169,9 @@ function e(string $value): string
             <aside class="placeholder-card" aria-label="Login-Platzhalter">
                 <h3>Geplante Funktionen</h3>
                 <ul class="feature-list">
-                    <li>Benutzerverwaltung mit Rollenmodell</li>
-                    <li>Übersicht offener Vorgänge</li>
-                    <li>Direkte Kommunikation zu Projekten</li>
+                    <?php foreach ($loginFeatures as $feature): ?>
+                        <li><?= e($feature) ?></li>
+                    <?php endforeach; ?>
                 </ul>
             </aside>
         </div>
@@ -199,44 +187,31 @@ function e(string $value): string
             <aside class="placeholder-card" aria-label="DMS-Platzhalter">
                 <h3>Nächste Ausbaustufen</h3>
                 <ul class="feature-list">
-                    <li>Suche und Filter für Dokumente</li>
-                    <li>Versions- und Freigabeprotokolle</li>
-                    <li>Import/Export über definierte Schnittstellen</li>
+                    <?php foreach ($dmsRoadmap as $item): ?>
+                        <li><?= e($item) ?></li>
+                    <?php endforeach; ?>
                 </ul>
             </aside>
         </div>
     </section>
 
-    <section id="prozess" class="section">
+    <section id="prozess" class="section section-alt">
         <div class="shell">
             <p class="eyebrow">Vorgehen</p>
             <h2>Strukturiertes Vorgehen mit klaren Meilensteinen</h2>
             <div class="steps-grid">
-                <article class="step-card">
-                    <span>1</span>
-                    <h3>Analyse</h3>
-                    <p>Ziele, Ist-Prozesse und technische Rahmenbedingungen erfassen.</p>
-                </article>
-                <article class="step-card">
-                    <span>2</span>
-                    <h3>Konzept</h3>
-                    <p>Nutzerführung, Informationsstruktur und Integrationslogik definieren.</p>
-                </article>
-                <article class="step-card">
-                    <span>3</span>
-                    <h3>Umsetzung</h3>
-                    <p>Schrittweise Entwicklung mit transparenten Übergaben und kurzer Feedbackschleife.</p>
-                </article>
-                <article class="step-card">
-                    <span>4</span>
-                    <h3>Optimierung</h3>
-                    <p>Feinschliff auf Basis realer Nutzung und betrieblicher Anforderungen.</p>
-                </article>
+                <?php foreach ($processSteps as $index => $step): ?>
+                    <article class="step-card">
+                        <span><?= $index + 1 ?></span>
+                        <h3><?= e($step['title']) ?></h3>
+                        <p><?= e($step['description']) ?></p>
+                    </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
 
-    <section id="kontakt" class="section section-alt">
+    <section id="kontakt" class="section">
         <div class="shell contact-layout">
             <div>
                 <p class="eyebrow">Kontakt</p>
@@ -257,13 +232,19 @@ function e(string $value): string
                 <input type="hidden" name="_csrf" value="<?= e(Csrf::token()) ?>">
 
                 <label for="name">Name</label>
-                <input id="name" name="name" required value="<?= e((string)($old['name'] ?? '')) ?>" autocomplete="name">
+                <input id="name" name="name" required value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
+
+                <label for="company">Unternehmen</label>
+                <input id="company" name="company" required value="<?= e((string) ($old['company'] ?? '')) ?>" autocomplete="organization">
 
                 <label for="email">E-Mail</label>
-                <input id="email" name="email" type="email" required value="<?= e((string)($old['email'] ?? '')) ?>" autocomplete="email">
+                <input id="email" name="email" type="email" required value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">
+
+                <label for="phone">Telefon (optional)</label>
+                <input id="phone" name="phone" type="tel" value="<?= e((string) ($old['phone'] ?? '')) ?>" autocomplete="tel">
 
                 <label for="message">Nachricht</label>
-                <textarea id="message" name="message" rows="5" required><?= e((string)($old['message'] ?? '')) ?></textarea>
+                <textarea id="message" name="message" rows="5" required><?= e((string) ($old['message'] ?? '')) ?></textarea>
 
                 <button class="btn btn-primary" type="submit">Nachricht senden</button>
             </form>
@@ -277,6 +258,8 @@ function e(string $value): string
         <a href="#top">Nach oben</a>
     </div>
 </footer>
+
+<a class="floating-cta" href="#kontakt">Projektanfrage</a>
 
 <script src="/assets/js/app.js" defer></script>
 </body>

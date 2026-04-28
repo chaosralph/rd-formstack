@@ -8,11 +8,36 @@
             navToggle.setAttribute('aria-expanded', String(open));
         });
 
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                mainNav.classList.remove('open');
+                navToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+            if (!mainNav.contains(target) && !navToggle.contains(target)) {
+                mainNav.classList.remove('open');
+                navToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
         mainNav.querySelectorAll('a').forEach((link) => {
             link.addEventListener('click', () => {
                 mainNav.classList.remove('open');
                 navToggle.setAttribute('aria-expanded', 'false');
             });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 760) {
+                mainNav.classList.remove('open');
+                navToggle.setAttribute('aria-expanded', 'false');
+            }
         });
     }
 
