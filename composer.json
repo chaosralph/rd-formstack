@@ -14,6 +14,9 @@
     }
   },
   "scripts": {
-    "check:runtime": "bash scripts/check-runtime.sh"
+    "check:runtime": "bash scripts/check-runtime.sh",
+    "check:php-lint": "bash scripts/ci/php-lint.sh",
+    "check:smoke-routes": "bash scripts/ci/smoke-routes.sh",
+    "check:qa-gate": "bash scripts/ci/qa-gate.sh"
   }
 }
