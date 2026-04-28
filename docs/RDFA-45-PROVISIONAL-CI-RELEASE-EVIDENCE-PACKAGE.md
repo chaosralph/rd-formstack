@@ -31,6 +31,13 @@ Quelle: `docs/evidence/rdfa-45/`
 4. Runtime Readiness: `04-runtime-check-2026-04-28T233836Z.log` -> `Result: READY`
 5. Access Revalidation: `05-access-revalidation-2026-04-28T233836Z.log` -> `Summary: 0 PASS / 2 FAIL`
 
+## CTO-Kickoff Artefakte unter artifacts/ (2026-04-28T23:41:41Z)
+Quelle: `artifacts/rdfa-45/`
+
+1. RDFA-25 lokale CI-Evidence: `rdfa-25-local-ci-2026-04-28T234141Z.log`
+2. RDFA-26 lokale Release-Hygiene-Evidence: `rdfa-26-release-hygiene-2026-04-28T234141Z.log`
+3. Markierung bleibt explizit `provisional`, finaler External-Check pending `RDFA-32/40/42`.
+
 ## Blockerlage
 Aktuell fehlend:
 1. GitHub Auth/API fuer Runtime (`git ls-remote`, `git push --dry-run`).

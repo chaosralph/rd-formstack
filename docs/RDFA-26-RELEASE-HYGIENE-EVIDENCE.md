@@ -8,6 +8,7 @@ Note: Final GitHub/Connector re-validation pending RDFA-32/40/42.
 Aktueller konsolidierter Snapshot fuer RDFA-25/26:
 - `docs/RDFA-45-PROVISIONAL-CI-RELEASE-EVIDENCE-PACKAGE.md`
 - Artefakte: `docs/evidence/rdfa-45/` (Timestamp: `2026-04-28T23:38:36Z`)
+- Artefakte (CTO-Kickoff 2026-04-29): `artifacts/rdfa-45/rdfa-26-release-hygiene-2026-04-28T234141Z.log`
 
 ## Temporärer Fallback-Status (RDFA-44)
 Bis zur Aufloesung des GitHub-Access-Blockers gilt:
@@ -43,7 +44,7 @@ Nachvollziehbare Nachweise für sauberen Release-Stand: Commit-Historie, QA-Prü
 3. `rdfa-26-release-hygiene-provisional-2026-04-28` - aktueller CTO-provisional Snapshot (RDFA-44)
 
 ## Access Re-Validation (RDFA-40 Bezug)
-Stand: 2026-04-28T18:56:17Z
+Stand: 2026-04-28T23:41:43Z
 
 Vorher/Nachher-Kriterien:
 1. Git Auth Check: `git ls-remote origin HEAD` ohne Auth-Fehler.

@@ -9,6 +9,7 @@ Status: conditional_accept (temporaerer Fallback gemaess RDFA-44)
 Aktueller konsolidierter Snapshot fuer RDFA-25/26:
 - `docs/RDFA-45-PROVISIONAL-CI-RELEASE-EVIDENCE-PACKAGE.md`
 - Artefakte: `docs/evidence/rdfa-45/` (Timestamp: `2026-04-28T23:38:36Z`)
+- Artefakte (CTO-Kickoff 2026-04-29): `artifacts/rdfa-45/rdfa-25-local-ci-2026-04-28T234141Z.log`
 
 ## Temporärer Fallback-Status (RDFA-44)
 Da der externe GitHub-Access-Blocker weiterhin aktiv ist, gilt bis zum Unblock:
@@ -35,7 +36,7 @@ Executed:
 - `bash scripts/ci/smoke-routes.sh`
 
 Result excerpts:
-- `Linted 10 PHP files successfully.`
+- `Linted 15 PHP files successfully.`
 - `Smoke routes check passed for 6 routes.`
 
 Route status excerpts:
