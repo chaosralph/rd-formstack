@@ -1,28 +1,30 @@
 (() => {
-    const form = document.getElementById('contact-form');
     const navToggle = document.getElementById('nav-toggle');
-    const nav = document.getElementById('main-nav');
+    const mainNav = document.getElementById('main-nav');
 
-    if (navToggle && nav) {
+    if (navToggle && mainNav) {
         navToggle.addEventListener('click', () => {
-            const isOpen = nav.classList.toggle('is-open');
-            navToggle.setAttribute('aria-expanded', String(isOpen));
+            const open = mainNav.classList.toggle('open');
+            navToggle.setAttribute('aria-expanded', String(open));
         });
 
-        nav.querySelectorAll('a').forEach((link) => {
+        mainNav.querySelectorAll('a').forEach((link) => {
             link.addEventListener('click', () => {
-                nav.classList.remove('is-open');
+                mainNav.classList.remove('open');
                 navToggle.setAttribute('aria-expanded', 'false');
             });
         });
     }
 
-    if (form) {
-        form.addEventListener('submit', (event) => {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                form.reportValidity();
-            }
-        });
+    const form = document.getElementById('contact-form');
+    if (!form) {
+        return;
     }
+
+    form.addEventListener('submit', (event) => {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.reportValidity();
+        }
+    });
 })();
