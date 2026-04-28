@@ -17,6 +17,7 @@
     "check:runtime": "bash scripts/check-runtime.sh",
     "check:php-lint": "bash scripts/ci/php-lint.sh",
     "check:smoke-routes": "bash scripts/ci/smoke-routes.sh",
+    "check:pii-logs": "bash scripts/ci/pii-log-review.sh",
     "check:qa-gate": "bash scripts/ci/qa-gate.sh"
   }
 }

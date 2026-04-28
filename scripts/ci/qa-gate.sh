@@ -48,6 +48,7 @@ run_check "Security Smoke: CSRF Hook" bash -c "grep -RIn --exclude-dir=.git 'Csr
 run_check "Security Smoke: Prepared Statements" bash -c "grep -RIn --exclude-dir=.git -E 'prepare\\(|execute\\(' src >/dev/null"
 run_check "Security Smoke: Output Escaping" bash -c "grep -RIn --exclude-dir=.git -E 'htmlspecialchars\\(|function e\\(' public/index.php >/dev/null"
 run_check "Security Smoke: Dangerous Calls" bash -c "! find config public src -type f -name '*.php' -print0 | xargs -0 grep -nE '(eval\\(|shell_exec\\(|exec\\(|system\\(|passthru\\(|proc_open\\()' >/dev/null"
+run_check "Security Smoke: PII Log Review" bash scripts/ci/pii-log-review.sh
 
 if [ "${RUN_RESPONSIVE}" = "1" ]; then
   run_check "Responsive Evidence" bash scripts/ci/responsive-evidence.sh

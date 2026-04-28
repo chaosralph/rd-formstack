@@ -43,6 +43,7 @@ P0 gilt als **PASS**, wenn alle folgenden Blöcke grün sind:
 - DB-Write via Prepared Statements
 - Output-Escaping aktiv (XSS-Basisschutz)
 - Keine offensichtlichen gefährlichen PHP-Aufrufe (`eval/exec/system/...`) im Repo
+- Kein offensichtlicher PII-/Secret-Leak in `storage/logs`
 
 5. **Infra Access Readiness (RDFA-33, Pflicht für Access-Themen)**
 - GitHub CLI Auth ist aktiv
@@ -83,6 +84,7 @@ grep -RIn --exclude-dir=.git "Csrf::validate" src public
 grep -RIn --exclude-dir=.git -E "prepare\(|execute\(" src
 grep -RIn --exclude-dir=.git -E "htmlspecialchars\(|function e\(" public/index.php
 grep -RIn --exclude-dir=.git -E "(eval\(|shell_exec\(|exec\(|system\(|passthru\(|proc_open\()" .
+bash scripts/ci/pii-log-review.sh
 ```
 
 ### E. Infra Access Readiness (RDFA-33)
@@ -97,6 +99,7 @@ bash scripts/check-github-access.sh
 2. PHP-Lint auf allen `.php`-Dateien -> **PASS**
 3. Statische Security-Smoke-Checks (CSRF/Prepared Statements/Escaping) -> **PASS**
 4. Suche nach gefährlichen PHP-Aufrufen -> **PASS** (keine Treffer)
+5. PII-Log-Smoke in `storage/logs` -> **PASS**
 
 ### Noch offen (manuell im Zielbrowser)
 1. Responsive Smoke auf 360/768/1280

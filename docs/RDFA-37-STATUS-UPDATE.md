@@ -1,7 +1,7 @@
 # RDFA-37 Statusupdate - Next Steps nach CTO-Abnahme V1
 
-Zeitpunkt: 2026-04-28 14:28:00 UTC
-Status: IN_PROGRESS (technische Next Steps umgesetzt, externe Freigaben offen)
+Zeitpunkt: 2026-04-28 14:36:00 UTC
+Status: IN_PROGRESS (technische Next Steps inkl. PII-Log-Review umgesetzt, externe Freigaben offen)
 Prioritaet: high
 
 ## Anlass
@@ -19,11 +19,16 @@ CTO-Abnahme aus RDFA-36 liegt vor (GO mit Auflagen). Umsetzung der naechsten Sch
 3. Vollstaendiges QA-Gate erneut ausgefuehrt.
 - Befehl: `composer run check:qa-gate`
 - Ergebnis: `PASS`
-- Enthaltene Teilchecks: Runtime, PHP-Lint, Route-Smoke, CSRF-Hook, Prepared-Statements, Output-Escaping, Dangerous-Calls-Scan, Responsive-Evidence, Accessibility-Smoke
+- Enthaltene Teilchecks: Runtime, PHP-Lint, Route-Smoke, CSRF-Hook, Prepared-Statements, Output-Escaping, Dangerous-Calls-Scan, PII-Log-Review, Responsive-Evidence, Accessibility-Smoke
 
 4. V1-Website-Abdeckung bestaetigt.
 - Routen `/, /leistungen, /referenzen, /kontakt, /login, /dms` erreichbar (HTTP 200).
 - Login- und DMS-Bereich als Platzhalter technisch integriert.
+
+5. Reproduzierbarer PII-Log-Check eingefuehrt.
+- Neues Script: `scripts/ci/pii-log-review.sh`
+- QA-Gate-Integration: `scripts/ci/qa-gate.sh`
+- Direkter Aufruf verfuegbar: `composer run check:pii-logs`
 
 ## Konsolidierter Status
 - Technische Basis V1: stabil und verifiziert.
@@ -35,9 +40,9 @@ CTO-Abnahme aus RDFA-36 liegt vor (GO mit Auflagen). Umsetzung der naechsten Sch
 - Risiko: Ohne ausgerollte Migration sind `company`/`phone` in Produktion ggf. nicht verfuegbar.
 - Restarbeit: `database/migrations/002_add_company_phone_to_contacts.sql` auf Ziel-DB ausrollen und per `SHOW CREATE TABLE contacts;` dokumentiert verifizieren.
 
-2. Betriebsnaher Log-Review auf PII-Leakage noch offen.
-- Risiko: Unentdeckte personenbezogene Daten in Betriebslogs koennen Compliance-Probleme verursachen.
-- Restarbeit: Log-Sampling im Zielbetrieb mit dokumentierter Pruefung auf sensible Felder.
+2. Betriebsnaher Log-Review im Zielbetrieb teilweise offen.
+- Risiko: Der automatisierte Smoke-Check deckt offensichtliche Marker ab, aber keine vollstaendige semantische PII-Klassifikation in allen Betriebsquellen.
+- Restarbeit: Ergaenzender manueller Log-Sampling-Review in der Zielumgebung (inkl. Upstream/Proxy-Logs) dokumentieren.
 
 3. Deployment-Freigabe bleibt policy-gesteuert.
 - Risiko: Ungeplante Auslieferung ohne explizite Freigabe verletzt Governance.
