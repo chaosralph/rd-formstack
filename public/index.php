@@ -80,6 +80,7 @@ $processSteps = HomepageContent::processSteps();
 $loginFeatures = HomepageContent::loginFeatures();
 $dmsRoadmap = HomepageContent::dmsRoadmap();
 $contactHighlights = HomepageContent::contactHighlights();
+$faqs = HomepageContent::faqs();
 $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
@@ -306,6 +307,21 @@ function navLink(string $href, string $label, string $currentPath): string
                             <h3><?= e($step['title']) ?></h3>
                             <p><?= e($step['description']) ?></p>
                         </article>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+
+        <section class="section faq-section" aria-labelledby="faq-title">
+            <div class="shell">
+                <p class="eyebrow">FAQ</p>
+                <h2 id="faq-title">Häufige Fragen vor dem Erstgespräch</h2>
+                <div class="faq-list">
+                    <?php foreach ($faqs as $faq): ?>
+                        <details class="faq-item">
+                            <summary><?= e($faq['question']) ?></summary>
+                            <p><?= e($faq['answer']) ?></p>
+                        </details>
                     <?php endforeach; ?>
                 </div>
             </div>

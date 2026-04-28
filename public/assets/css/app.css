@@ -539,6 +539,30 @@ textarea:focus-visible {
     font-size: 0.9rem;
 }
 
+.faq-list {
+    margin-top: 1rem;
+    display: grid;
+    gap: 10px;
+}
+
+.faq-item {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.faq-item summary {
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.faq-item p {
+    margin: 0.7rem 0 0.1rem;
+    color: var(--muted);
+}
+
 .form-card {
     padding: 20px;
 }

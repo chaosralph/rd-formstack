@@ -145,4 +145,25 @@ final class HomepageContent
             'Import/Export über definierte Schnittstellen',
         ];
     }
+
+    /**
+     * @return list<array{question:string,answer:string}>
+     */
+    public static function faqs(): array
+    {
+        return [
+            [
+                'question' => 'Wie schnell kann ein Projekt starten?',
+                'answer' => 'Nach dem Erstgespräch erhalten Sie eine realistische Einschätzung zu Umfang, Prioritäten und möglichem Startfenster.',
+            ],
+            [
+                'question' => 'Können bestehende Prozesse übernommen werden?',
+                'answer' => 'Ja. Wir analysieren bestehende Abläufe und migrieren nur dort, wo ein klarer Nutzen entsteht.',
+            ],
+            [
+                'question' => 'Sind Login- und DMS-Bereich schon produktiv nutzbar?',
+                'answer' => 'Aktuell sind beide Bereiche als technische Platzhalter angelegt und werden schrittweise mit Funktionen ausgebaut.',
+            ],
+        ];
+    }
 }
