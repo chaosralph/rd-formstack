@@ -320,8 +320,8 @@ function navLink(string $href, string $label, string $currentPath): string
                     <label for="name">Name</label>
                     <input id="name" name="name" required value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
 
-                    <label for="company">Unternehmen</label>
-                    <input id="company" name="company" required value="<?= e((string) ($old['company'] ?? '')) ?>" autocomplete="organization">
+                    <label for="company">Unternehmen (optional)</label>
+                    <input id="company" name="company" value="<?= e((string) ($old['company'] ?? '')) ?>" autocomplete="organization">
 
                     <label for="email">E-Mail</label>
                     <input id="email" name="email" type="email" required value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">

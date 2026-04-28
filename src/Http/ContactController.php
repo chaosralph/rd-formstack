@@ -31,9 +31,6 @@ final class ContactController
         if ($name === '') {
             $errors[] = 'Name ist erforderlich.';
         }
-        if ($company === '') {
-            $errors[] = 'Unternehmen ist erforderlich.';
-        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Eine gültige E-Mail ist erforderlich.';
         }

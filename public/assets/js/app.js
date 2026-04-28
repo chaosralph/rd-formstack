@@ -1,4 +1,13 @@
 (() => {
+    const header = document.querySelector('.site-header');
+    if (header) {
+        const onScroll = () => {
+            header.classList.toggle('scrolled', window.scrollY > 8);
+        };
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+    }
+
     const navToggle = document.getElementById('nav-toggle');
     const mainNav = document.getElementById('main-nav');
 

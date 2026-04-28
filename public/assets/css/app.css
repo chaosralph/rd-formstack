@@ -30,6 +30,14 @@ body {
     line-height: 1.55;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
+section[id] {
+    scroll-margin-top: 92px;
+}
+
 h1,
 h2,
 h3 {
@@ -103,6 +111,12 @@ textarea:focus-visible {
     border-bottom: 1px solid var(--line);
     backdrop-filter: blur(10px);
     background: rgba(243, 246, 251, 0.9);
+    transition: box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.site-header.scrolled {
+    box-shadow: 0 8px 20px rgba(10, 28, 55, 0.09);
+    background: rgba(243, 246, 251, 0.97);
 }
 
 .header-inner {
@@ -337,6 +351,11 @@ textarea:focus-visible {
 .text-link {
     color: var(--primary);
     font-weight: 700;
+    text-underline-offset: 3px;
+}
+
+.text-link:hover {
+    text-decoration: underline;
 }
 
 .steps-grid {
