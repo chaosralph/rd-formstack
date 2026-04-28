@@ -89,7 +89,8 @@ function e(string $value): string
 function navLink(string $href, string $label, string $currentPath): string
 {
     $active = $href === $currentPath ? ' is-active' : '';
-    return '<a class="nav-link' . $active . '" href="' . e($href) . '">' . e($label) . '</a>';
+    $ariaCurrent = $href === $currentPath ? ' aria-current="page"' : '';
+    return '<a class="nav-link' . $active . '" href="' . e($href) . '"' . $ariaCurrent . '>' . e($label) . '</a>';
 }
 ?>
 <!doctype html>
@@ -98,7 +99,7 @@ function navLink(string $href, string $label, string $currentPath): string
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>RD Formstack Solutions | <?= e($page['title']) ?></title>
-    <meta name="description" content="RD Formstack Solutions entwickelt Weblösungen, digitale Workflows, Belegverwaltung und DMS-nahe Prozesse für den Mittelstand.">
+    <meta name="description" content="<?= e($page['description']) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -126,6 +127,16 @@ function navLink(string $href, string $label, string $currentPath): string
 </header>
 
 <main id="main">
+    <?php if ($path !== '/'): ?>
+        <section class="context-bar" aria-label="Seitenkontext">
+            <div class="shell context-row">
+                <a href="/">Startseite</a>
+                <span>/</span>
+                <strong><?= e($page['title']) ?></strong>
+            </div>
+        </section>
+    <?php endif; ?>
+
     <section class="hero section">
         <div class="shell hero-grid <?= $path === '/' ? '' : 'hero-grid-single' ?>">
             <div>
@@ -340,7 +351,11 @@ function navLink(string $href, string $label, string $currentPath): string
 <footer class="site-footer">
     <div class="shell footer-inner">
         <p>© <?= date('Y') ?> RD Formstack Solutions</p>
-        <a href="/">Startseite</a>
+        <div class="footer-links">
+            <a href="/">Startseite</a>
+            <a href="/login">Login</a>
+            <a href="/dms">DMS</a>
+        </div>
     </div>
 </footer>
 
