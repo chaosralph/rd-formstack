@@ -24,3 +24,29 @@ Nachvollziehbare Nachweise für sauberen Release-Stand: Commit-Historie, QA-Prü
 ## Tag-Evidenz
 - Geplanter Hygiene-Tag: `rdfa-26-release-hygiene-2026-04-28`
 - Zweck: Markierung des dokumentierten Hygiene-Zwischenstands.
+
+## Access Re-Validation (RDFA-40 Bezug)
+Stand: 2026-04-28T18:56:17Z
+
+Vorher/Nachher-Kriterien:
+1. Git Auth Check: `git ls-remote origin HEAD` ohne Auth-Fehler.
+2. Connector Check: Repo-Visibility fuer `chaosralph/rd-formstack` vorhanden (kein 404/keine leere Repo-Liste).
+3. Sammelcheck: `bash scripts/check-rdfa40-unblock.sh` Exit `0`.
+
+Aktuelles Ergebnis:
+1. `gh` lokal verfuegbar (`PASS: GitHub CLI installiert`), aber `gh` Auth/API weiterhin fehlend.
+2. `git ls-remote origin HEAD` fehlgeschlagen mit `could not read Username for 'https://github.com'`.
+3. Connector weiterhin ohne Sichtbarkeit (`list_installations = []`, `list_repositories = []`).
+4. Connector Repo-Read auf `.../blob/main/README.md` liefert `GitHub API error 404 Not Found`.
+5. Sammelcheck weiterhin `0 PASS / 2 FAIL`.
+
+Evidence:
+- `artifacts/infra-access/git-ls-remote-rdfa40.log`
+- `artifacts/infra-access/rdfa40-unblock-summary.log`
+- `artifacts/infra-access/github-access-check-rdfa40.log`
+- `artifacts/infra-access/git-push-dry-run-rdfa40.log`
+
+Fehlende Admin-Schritte:
+1. Infra/DevOps: `gh` Auth/API in Runtime aktivieren.
+2. Infra/DevOps: HTTPS Credential Flow fuer Git (`git ls-remote`/`git push`) aktivieren.
+3. GitHub Org/App Admin: Connector-Installation inkl. Repo-Scope fuer `chaosralph/rd-formstack` freischalten.

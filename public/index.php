@@ -80,6 +80,7 @@ $processSteps = HomepageContent::processSteps();
 $loginFeatures = HomepageContent::loginFeatures();
 $dmsRoadmap = HomepageContent::dmsRoadmap();
 $contactHighlights = HomepageContent::contactHighlights();
+$bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
@@ -119,7 +120,7 @@ function navLink(string $href, string $label, string $currentPath): string
     <meta name="twitter:description" content="<?= e($page['description']) ?>">
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body>
+<body class="<?= e($bodyClass) ?>">
 <a class="skip-link" href="#main">Zum Inhalt springen</a>
 
 <header class="site-header" id="top">
@@ -161,11 +162,13 @@ function navLink(string $href, string $label, string $currentPath): string
                     <a class="btn btn-primary" href="/kontakt">Kostenloses Erstgespräch anfragen</a>
                     <a class="btn btn-secondary" href="/leistungen">Leistungen entdecken</a>
                 </div>
-                <div class="hero-metrics" aria-label="Wertversprechen">
-                    <span>Klare Roadmap statt Technik-Risiko</span>
-                    <span>Antwort in 1 Werktag</span>
-                    <span>Fokus auf umsetzbare Lösungen</span>
-                </div>
+                <?php if ($path === '/'): ?>
+                    <div class="hero-metrics" aria-label="Wertversprechen">
+                        <span>Klare Roadmap statt Technik-Risiko</span>
+                        <span>Antwort in 1 Werktag</span>
+                        <span>Fokus auf umsetzbare Lösungen</span>
+                    </div>
+                <?php endif; ?>
             </div>
             <?php if ($path === '/'): ?>
                 <aside class="hero-panel" aria-label="Kernvorteile">

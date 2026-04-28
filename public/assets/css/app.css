@@ -783,6 +783,14 @@ textarea:focus {
         color: #fff;
     }
 
+    body.page-kontakt {
+        padding-bottom: 0;
+    }
+
+    body.page-kontakt .mobile-action-bar {
+        display: none;
+    }
+
     .footer-inner {
         min-height: 86px;
         align-items: flex-start;

@@ -4,6 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# Allow workspace-local GitHub CLI installation without requiring system package install.
+if [[ -x "${ROOT_DIR}/tools/gh_2.74.2_linux_amd64/bin/gh" ]]; then
+  export PATH="${ROOT_DIR}/tools/gh_2.74.2_linux_amd64/bin:${PATH}"
+fi
+
 pass_count=0
 fail_count=0
 

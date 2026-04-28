@@ -49,6 +49,18 @@ Use the latest successful run URL from that page as ticket evidence for green re
 Status: `blocked` (runtime/access)
 Dependency: `RDFA-28` (external unblock ticket for GitHub access/runtime prerequisites)
 
+Re-validation (2026-04-28T18:56:17Z):
+- `bash scripts/check-rdfa40-unblock.sh` => `Summary: 0 PASS / 2 FAIL`
+- `git ls-remote origin HEAD` => `fatal: could not read Username for 'https://github.com': No such device or address`
+- Connector visibility check => `list_installations = []`, `list_repositories = []` (keine Repo-Visibility)
+- Connector repo read => `.../blob/main/README.md` liefert `GitHub API error 404 Not Found`
+- `bash scripts/check-github-access.sh` => `PASS: GitHub CLI installiert`, `FAIL` bei Auth/API/Installationen
+- Evidence:
+  - `artifacts/infra-access/rdfa40-unblock-summary.log`
+  - `artifacts/infra-access/git-ls-remote-rdfa40.log`
+  - `artifacts/infra-access/github-access-check-rdfa40.log`
+  - `artifacts/infra-access/git-push-dry-run-rdfa40.log`
+
 Minimal reproducible context:
 - `git push -u origin main` fails with `Host key verification failed.`
 - `ssh -T git@github.com` fails with `Host key verification failed.`
@@ -61,5 +73,6 @@ Required action:
 1. Provide trusted GitHub host key in this runtime.
 2. Ensure SSH key/auth for `git@github.com:chaosralph/rd-formstack.git`.
 3. Or provide HTTPS credential helper/token for `https://github.com/chaosralph/rd-formstack.git`.
-4. Install/authorize GitHub app access for repository `chaosralph/rd-formstack` (optional alternative path).
-5. Retry push to trigger workflow and attach successful run URL.
+4. Install/authorize GitHub app access for repository `chaosralph/rd-formstack` and ensure installation scope includes this repo.
+5. Retry `git ls-remote origin HEAD` and expect no auth error.
+6. Retry push to trigger workflow and attach successful run URL.
