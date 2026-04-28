@@ -77,6 +77,7 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success']);
 $services = HomepageContent::services();
 $references = HomepageContent::references();
 $processSteps = HomepageContent::processSteps();
+$deliveryPillars = HomepageContent::deliveryPillars();
 $loginFeatures = HomepageContent::loginFeatures();
 $dmsRoadmap = HomepageContent::dmsRoadmap();
 $contactHighlights = HomepageContent::contactHighlights();
@@ -219,12 +220,25 @@ function navLink(string $href, string $label, string $currentPath): string
                         <article class="card">
                             <h3><?= e($service['title']) ?></h3>
                             <p><?= e($service['description']) ?></p>
+                            <ul class="feature-list card-list">
+                                <?php foreach ($service['highlights'] as $highlight): ?>
+                                    <li><?= e($highlight) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
                         </article>
                     <?php endforeach; ?>
                 </div>
                 <div class="section-cta-row">
                     <a class="btn btn-primary" href="/kontakt">Leistungen im Erstgespräch klären</a>
                     <a class="btn btn-secondary" href="/referenzen">Passende Referenzen ansehen</a>
+                </div>
+                <div class="pillar-grid" aria-label="Umsetzungssäulen">
+                    <?php foreach ($deliveryPillars as $pillar): ?>
+                        <article class="pillar-item">
+                            <h3><?= e($pillar['title']) ?></h3>
+                            <p><?= e($pillar['value']) ?></p>
+                        </article>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </section>
@@ -241,6 +255,8 @@ function navLink(string $href, string $label, string $currentPath): string
                         <article class="card reference-card">
                             <h3><?= e($reference['title']) ?></h3>
                             <p><?= e($reference['description']) ?></p>
+                            <p class="reference-outcome"><strong>Ergebnis:</strong> <?= e($reference['outcome']) ?></p>
+                            <p class="reference-stack">Stack: <?= e($reference['stack']) ?></p>
                         </article>
                     <?php endforeach; ?>
                 </div>

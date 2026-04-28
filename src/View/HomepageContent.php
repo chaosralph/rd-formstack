@@ -40,7 +40,7 @@ final class HomepageContent
     }
 
     /**
-     * @return list<array{title:string,description:string}>
+     * @return list<array{title:string,description:string,highlights:list<string>}>
      */
     public static function services(): array
     {
@@ -48,24 +48,44 @@ final class HomepageContent
             [
                 'title' => 'Webentwicklung',
                 'description' => 'Performante Websites und Anwendungen mit intuitiver Navigation, klarer Struktur und langlebiger Codebasis.',
+                'highlights' => [
+                    'Informationsarchitektur und Seitenlogik',
+                    'Responsive Frontend mit klarer Nutzerführung',
+                    'Saubere technische Basis für Weiterentwicklung',
+                ],
             ],
             [
                 'title' => 'Digitale Lösungen',
                 'description' => 'Individuelle Workflows und Integrationen, die manuelle Übergaben reduzieren und den Prozessfluss verbessern.',
+                'highlights' => [
+                    'Abstimmungsarme Prozessübergaben',
+                    'Regelbasierte Aufgaben- und Statuslogik',
+                    'Nachvollziehbare Schnittstellen zu Drittsystemen',
+                ],
             ],
             [
                 'title' => 'Belegverwaltung',
                 'description' => 'Nachvollziehbare Erfassung und Zuordnung von Belegen für schnellere Bearbeitung und höhere Datenqualität.',
+                'highlights' => [
+                    'Einheitliche Erfassungs- und Prüfstrecken',
+                    'Transparente Zuordnung nach Vorgang und Status',
+                    'Fehlerreduzierung bei Übergabe und Ablage',
+                ],
             ],
             [
                 'title' => 'DMS',
                 'description' => 'Dokumentenmanagement mit klaren Rollen, hoher Auffindbarkeit und konsistenten Freigabestrecken.',
+                'highlights' => [
+                    'Versionierung und Freigabehistorie',
+                    'Suche, Filter und nachvollziehbare Ablageregeln',
+                    'Grundlage für revisionsnahe Dokumentenprozesse',
+                ],
             ],
         ];
     }
 
     /**
-     * @return list<array{title:string,description:string}>
+     * @return list<array{title:string,description:string,outcome:string,stack:string}>
      */
     public static function references(): array
     {
@@ -73,15 +93,33 @@ final class HomepageContent
             [
                 'title' => 'Mittelstand Backoffice',
                 'description' => 'Digitale Eingangsverarbeitung für Belege und Anfragen mit klarer Priorisierung und reduziertem Abstimmungsaufwand.',
+                'outcome' => 'Schnellere Bearbeitungszeiten und klarere Verantwortlichkeiten in der täglichen Vorgangsbearbeitung.',
+                'stack' => 'Workflow-Design, Formularlogik, Status-Transparenz',
             ],
             [
                 'title' => 'Service-Organisation',
                 'description' => 'Webbasiertes Arbeitsboard für Status, Verantwortlichkeiten und Übergaben zwischen Fachabteilungen.',
+                'outcome' => 'Weniger Rückfragen durch einheitliche Datenlage und ein klar priorisiertes Aufgabenbild.',
+                'stack' => 'Web-Frontend, Rollenlogik, Prozesssteuerung',
             ],
             [
                 'title' => 'Verwaltung & Dokumente',
                 'description' => 'Vereinheitlichte Dokumentenablage mit nachvollziehbaren Freigaben und schneller Auffindbarkeit.',
+                'outcome' => 'Strukturierte Dokumentenstrecken mit stabiler Suchbarkeit und besserer Nachvollziehbarkeit.',
+                'stack' => 'Dokumentenstruktur, Freigaben, Suchkonzept',
             ],
+        ];
+    }
+
+    /**
+     * @return list<array{title:string,value:string}>
+     */
+    public static function deliveryPillars(): array
+    {
+        return [
+            ['title' => 'Architektur', 'value' => 'Nachvollziehbar und modular geplant'],
+            ['title' => 'Umsetzung', 'value' => 'In priorisierten, testbaren Inkrementen'],
+            ['title' => 'Betrieb', 'value' => 'Mit Fokus auf wartbarem Tagesgeschäft'],
         ];
     }
 

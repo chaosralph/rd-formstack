@@ -411,6 +411,10 @@ textarea:focus-visible {
     margin-bottom: 0;
 }
 
+.card-list {
+    margin-top: 0.85rem;
+}
+
 .card:hover,
 .step-card:hover {
     transform: translateY(-3px);
@@ -433,9 +437,47 @@ textarea:focus-visible {
     min-height: 185px;
 }
 
+.reference-outcome {
+    margin-top: 0.9rem;
+}
+
+.reference-outcome strong {
+    color: var(--primary);
+}
+
+.reference-stack {
+    margin-top: 0.45rem;
+    color: var(--muted);
+    font-size: 0.93rem;
+}
+
 .card p,
 .step-card p,
 .callout-card p {
+    color: var(--muted);
+}
+
+.pillar-grid {
+    margin-top: 1rem;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pillar-item {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 15px;
+}
+
+.pillar-item h3 {
+    margin-bottom: 0.4rem;
+    color: var(--primary);
+}
+
+.pillar-item p {
+    margin-bottom: 0;
     color: var(--muted);
 }
 
@@ -683,7 +725,8 @@ textarea:focus {
     }
 
     .card-grid,
-    .steps-grid {
+    .steps-grid,
+    .pillar-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -779,7 +822,8 @@ textarea:focus {
     }
 
     .card-grid,
-    .steps-grid {
+    .steps-grid,
+    .pillar-grid {
         grid-template-columns: 1fr;
     }
 
