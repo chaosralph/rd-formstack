@@ -1,0 +1,7 @@
+timestamp_utc=2026-04-28T19:54:21Z
+cmd=php -v
+PHP 8.4.16 (cli) (built: Dec 18 2025 21:19:25) (NTS)
+Copyright (c) The PHP Group
+Built by Debian
+Zend Engine v4.4.16, Copyright (c) Zend Technologies
+    with Zend OPcache v8.4.16, Copyright (c), by Zend Technologies

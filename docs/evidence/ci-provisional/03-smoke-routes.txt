@@ -1,0 +1,9 @@
+timestamp_utc=2026-04-28T19:54:22Z
+cmd=bash scripts/ci/smoke-routes.sh
+smoke OK: / (200)
+smoke OK: /leistungen (200)
+smoke OK: /referenzen (200)
+smoke OK: /kontakt (200)
+smoke OK: /login (200)
+smoke OK: /dms (200)
+Smoke routes check passed for 6 routes.

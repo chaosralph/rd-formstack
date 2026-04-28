@@ -1,6 +1,8 @@
 # RDFA-25 / RDFA-24 - CI Required Checks Evidence
 
 Stand: 2026-04-28 (UTC)
+Status: `provisional`
+Note: `Final GitHub/Connector re-validation pending RDFA-32/40/42`
 Status: conditional_accept (temporaerer Fallback gemaess RDFA-44)
 
 ## Temporärer Fallback-Status (RDFA-44)
@@ -46,6 +48,23 @@ Local run logs (generated during validation):
 - `storage/logs/ci-smoke-routes.log`
 
 Note: `storage/logs/*.log` is gitignored by design.
+
+## Provisional reproducible artifacts (versioned)
+
+All artifacts contain UTC timestamp, command, and full output.
+
+Commands executed:
+- `php -v`
+- `bash scripts/ci/php-lint.sh`
+- `bash scripts/ci/smoke-routes.sh`
+- `php -l public/index.php`
+- `php -l src/Http/ContactController.php`
+
+- `docs/evidence/ci-provisional/01-php-version.txt`
+- `docs/evidence/ci-provisional/02-php-lint.txt`
+- `docs/evidence/ci-provisional/03-smoke-routes.txt`
+- `docs/evidence/ci-provisional/04-index-lint.txt`
+- `docs/evidence/ci-provisional/05-contact-controller-lint.txt`
 
 ## GitHub Actions references
 
