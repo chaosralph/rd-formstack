@@ -75,6 +75,24 @@
         window.addEventListener('scroll', activateLink, { passive: true });
     }
 
+    const revealTargets = document.querySelectorAll('.card, .step-card, .trust-item, .callout-card, .placeholder-card');
+    if (revealTargets.length > 0 && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-revealed');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        revealTargets.forEach((target, index) => {
+            target.style.setProperty('--reveal-delay', `${Math.min(index * 22, 180)}ms`);
+            target.classList.add('reveal');
+            observer.observe(target);
+        });
+    }
+
     const form = document.getElementById('contact-form');
     if (!form) {
         return;

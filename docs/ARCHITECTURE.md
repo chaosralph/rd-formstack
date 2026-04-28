@@ -22,6 +22,7 @@
 ## Erweiterbarkeit
 - Controller und Repository getrennt.
 - Datenbankzugriff zentral über `Connection`.
+- Kontaktdaten normalisiert (`name`, `company`, `email`, `phone`, `message`) fuer bessere Integrationen.
 - Bootstrapping und Routing als separate Module.
 - Strukturierte Logs über `Logger` als Basis für Monitoring.
 - Zusätzliche Domänenmodule unter `src/` nach gleichem Muster.
