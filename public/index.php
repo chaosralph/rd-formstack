@@ -2,25 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Config\Env;
+use App\Bootstrap\AppBootstrap;
 use App\Database\Connection;
 use App\Http\ContactController;
+use App\Http\ErrorHandler;
+use App\Http\Routing\RouteCatalog;
 use App\Http\Request;
 use App\Repository\ContactRepository;
 use App\Security\Csrf;
 use App\View\HomepageContent;
-
-session_set_cookie_params([
-    'httponly' => true,
-    'samesite' => 'Lax',
-    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
-]);
-session_start();
-
-header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-header('Referrer-Policy: strict-origin-when-cross-origin');
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
 spl_autoload_register(static function (string $class): void {
     $prefix = 'App\\';
@@ -36,8 +26,15 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
-require_once __DIR__ . '/../config/env.php';
-Env::load(__DIR__ . '/../.env');
+$projectRoot = dirname(__DIR__);
+AppBootstrap::init($projectRoot);
+
+$requestId = bin2hex(random_bytes(8));
+header('X-Request-Id: ' . $requestId);
+set_exception_handler(static function (Throwable $exception) use ($requestId): void {
+    ErrorHandler::handle($exception, $requestId);
+    exit;
+});
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = rtrim($path, '/');
@@ -45,7 +42,7 @@ $path = $path === '' ? '/' : $path;
 
 if (Request::method() === 'POST' && ($_POST['_action'] ?? '') === 'contact.submit') {
     try {
-        $databaseConfig = require __DIR__ . '/../config/database.php';
+        $databaseConfig = require $projectRoot . '/config/database.php';
         $pdo = Connection::get($databaseConfig);
         $contactRepository = new ContactRepository($pdo);
         $contactController = new ContactController($contactRepository);
@@ -64,38 +61,7 @@ if (Request::method() === 'POST' && ($_POST['_action'] ?? '') === 'contact.submi
     }
 }
 
-$routes = [
-    '/' => [
-        'title' => 'Startseite',
-        'headline' => 'Webentwicklung, Belegverwaltung und DMS für belastbare Geschäftsprozesse',
-        'intro' => 'Wir unterstützen B2B-Teams dabei, manuelle Abläufe in robuste digitale Prozesse zu überführen: mit klarer Nutzerführung, wartbarer Architektur und messbarem operativem Nutzen.',
-    ],
-    '/leistungen' => [
-        'title' => 'Leistungen',
-        'headline' => 'Leistungen für digitale Prozessstabilität',
-        'intro' => 'Vier Leistungsbereiche für klare Verantwortung in Umsetzung, Betrieb und Weiterentwicklung.',
-    ],
-    '/referenzen' => [
-        'title' => 'Referenzen',
-        'headline' => 'Praxisnahe Referenzszenarien',
-        'intro' => 'Typische Projektkontexte, in denen wir Webentwicklung und Dokumentenprozesse zusammenführen.',
-    ],
-    '/kontakt' => [
-        'title' => 'Kontakt',
-        'headline' => 'Projekt unverbindlich besprechen',
-        'intro' => 'Beschreiben Sie Ihr Vorhaben. Wir melden uns mit einer realistischen Einschätzung für die nächsten Schritte.',
-    ],
-    '/login' => [
-        'title' => 'Login',
-        'headline' => 'Kundenportal in Vorbereitung',
-        'intro' => 'Der geschützte Login-Bereich wird in der nächsten Ausbaustufe bereitgestellt.',
-    ],
-    '/dms' => [
-        'title' => 'DMS',
-        'headline' => 'DMS-Bereich als technischer Platzhalter',
-        'intro' => 'Die DMS-Fläche wird in Stufen mit Freigabe, Historie und Suchlogik ergänzt.',
-    ],
-];
+$routes = RouteCatalog::pages();
 
 if (!isset($routes[$path])) {
     http_response_code(404);
@@ -216,6 +182,10 @@ function navLink(string $href, string $label, string $currentPath): string
                         </article>
                     <?php endforeach; ?>
                 </div>
+                <div class="section-cta-row">
+                    <a class="btn btn-primary" href="/kontakt">Leistungen besprechen</a>
+                    <a class="btn btn-secondary" href="/referenzen">Passende Referenzen ansehen</a>
+                </div>
             </div>
         </section>
     <?php endif; ?>
@@ -234,6 +204,9 @@ function navLink(string $href, string $label, string $currentPath): string
                         </article>
                     <?php endforeach; ?>
                 </div>
+                <div class="section-cta-row">
+                    <a class="btn btn-primary" href="/kontakt">Ähnliches Projekt anfragen</a>
+                </div>
             </div>
         </section>
     <?php endif; ?>
@@ -245,6 +218,7 @@ function navLink(string $href, string $label, string $currentPath): string
                     <p class="eyebrow">Login</p>
                     <h2>Kundenportal in Vorbereitung</h2>
                     <p>Der geschützte Login-Bereich wird in der nächsten Ausbaustufe bereitgestellt. Geplant sind rollenbasierte Zugriffe, persönliche Dashboards und sichere Dokumentenansichten.</p>
+                    <p class="placeholder-note">Status: Platzhalterseite für die Integrationsphase. Zugriff wird nach technischer Freigabe aktiviert.</p>
                 </div>
                 <aside class="placeholder-card" aria-label="Login-Platzhalter">
                     <h3>Geplante Funktionen</h3>
@@ -265,6 +239,7 @@ function navLink(string $href, string $label, string $currentPath): string
                     <p class="eyebrow">DMS-Platzhalter</p>
                     <h2>DMS-Bereich wird ausgebaut</h2>
                     <p>Die DMS-Fläche ist als technischer Platzhalter integriert und wird schrittweise mit Dokumentenklassifikation, Revisionshistorie und Freigabeprozessen ergänzt.</p>
+                    <p class="placeholder-note">Status: Kernbereiche vorbereitet, fachliche Workflows werden in Iterationen ergänzt.</p>
                 </div>
                 <aside class="placeholder-card" aria-label="DMS-Platzhalter">
                     <h3>Nächste Ausbaustufen</h3>
@@ -347,6 +322,11 @@ function navLink(string $href, string $label, string $currentPath): string
 </footer>
 
 <a class="floating-cta" href="/kontakt">Projektanfrage</a>
+<div class="mobile-action-bar" aria-label="Schnellaktionen">
+    <a href="/leistungen">Leistungen</a>
+    <a href="/kontakt">Kontakt</a>
+    <a href="/kontakt">Projektanfrage</a>
+</div>
 
 <script src="/assets/js/app.js" defer></script>
 </body>

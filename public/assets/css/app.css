@@ -301,6 +301,13 @@ textarea:focus-visible {
     max-width: 72ch;
 }
 
+.section-cta-row {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .card-grid {
     margin-top: 1.3rem;
     display: grid;
@@ -397,6 +404,17 @@ textarea:focus-visible {
     padding: 20px;
 }
 
+.placeholder-note {
+    display: inline-block;
+    margin-top: 0.55rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    background: #dff1f4;
+    color: #0b5160;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
 .form-card {
     padding: 20px;
 }
@@ -461,6 +479,10 @@ textarea:focus {
     display: none;
 }
 
+.mobile-action-bar {
+    display: none;
+}
+
 @media (max-width: 1000px) {
     .hero-grid,
     .split-grid,
@@ -484,8 +506,20 @@ textarea:focus {
 }
 
 @media (max-width: 760px) {
+    body {
+        padding-bottom: 78px;
+    }
+
     .section {
         padding: 62px 0;
+    }
+
+    h1 {
+        font-size: clamp(1.8rem, 9.5vw, 2.4rem);
+    }
+
+    .lead {
+        font-size: 1rem;
     }
 
     .nav-toggle {
@@ -522,24 +556,58 @@ textarea:focus {
         flex-direction: column;
     }
 
+    .hero-panel {
+        padding: 18px;
+    }
+
+    .section-cta-row .btn {
+        width: 100%;
+    }
+
     .card-grid,
     .steps-grid {
         grid-template-columns: 1fr;
     }
 
+    .card,
+    .step-card,
+    .form-card,
+    .placeholder-card {
+        padding: 16px;
+    }
+
+    label {
+        margin-bottom: 10px;
+    }
+
     .floating-cta {
-        display: inline-flex;
+        display: none;
+    }
+
+    .mobile-action-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         position: fixed;
-        right: 14px;
-        bottom: 14px;
+        left: 0;
+        right: 0;
+        bottom: 0;
         z-index: 25;
-        padding: 11px 14px;
-        border-radius: 999px;
-        border: 1px solid var(--primary);
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 1px solid var(--line);
+        backdrop-filter: blur(8px);
+    }
+
+    .mobile-action-bar a {
+        text-align: center;
+        padding: 11px 8px;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .mobile-action-bar a:last-child {
         background: var(--primary);
         color: #fff;
-        font-weight: 700;
-        box-shadow: 0 10px 24px rgba(12, 39, 71, 0.28);
     }
 }
 
