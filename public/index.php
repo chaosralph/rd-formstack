@@ -80,6 +80,11 @@ $processSteps = HomepageContent::processSteps();
 $loginFeatures = HomepageContent::loginFeatures();
 $dmsRoadmap = HomepageContent::dmsRoadmap();
 $contactHighlights = HomepageContent::contactHighlights();
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
+$siteName = 'RD Formstack Solutions';
+$metaTitle = $siteName . ' | ' . $page['title'];
 
 function e(string $value): string
 {
@@ -98,11 +103,20 @@ function navLink(string $href, string $label, string $currentPath): string
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>RD Formstack Solutions | <?= e($page['title']) ?></title>
+    <title><?= e($metaTitle) ?></title>
     <meta name="description" content="<?= e($page['description']) ?>">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="theme-color" content="#0c2747">
+    <link rel="canonical" href="<?= e($canonicalUrl) ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:site_name" content="<?= e($siteName) ?>">
+    <meta property="og:title" content="<?= e($metaTitle) ?>">
+    <meta property="og:description" content="<?= e($page['description']) ?>">
+    <meta property="og:url" content="<?= e($canonicalUrl) ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= e($metaTitle) ?>">
+    <meta name="twitter:description" content="<?= e($page['description']) ?>">
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
@@ -146,6 +160,11 @@ function navLink(string $href, string $label, string $currentPath): string
                 <div class="hero-actions">
                     <a class="btn btn-primary" href="/kontakt">Kostenloses Erstgespräch anfragen</a>
                     <a class="btn btn-secondary" href="/leistungen">Leistungen entdecken</a>
+                </div>
+                <div class="hero-metrics" aria-label="Wertversprechen">
+                    <span>Klare Roadmap statt Technik-Risiko</span>
+                    <span>Antwort in 1 Werktag</span>
+                    <span>Fokus auf umsetzbare Lösungen</span>
                 </div>
             </div>
             <?php if ($path === '/'): ?>
@@ -293,6 +312,11 @@ function navLink(string $href, string $label, string $currentPath): string
                     <h2>Projekt unverbindlich besprechen</h2>
                     <p>Beschreiben Sie kurz Ihr Vorhaben. Wir melden uns mit einer realistischen Empfehlung für den nächsten Schritt.</p>
                     <p class="form-helper">Antwort in der Regel innerhalb eines Werktags.</p>
+                    <ul class="contact-points">
+                        <li>Klare Einschätzung zu Aufwand und nächstem Schritt</li>
+                        <li>Technisch realistische Empfehlung statt Standardangebot</li>
+                        <li>Unverbindlich und ohne lange Vorqualifizierung</li>
+                    </ul>
 
                     <?php if (is_string($flashError)): ?>
                         <div class="alert alert-error" role="alert"><?= e($flashError) ?></div>
@@ -309,7 +333,7 @@ function navLink(string $href, string $label, string $currentPath): string
 
                     <div class="form-grid">
                         <div class="field">
-                            <label for="name">Name</label>
+                            <label for="name">Name <span class="req" aria-hidden="true">*</span></label>
                             <input id="name" name="name" required value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
                         </div>
 
@@ -319,7 +343,7 @@ function navLink(string $href, string $label, string $currentPath): string
                         </div>
 
                         <div class="field">
-                            <label for="email">E-Mail</label>
+                            <label for="email">E-Mail <span class="req" aria-hidden="true">*</span></label>
                             <input id="email" name="email" type="email" required value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">
                         </div>
 
@@ -329,7 +353,7 @@ function navLink(string $href, string $label, string $currentPath): string
                         </div>
                     </div>
 
-                    <label for="message">Nachricht</label>
+                    <label for="message">Nachricht <span class="req" aria-hidden="true">*</span></label>
                     <textarea id="message" name="message" rows="5" required><?= e((string) ($old['message'] ?? '')) ?></textarea>
 
                     <button class="btn btn-primary" type="submit">Projektanfrage senden</button>

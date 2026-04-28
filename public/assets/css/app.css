@@ -24,7 +24,7 @@ body {
 }
 
 body {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: var(--text);
     background: radial-gradient(circle at 85% -15%, #d7e5f8, transparent 35%), var(--bg);
     line-height: 1.55;
@@ -42,7 +42,7 @@ section[id] {
 h1,
 h2,
 h3 {
-    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
     line-height: 1.2;
     margin: 0 0 0.7rem;
 }
@@ -150,7 +150,7 @@ textarea:focus-visible {
 }
 
 .brand {
-    font-family: "Manrope", sans-serif;
+    font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
     font-weight: 800;
     letter-spacing: -0.01em;
     color: var(--primary);
@@ -265,6 +265,25 @@ textarea:focus-visible {
 
 .hero-actions .btn {
     min-width: 220px;
+}
+
+.hero-metrics {
+    margin-top: 0.95rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hero-metrics span {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid #cfdbe8;
+    border-radius: 999px;
+    background: #f6faff;
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .trust-strip {
@@ -485,6 +504,16 @@ textarea:focus-visible {
     margin-top: -0.2rem;
 }
 
+.contact-points {
+    margin: 0.8rem 0 0;
+    padding-left: 1rem;
+    color: var(--muted);
+}
+
+.contact-points li + li {
+    margin-top: 0.3rem;
+}
+
 .placeholder-wrap {
     display: grid;
     gap: 24px;
@@ -518,6 +547,10 @@ label {
     display: block;
     margin-bottom: 12px;
     font-weight: 600;
+}
+
+.req {
+    color: #9d1e1e;
 }
 
 .form-grid {
@@ -606,10 +639,6 @@ textarea:focus {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .contact-sidecard {
-        grid-column: span 1;
-    }
-
     .reference-grid {
         grid-template-columns: 1fr;
     }
@@ -626,9 +655,6 @@ textarea:focus {
 @media (max-width: 760px) {
     body {
         font-size: 1rem;
-    }
-
-    body {
         padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
     }
 
@@ -682,6 +708,14 @@ textarea:focus {
 
     .hero-actions {
         flex-direction: column;
+    }
+
+    .hero-metrics {
+        gap: 7px;
+    }
+
+    .hero-metrics span {
+        font-size: 0.84rem;
     }
 
     .hero-panel {
@@ -755,6 +789,11 @@ textarea:focus {
         padding-top: 14px;
         flex-direction: column;
         gap: 6px;
+    }
+
+    .footer-links {
+        flex-wrap: wrap;
+        gap: 10px;
     }
 }
 
