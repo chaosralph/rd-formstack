@@ -18,7 +18,7 @@ final class ContactController
         if (!Csrf::validate(Request::post('_csrf'))) {
             http_response_code(419);
             $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
-            Response::redirect('/#kontakt');
+            Response::redirect('/kontakt');
         }
 
         $name = Request::post('name');
@@ -62,12 +62,12 @@ final class ContactController
                 'phone' => $phone,
                 'message' => $message,
             ];
-            Response::redirect('/#kontakt');
+            Response::redirect('/kontakt');
         }
 
         $this->repository->create($name, $company, $email, $phone, $message);
         $_SESSION['flash_success'] = 'Vielen Dank, Ihre Nachricht wurde gespeichert.';
         unset($_SESSION['old']);
-        Response::redirect('/#kontakt');
+        Response::redirect('/kontakt');
     }
 }
