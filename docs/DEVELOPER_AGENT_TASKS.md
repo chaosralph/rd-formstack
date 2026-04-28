@@ -5,26 +5,27 @@ Stand: 2026-04-28 (UTC)
 ## Reihenfolge und Abhängigkeiten
 
 1. P0-Foundation abschließen.
-2. P1-Domain- und API-Aufbau starten.
-3. Quality-Gates parallel ab P0 einziehen.
+2. RDFA-29 Runtime/CI/Responsive-Unblock absichern.
+3. P1-Domain- und API-Aufbau starten.
+4. Quality-Gates parallel ab P0 einziehen.
 
-## Agent A - Platform/Core (P0)
+## Agent A - Platform/Core (P0, RDFA-29)
 
 ### Aufgaben
-- Bootstrap aus `public/index.php` extrahieren.
-- Router-Mapping einführen (GET/POST sauber getrennt).
-- Zentrales Exception-Handling implementieren.
-- Strukturierte Logs + Request-ID hinzufügen.
+- Bootstrap aus `public/index.php` halten und weiter modularisieren.
+- Router-Mapping zentral über `src/Http/Routing/RouteCatalog.php` pflegen.
+- Request-ID konsequent in Fehlerpfade/Logs aufnehmen.
+- Strukturierte Logs aus `src/Support/Logger.php` operationalisieren.
 
 ### DoD
-- Front Controller ist schlank und delegiert nur noch.
-- Fehler werden intern geloggt; Nutzer sieht generische Fehlermeldung.
-- Lint und Runtime-Check sind grün.
+- Front Controller bleibt schlank.
+- Fehlerpfade sind zentral und reproduzierbar.
+- Runtime- und Smoke-Skripte bleiben grün.
 
 ## Agent B - Security (P0/P1)
 
 ### Aufgaben
-- Security-Header-Baseline einführen.
+- Security-Header-Baseline prüfen/erweitern.
 - Request-Validierung um Feldlängen/Formatgrenzen erweitern.
 - CSRF-Flow regressionssicher prüfen.
 - Security-Checks in `docs/qa-checklist.md` erweitern.
@@ -57,12 +58,13 @@ Stand: 2026-04-28 (UTC)
 - API antwortet konsistent für Erfolg, Validierungsfehler, Serverfehler.
 - API-Dokumentation mit Request/Response-Beispielen liegt vor.
 
-## Agent E - QA/Testing (P1/P2)
+## Agent E - QA/Testing (P1/P2, RDFA-29)
 
 ### Aufgaben
 - PHPUnit-Basis aufsetzen.
 - Integrationstests für Repository-Layer gegen Test-DB.
 - Security-Smoke-Tests (CSRF/Validation/Auth-Zugriff) definieren.
+- Responsive-Evidence (360/768/1280) und Accessibility-Smoke als Artefakte dokumentieren.
 
 ### DoD
 - Lokaler Test-Run ist dokumentiert und wiederholbar.

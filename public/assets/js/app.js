@@ -50,6 +50,31 @@
         });
     }
 
+    const navLinks = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+    const sections = navLinks
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .filter((section) => section instanceof HTMLElement);
+
+    if (navLinks.length > 0 && sections.length > 0) {
+        const activateLink = () => {
+            const y = window.scrollY + 130;
+            let activeIndex = 0;
+
+            sections.forEach((section, index) => {
+                if (section.offsetTop <= y) {
+                    activeIndex = index;
+                }
+            });
+
+            navLinks.forEach((link, index) => {
+                link.classList.toggle('is-active', index === activeIndex);
+            });
+        };
+
+        activateLink();
+        window.addEventListener('scroll', activateLink, { passive: true });
+    }
+
     const form = document.getElementById('contact-form');
     if (!form) {
         return;

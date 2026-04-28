@@ -132,8 +132,8 @@ function navLink(string $href, string $label, string $currentPath): string
                 <h1><?= e($page['headline']) ?></h1>
                 <p class="lead"><?= e($page['intro']) ?></p>
                 <div class="hero-actions">
-                    <a class="btn btn-primary" href="/kontakt">Projekt anfragen</a>
-                    <a class="btn btn-secondary" href="/leistungen">Leistungen ansehen</a>
+                    <a class="btn btn-primary" href="/kontakt">Kostenloses Erstgespräch anfragen</a>
+                    <a class="btn btn-secondary" href="/leistungen">Leistungen entdecken</a>
                 </div>
             </div>
             <?php if ($path === '/'): ?>
@@ -183,7 +183,7 @@ function navLink(string $href, string $label, string $currentPath): string
                     <?php endforeach; ?>
                 </div>
                 <div class="section-cta-row">
-                    <a class="btn btn-primary" href="/kontakt">Leistungen besprechen</a>
+                    <a class="btn btn-primary" href="/kontakt">Leistungen im Erstgespräch klären</a>
                     <a class="btn btn-secondary" href="/referenzen">Passende Referenzen ansehen</a>
                 </div>
             </div>
@@ -205,7 +205,7 @@ function navLink(string $href, string $label, string $currentPath): string
                     <?php endforeach; ?>
                 </div>
                 <div class="section-cta-row">
-                    <a class="btn btn-primary" href="/kontakt">Ähnliches Projekt anfragen</a>
+                    <a class="btn btn-primary" href="/kontakt">Ähnliches Projekt starten</a>
                 </div>
             </div>
         </section>
@@ -278,6 +278,7 @@ function navLink(string $href, string $label, string $currentPath): string
                     <p class="eyebrow">Kontakt</p>
                     <h2>Projekt unverbindlich besprechen</h2>
                     <p>Beschreiben Sie kurz Ihr Vorhaben. Wir melden uns mit einer realistischen Empfehlung für den nächsten Schritt.</p>
+                    <p class="form-helper">Antwort in der Regel innerhalb eines Werktags.</p>
 
                     <?php if (is_string($flashError)): ?>
                         <div class="alert alert-error" role="alert"><?= e($flashError) ?></div>
@@ -292,22 +293,32 @@ function navLink(string $href, string $label, string $currentPath): string
                     <input type="hidden" name="_action" value="contact.submit">
                     <input type="hidden" name="_csrf" value="<?= e(Csrf::token()) ?>">
 
-                    <label for="name">Name</label>
-                    <input id="name" name="name" required value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <input id="name" name="name" required value="<?= e((string) ($old['name'] ?? '')) ?>" autocomplete="name">
+                        </div>
 
-                    <label for="company">Unternehmen (optional)</label>
-                    <input id="company" name="company" value="<?= e((string) ($old['company'] ?? '')) ?>" autocomplete="organization">
+                        <div class="field">
+                            <label for="company">Unternehmen (optional)</label>
+                            <input id="company" name="company" value="<?= e((string) ($old['company'] ?? '')) ?>" autocomplete="organization">
+                        </div>
 
-                    <label for="email">E-Mail</label>
-                    <input id="email" name="email" type="email" required value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">
+                        <div class="field">
+                            <label for="email">E-Mail</label>
+                            <input id="email" name="email" type="email" required value="<?= e((string) ($old['email'] ?? '')) ?>" autocomplete="email">
+                        </div>
 
-                    <label for="phone">Telefon (optional)</label>
-                    <input id="phone" name="phone" type="tel" value="<?= e((string) ($old['phone'] ?? '')) ?>" autocomplete="tel">
+                        <div class="field">
+                            <label for="phone">Telefon (optional)</label>
+                            <input id="phone" name="phone" type="tel" value="<?= e((string) ($old['phone'] ?? '')) ?>" autocomplete="tel">
+                        </div>
+                    </div>
 
                     <label for="message">Nachricht</label>
                     <textarea id="message" name="message" rows="5" required><?= e((string) ($old['message'] ?? '')) ?></textarea>
 
-                    <button class="btn btn-primary" type="submit">Nachricht senden</button>
+                    <button class="btn btn-primary" type="submit">Projektanfrage senden</button>
                 </form>
             </div>
         </section>
@@ -321,11 +332,11 @@ function navLink(string $href, string $label, string $currentPath): string
     </div>
 </footer>
 
-<a class="floating-cta" href="/kontakt">Projektanfrage</a>
+<a class="floating-cta" href="/kontakt">Erstgespräch</a>
 <div class="mobile-action-bar" aria-label="Schnellaktionen">
     <a href="/leistungen">Leistungen</a>
     <a href="/kontakt">Kontakt</a>
-    <a href="/kontakt">Projektanfrage</a>
+    <a href="/kontakt">Erstgespräch</a>
 </div>
 
 <script src="/assets/js/app.js" defer></script>
