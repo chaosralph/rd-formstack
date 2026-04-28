@@ -6,9 +6,13 @@ namespace App\Http;
 
 use App\Repository\ContactRepository;
 use App\Security\Csrf;
+use App\Security\IpRateLimiter;
 
 final class ContactController
 {
+    private const RATE_LIMIT_MAX_ATTEMPTS = 5;
+    private const RATE_LIMIT_WINDOW_SECONDS = 600;
+
     public function __construct(private ContactRepository $repository)
     {
     }
@@ -18,6 +22,19 @@ final class ContactController
         if (!Csrf::validate(Request::post('_csrf'))) {
             http_response_code(419);
             $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
+            Response::redirect('/kontakt');
+        }
+
+        $limiter = new IpRateLimiter(
+            __DIR__ . '/../../storage/rate-limits/contact-submit.json',
+            self::RATE_LIMIT_MAX_ATTEMPTS,
+            self::RATE_LIMIT_WINDOW_SECONDS
+        );
+        $rateLimitResult = $limiter->consume(Request::ip());
+        if ($rateLimitResult['allowed'] === false) {
+            http_response_code(429);
+            header('Retry-After: ' . (string) $rateLimitResult['retry_after']);
+            $_SESSION['flash_error'] = 'Zu viele Anfragen von dieser IP. Bitte später erneut versuchen.';
             Response::redirect('/kontakt');
         }
 

@@ -423,6 +423,9 @@ function navLink(string $href, string $label, string $currentPath): string
         <p>© <?= date('Y') ?> RD Formstack Solutions</p>
         <div class="footer-links">
             <a href="/">Startseite</a>
+            <a href="/leistungen">Leistungen</a>
+            <a href="/referenzen">Referenzen</a>
+            <a href="/kontakt">Kontakt</a>
             <a href="/login">Login</a>
             <a href="/dms">DMS</a>
         </div>
