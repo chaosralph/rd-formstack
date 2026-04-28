@@ -51,10 +51,14 @@ Status: `blocked` (runtime/access)
 Minimal reproducible context:
 - `git push -u origin main` fails with `Host key verification failed.`
 - `ssh -T git@github.com` fails with `Host key verification failed.`
+- `git push -u origin main` via HTTPS remote fails with `could not read Username for 'https://github.com'`.
+- GitHub connector has user auth but no installation/repo access (`list_installations` and `list_repositories` return empty).
 
 Owner: Plattform/Runtime (Infra/DevOps)
 
 Required action:
 1. Provide trusted GitHub host key in this runtime.
 2. Ensure SSH key/auth for `git@github.com:chaosralph/rd-formstack.git`.
-3. Retry push to trigger workflow and attach successful run URL.
+3. Or provide HTTPS credential helper/token for `https://github.com/chaosralph/rd-formstack.git`.
+4. Install/authorize GitHub app access for repository `chaosralph/rd-formstack` (optional alternative path).
+5. Retry push to trigger workflow and attach successful run URL.
