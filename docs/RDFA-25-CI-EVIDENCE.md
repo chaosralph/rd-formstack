@@ -43,3 +43,18 @@ After push, workflow runs will be visible at:
 - `https://github.com/chaosralph/rd-formstack/actions/workflows/required-checks.yml`
 
 Use the latest successful run URL from that page as ticket evidence for green required checks.
+
+## Current blocker for live GitHub run evidence
+
+Status: `blocked` (runtime/access)
+
+Minimal reproducible context:
+- `git push -u origin main` fails with `Host key verification failed.`
+- `ssh -T git@github.com` fails with `Host key verification failed.`
+
+Owner: Plattform/Runtime (Infra/DevOps)
+
+Required action:
+1. Provide trusted GitHub host key in this runtime.
+2. Ensure SSH key/auth for `git@github.com:chaosralph/rd-formstack.git`.
+3. Retry push to trigger workflow and attach successful run URL.
