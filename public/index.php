@@ -86,6 +86,9 @@ $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
 $metaTitle = $siteName . ' | ' . $page['title'];
+$metaRobots = in_array($path, ['/login', '/dms'], true)
+    ? 'noindex,follow,max-image-preview:large'
+    : 'index,follow,max-image-preview:large';
 [$heroSecondaryHref, $heroSecondaryLabel] = HomepageContent::heroSecondaryCta($path);
 [$mobileActionHref, $mobileActionLabel] = HomepageContent::mobileActionCta($path);
 
@@ -108,7 +111,7 @@ function navLink(string $href, string $label, string $currentPath): string
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title><?= e($metaTitle) ?></title>
     <meta name="description" content="<?= e($page['description']) ?>">
-    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="robots" content="<?= e($metaRobots) ?>">
     <meta name="theme-color" content="#0c2747">
     <link rel="canonical" href="<?= e($canonicalUrl) ?>">
     <meta property="og:type" content="website">
