@@ -22,12 +22,17 @@ final class ContactController
         }
 
         $name = Request::post('name');
+        $company = Request::post('company');
         $email = Request::post('email');
+        $phone = Request::post('phone');
         $message = Request::post('message');
 
         $errors = [];
         if ($name === '') {
             $errors[] = 'Name ist erforderlich.';
+        }
+        if ($company === '') {
+            $errors[] = 'Unternehmen ist erforderlich.';
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Eine gültige E-Mail ist erforderlich.';
@@ -40,13 +45,15 @@ final class ContactController
             $_SESSION['flash_error'] = implode(' ', $errors);
             $_SESSION['old'] = [
                 'name' => $name,
+                'company' => $company,
                 'email' => $email,
+                'phone' => $phone,
                 'message' => $message,
             ];
             Response::redirect('/');
         }
 
-        $this->repository->create($name, $email, $message);
+        $this->repository->create($name, $company, $email, $phone, $message);
         $_SESSION['flash_success'] = 'Vielen Dank, Ihre Nachricht wurde gespeichert.';
         unset($_SESSION['old']);
         Response::redirect('/');

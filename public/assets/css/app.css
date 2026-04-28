@@ -60,6 +60,14 @@ a {
     text-decoration: none;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #7db7c5;
+    outline-offset: 2px;
+}
+
 .shell {
     width: min(1120px, 92vw);
     margin: 0 auto;
@@ -178,6 +186,7 @@ a {
 
 .hero-panel {
     padding: 24px;
+    background: linear-gradient(160deg, #ffffff 0%, #f4f8ff 100%);
 }
 
 .hero-panel h2 {
@@ -196,6 +205,35 @@ a {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+}
+
+.trust-strip {
+    margin-top: -18px;
+    padding-bottom: 12px;
+}
+
+.trust-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trust-item {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.trust-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--primary);
+}
+
+.trust-item span {
+    color: var(--muted);
+    font-size: 0.96rem;
 }
 
 .btn {
@@ -221,6 +259,10 @@ a {
 
 .btn-primary:hover {
     background: #15406d;
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
 }
 
 .btn-secondary {
@@ -251,6 +293,13 @@ a {
 .card,
 .step-card {
     padding: 20px;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.card:hover,
+.step-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(10, 28, 55, 0.12);
 }
 
 .reference-card {
@@ -378,6 +427,10 @@ textarea:focus {
     color: var(--muted);
 }
 
+.floating-cta {
+    display: none;
+}
+
 @media (max-width: 1000px) {
     .hero-grid,
     .split-grid,
@@ -392,6 +445,10 @@ textarea:focus {
     }
 
     .reference-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .trust-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -423,6 +480,10 @@ textarea:focus {
         display: flex;
     }
 
+    .main-nav .btn {
+        width: 100%;
+    }
+
     .hero-actions {
         flex-direction: column;
     }
@@ -430,5 +491,28 @@ textarea:focus {
     .card-grid,
     .steps-grid {
         grid-template-columns: 1fr;
+    }
+
+    .floating-cta {
+        display: inline-flex;
+        position: fixed;
+        right: 14px;
+        bottom: 14px;
+        z-index: 25;
+        padding: 11px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--primary);
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(12, 39, 71, 0.28);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
     }
 }

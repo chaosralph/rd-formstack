@@ -12,8 +12,12 @@ final class ContactRepository
     {
     }
 
-    public function create(string $name, string $email, string $message): int
+    public function create(string $name, string $company, string $email, string $phone, string $message): int
     {
+        $enrichedMessage = trim($message) . "\n\n"
+            . 'Unternehmen: ' . trim($company) . "\n"
+            . 'Telefon: ' . ($phone !== '' ? trim($phone) : 'nicht angegeben');
+
         $stmt = $this->pdo->prepare(
             'INSERT INTO contacts (name, email, message, created_at) VALUES (:name, :email, :message, NOW())'
         );
@@ -21,7 +25,7 @@ final class ContactRepository
         $stmt->execute([
             ':name' => $name,
             ':email' => $email,
-            ':message' => $message,
+            ':message' => $enrichedMessage,
         ]);
 
         return (int) $this->pdo->lastInsertId();
