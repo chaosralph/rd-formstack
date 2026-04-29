@@ -98,7 +98,9 @@ $references = HomepageContent::references();
 $processSteps = HomepageContent::processSteps();
 $deliveryPillars = HomepageContent::deliveryPillars();
 $loginFeatures = HomepageContent::loginFeatures();
+$loginPhases = HomepageContent::loginPhases();
 $dmsRoadmap = HomepageContent::dmsRoadmap();
+$dmsPhases = HomepageContent::dmsPhases();
 $contactHighlights = HomepageContent::contactHighlights();
 $faqs = HomepageContent::faqs();
 $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
@@ -314,6 +316,14 @@ function footerLink(string $href, string $label, string $currentPath): string
                     </ul>
                     <a class="text-link" href="/kontakt">Interesse am Pilotzugang melden</a>
                 </aside>
+                <div class="placeholder-phases" aria-label="Login-Ausbauphasen">
+                    <?php foreach ($loginPhases as $phase): ?>
+                        <article class="phase-card">
+                            <h3><?= e($phase['phase']) ?></h3>
+                            <p><?= e($phase['focus']) ?></p>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
     <?php endif; ?>
@@ -336,6 +346,14 @@ function footerLink(string $href, string $label, string $currentPath): string
                     </ul>
                     <a class="text-link" href="/kontakt">DMS-Use-Case besprechen</a>
                 </aside>
+                <div class="placeholder-phases" aria-label="DMS-Ausbauphasen">
+                    <?php foreach ($dmsPhases as $phase): ?>
+                        <article class="phase-card">
+                            <h3><?= e($phase['phase']) ?></h3>
+                            <p><?= e($phase['focus']) ?></p>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
     <?php endif; ?>

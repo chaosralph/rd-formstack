@@ -188,6 +188,30 @@ final class HomepageContent
     }
 
     /**
+     * @return list<array{phase:string,focus:string}>
+     */
+    public static function loginPhases(): array
+    {
+        return [
+            ['phase' => 'Phase 1', 'focus' => 'Rollen- und Rechtebasis mit sicherer Anmeldung'],
+            ['phase' => 'Phase 2', 'focus' => 'Persönliche Dashboards und Vorgangsübersicht'],
+            ['phase' => 'Phase 3', 'focus' => 'Projektkommunikation und Benachrichtigungslogik'],
+        ];
+    }
+
+    /**
+     * @return list<array{phase:string,focus:string}>
+     */
+    public static function dmsPhases(): array
+    {
+        return [
+            ['phase' => 'Phase 1', 'focus' => 'Dokumentensuche mit Filter- und Kontextansicht'],
+            ['phase' => 'Phase 2', 'focus' => 'Versionierung, Freigaben und Änderungsverlauf'],
+            ['phase' => 'Phase 3', 'focus' => 'Import-/Export-Strecken mit klaren Übergaberegeln'],
+        ];
+    }
+
+    /**
      * @return list<array{question:string,answer:string}>
      */
     public static function faqs(): array
