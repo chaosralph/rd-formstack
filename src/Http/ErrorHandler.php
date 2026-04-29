@@ -11,10 +11,15 @@ final class ErrorHandler
 {
     public static function handle(Throwable $exception, string $requestId): void
     {
+        Logger::security('unhandled_exception', 'high', $requestId, [
+            'type' => $exception::class,
+            'path' => $_SERVER['REQUEST_URI'] ?? '',
+            'method' => $_SERVER['REQUEST_METHOD'] ?? '',
+        ]);
+
         Logger::error('Unhandled exception', [
             'request_id' => $requestId,
             'type' => $exception::class,
-            'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
         ]);

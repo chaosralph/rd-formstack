@@ -22,7 +22,18 @@ final class AppUrl
             ]);
         }
 
-        return self::normalize($scheme . '://' . $host) ?? ($scheme . '://' . $host);
+        $fallback = self::normalize($scheme . '://' . $host);
+        if ($fallback !== null && self::isTrustedHost($host)) {
+            SecurityEventLogger::warning('app_base_url_host_fallback_used', [
+                'event_category' => 'security',
+            ]);
+            return $fallback;
+        }
+
+        SecurityEventLogger::warning('untrusted_host_header_blocked_for_base_url', [
+            'event_category' => 'security',
+        ]);
+        return $scheme . '://localhost';
     }
 
     public static function absolute(string $baseUrl, string $path): string
@@ -55,5 +66,26 @@ final class AppUrl
 
         $port = isset($parts['port']) ? ':' . (string) $parts['port'] : '';
         return $scheme . '://' . $host . $port;
+    }
+
+    private static function isTrustedHost(string $host): bool
+    {
+        $normalizedHost = strtolower(trim($host));
+        if ($normalizedHost === '' || !preg_match('/^[a-z0-9.-]+(?::[0-9]{1,5})?$/', $normalizedHost)) {
+            return false;
+        }
+
+        $allowedHosts = Env::get('APP_TRUSTED_HOSTS', '');
+        if (!is_string($allowedHosts) || trim($allowedHosts) === '') {
+            return false;
+        }
+
+        $hostOnly = explode(':', $normalizedHost, 2)[0];
+        $allowed = array_filter(array_map(
+            static fn (string $value): string => strtolower(trim($value)),
+            explode(',', $allowedHosts)
+        ));
+
+        return in_array($hostOnly, $allowed, true) || in_array($normalizedHost, $allowed, true);
     }
 }

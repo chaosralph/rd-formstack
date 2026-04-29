@@ -46,6 +46,14 @@ final class ContactController
 
         $result = $this->service->submit($input);
         if ($result['ok'] === false) {
+            if (count($result['errors']) >= 3) {
+                SecurityEventLogger::high('contact_validation_anomaly', [
+                    'event_category' => 'security',
+                    'error_count' => count($result['errors']),
+                    'request_ip_hash' => hash('sha256', Request::ip()),
+                    'path' => $_SERVER['REQUEST_URI'] ?? '',
+                ]);
+            }
             $_SESSION['flash_error'] = 'Bitte korrigieren Sie die markierten Eingaben.';
             $_SESSION['flash_errors'] = $result['errors'];
             $_SESSION['old'] = [

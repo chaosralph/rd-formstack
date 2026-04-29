@@ -652,6 +652,52 @@ main:focus-visible {
     }
 }
 
+@media (max-width: 480px) {
+    body { font-size: 17px; }
+
+    .shell { width: min(1180px, 100% - 1.25rem); }
+
+    .section {
+        padding-top: 52px;
+        padding-bottom: 52px;
+    }
+
+    .hero {
+        padding-top: 64px;
+        padding-bottom: 56px;
+    }
+
+    .hero-actions,
+    .subpage-sidecard .hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-trust li,
+    .service-card,
+    .ref-card,
+    .process-card,
+    .form-card,
+    .contact-sidecard,
+    .subpage-sidecard {
+        padding: 14px;
+    }
+
+    .main-nav {
+        top: 4.2rem;
+        padding: 14px;
+    }
+
+    .footer-links {
+        gap: 10px;
+    }
+}
+
 @media (min-width: 768px) {
     .quicknav-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 

@@ -146,6 +146,7 @@ validate_binary_flag "RD_QA_RUN_A11Y_SMOKE" "${RUN_A11Y_SMOKE}"
 validate_binary_flag "RD_QA_RUN_RESPONSIVE" "${RUN_RESPONSIVE}"
 check_required_script "scripts/ci/php-lint.sh"
 check_required_script "scripts/ci/smoke-routes.sh"
+check_required_script "scripts/ci/header-host-regression.sh"
 check_required_script "scripts/ci/accessibility-smoke.sh"
 if [ "${RUN_RESPONSIVE}" = "1" ]; then
   check_required_script "scripts/ci/responsive-evidence.sh"
@@ -153,6 +154,7 @@ fi
 
 run_required_check "PHP Lint" "artifacts/qa/gate/evidence/php-lint.log" bash scripts/ci/php-lint.sh
 run_required_check "Route Smoke" "artifacts/qa/gate/evidence/route-smoke.log" bash scripts/ci/smoke-routes.sh
+run_required_check "Header Host Regression" "artifacts/qa/gate/evidence/header-host-regression.log" bash scripts/ci/header-host-regression.sh
 
 if [ "${RUN_A11Y_SMOKE}" = "1" ]; then
   run_required_check "Accessibility Smoke" "artifacts/qa/gate/evidence/accessibility-smoke.log" bash scripts/ci/accessibility-smoke.sh

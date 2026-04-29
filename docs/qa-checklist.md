@@ -1,5 +1,31 @@
 ## RDFA-48 QA/DevOps Validation Update (2026-04-29 UTC)
 
+## RDFA-49 Header/Host Regression Gate Update (2026-04-29 UTC)
+
+Neuer deterministischer Pflichtcheck im QA-Gate:
+
+```bash
+bash scripts/ci/header-host-regression.sh
+```
+
+Lokal kompletter Gate-Run (fail-fast):
+
+```bash
+bash scripts/ci/qa-gate.sh --strict=1 --run-a11y-smoke=1 --run-responsive=0
+```
+
+PASS-Kriterien fuer `header-host-regression.sh`:
+- `GET /` und `GET /kontakt` liefern `200`.
+- Security Header vorhanden: `X-Content-Type-Options=nosniff`, `X-Frame-Options=DENY`, `Referrer-Policy=strict-origin-when-cross-origin`.
+- `Content-Security-Policy` enthaelt mindestens `default-src 'self'`, `frame-ancestors 'none'`, `form-action 'self'`.
+- `GET /sitemap.xml` liefert `200` mit `Content-Type` inkl. `application/xml`.
+- Bei Requests mit `Host: evil.example` und `X-Forwarded-Host: evil.example` darf `evil.example` weder in `Location` noch im Response-Body auftauchen.
+
+FAIL-Kriterien:
+- Abweichender HTTP-Status, fehlender/abweichender Pflichtheader oder CSP-Regression.
+- Unerwarteter `Content-Type` fuer `/sitemap.xml`.
+- Reflektion von `evil.example` in `Location` oder Body.
+
 Deterministischer Gate-Run (fail-fast) erfolgt ueber:
 
 ```bash

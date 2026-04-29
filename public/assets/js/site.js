@@ -95,6 +95,19 @@
         });
     }
 
+    var scrollToAnchor = function (destination, setFocus) {
+        var header = document.querySelector('.site-header');
+        var headerOffset = header instanceof HTMLElement ? header.offsetHeight + 12 : 0;
+        var top = destination.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+
+        if (setFocus) {
+            destination.setAttribute('tabindex', '-1');
+            destination.focus({ preventScroll: true });
+        }
+    };
+
     document.addEventListener('click', function (event) {
         var target = event.target;
         if (!(target instanceof HTMLAnchorElement)) {
@@ -105,8 +118,7 @@
 
         if (href === '#main' && main) {
             event.preventDefault();
-            main.focus();
-            main.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            scrollToAnchor(main, true);
             return;
         }
 
@@ -120,7 +132,7 @@
         }
 
         event.preventDefault();
-        destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToAnchor(destination, false);
     });
 
     var message = document.getElementById('message');
@@ -165,6 +177,8 @@
 
         if (filtered.length > 0) {
             field.setAttribute('aria-describedby', filtered.join(' '));
+        } else {
+            field.removeAttribute('aria-describedby');
         }
 
         field.removeAttribute('aria-invalid');
@@ -217,6 +231,7 @@
     summary.id = 'form-error-summary';
     summary.setAttribute('role', 'alert');
     summary.setAttribute('aria-live', 'assertive');
+    summary.setAttribute('aria-atomic', 'true');
     summary.setAttribute('tabindex', '-1');
     summary.hidden = true;
     summary.innerHTML = '<h3>Bitte korrigieren Sie die markierten Felder.</h3><ul></ul>';
@@ -286,6 +301,5 @@
 
         summary.hidden = false;
         summary.focus();
-        errors[0].field.focus();
     });
 })();

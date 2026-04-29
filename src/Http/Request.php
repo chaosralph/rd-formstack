@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http;
 
+use App\Support\Logger;
+
 final class Request
 {
     public static function method(): string
@@ -20,9 +22,28 @@ final class Request
     public static function ip(): string
     {
         $candidates = [];
+        $invalidForwardedForParts = 0;
         $forwardedFor = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
         if (is_string($forwardedFor) && $forwardedFor !== '') {
-            $candidates = array_map('trim', explode(',', $forwardedFor));
+            foreach (explode(',', $forwardedFor) as $item) {
+                $candidate = trim($item);
+                if ($candidate === '') {
+                    continue;
+                }
+                if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                    $candidates[] = $candidate;
+                    continue;
+                }
+                $invalidForwardedForParts++;
+            }
+        }
+
+        if ($invalidForwardedForParts > 0) {
+            Logger::security('request_forwarded_for_invalid', 'medium', $_SERVER['HTTP_X_REQUEST_ID'] ?? null, [
+                'invalid_parts' => $invalidForwardedForParts,
+                'path' => $_SERVER['REQUEST_URI'] ?? '',
+                'method' => self::method(),
+            ]);
         }
 
         $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
