@@ -79,7 +79,8 @@ final class ContactController
         }
 
         if ($errors !== []) {
-            $_SESSION['flash_error'] = implode(' ', $errors);
+            $_SESSION['flash_error'] = 'Bitte korrigieren Sie die markierten Eingaben.';
+            $_SESSION['flash_errors'] = $errors;
             $_SESSION['old'] = [
                 'name' => $name,
                 'company' => $company,

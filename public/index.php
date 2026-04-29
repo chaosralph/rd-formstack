@@ -88,9 +88,10 @@ if (!isset($routes[$path])) {
 
 $page = $routes[$path];
 $flashError = $_SESSION['flash_error'] ?? null;
+$flashErrors = $_SESSION['flash_errors'] ?? [];
 $flashSuccess = $_SESSION['flash_success'] ?? null;
 $old = $_SESSION['old'] ?? [];
-unset($_SESSION['flash_error'], $_SESSION['flash_success']);
+unset($_SESSION['flash_error'], $_SESSION['flash_errors'], $_SESSION['flash_success']);
 
 $services = HomepageContent::services();
 $references = HomepageContent::references();
@@ -380,7 +381,18 @@ function navLink(string $href, string $label, string $currentPath): string
                     </ul>
 
                     <?php if (is_string($flashError)): ?>
-                        <div class="alert alert-error" role="alert"><?= e($flashError) ?></div>
+                        <div class="alert alert-error" role="alert">
+                            <p><?= e($flashError) ?></p>
+                            <?php if (is_array($flashErrors) && $flashErrors !== []): ?>
+                                <ul class="alert-list">
+                                    <?php foreach ($flashErrors as $errorItem): ?>
+                                        <?php if (is_string($errorItem)): ?>
+                                            <li><?= e($errorItem) ?></li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
 
                     <?php if (is_string($flashSuccess)): ?>
