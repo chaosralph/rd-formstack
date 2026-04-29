@@ -30,7 +30,8 @@ for route in "${routes[@]}"; do
       exit 1
     fi
   else
-    robots_meta="$(curl -s "${BASE_URL}${route}" | tr '\n' ' ' | sed -n 's/.*<meta name="robots" content="\([^"]*\)".*/\1/p')"
+    page_body="$(curl -s "${BASE_URL}${route}")"
+    robots_meta="$(printf '%s' "${page_body}" | tr '\n' ' ' | sed -n 's/.*<meta name="robots" content="\([^"]*\)".*/\1/p')"
     if [ -z "${robots_meta}" ]; then
       echo "Route ${route} missing robots meta tag" >&2
       exit 1
@@ -44,6 +45,20 @@ for route in "${routes[@]}"; do
     else
       if [[ "${robots_meta}" != index* ]]; then
         echo "Route ${route} expected index robots meta, got: ${robots_meta}" >&2
+        exit 1
+      fi
+    fi
+
+    if [ "${route}" = "/login" ]; then
+      if ! printf '%s' "${page_body}" | grep -q "Kundenportal ist vorbereitet"; then
+        echo "Route ${route} missing placeholder headline content" >&2
+        exit 1
+      fi
+    fi
+
+    if [ "${route}" = "/dms" ]; then
+      if ! printf '%s' "${page_body}" | grep -q "DMS-Ausbau ist geplant"; then
+        echo "Route ${route} missing placeholder headline content" >&2
         exit 1
       fi
     fi
