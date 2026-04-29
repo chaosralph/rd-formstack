@@ -37,3 +37,23 @@ jobs:
 
       - name: Route smoke test
         run: bash scripts/ci/smoke-routes.sh
+
+  qa_gate:
+    name: qa-gate
+    runs-on: ubuntu-latest
+    needs: smoke_routes
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Run QA gate
+        env:
+          RD_QA_STRICT: '1'
+          RD_QA_RUN_A11Y_SMOKE: '1'
+          RD_QA_RUN_RESPONSIVE: '0'
+        run: bash scripts/ci/qa-gate.sh

@@ -94,6 +94,7 @@ if ($isNotFound) {
 } else {
     $page = $routes[$path];
 }
+
 $flashError = $_SESSION['flash_error'] ?? null;
 $flashErrors = $_SESSION['flash_errors'] ?? [];
 $flashSuccess = $_SESSION['flash_success'] ?? null;
@@ -102,15 +103,7 @@ unset($_SESSION['flash_error'], $_SESSION['flash_errors'], $_SESSION['flash_succ
 
 $services = HomepageContent::services();
 $references = HomepageContent::references();
-$processSteps = HomepageContent::processSteps();
-$deliveryPillars = HomepageContent::deliveryPillars();
-$loginFeatures = HomepageContent::loginFeatures();
-$loginPhases = HomepageContent::loginPhases();
-$dmsRoadmap = HomepageContent::dmsRoadmap();
-$dmsPhases = HomepageContent::dmsPhases();
 $contactHighlights = HomepageContent::contactHighlights();
-$faqs = HomepageContent::faqs();
-$nextSteps = HomepageContent::nextSteps();
 $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
@@ -118,8 +111,7 @@ $metaTitle = $siteName . ' | ' . $page['title'];
 $metaRobots = $isNotFound || in_array($path, ['/login', '/dms'], true)
     ? 'noindex,follow,max-image-preview:large'
     : 'index,follow,max-image-preview:large';
-[$heroSecondaryHref, $heroSecondaryLabel] = HomepageContent::heroSecondaryCta($path);
-[$mobileActionHref, $mobileActionLabel] = HomepageContent::mobileActionCta($path);
+
 $structuredData = [
     [
         '@context' => 'https://schema.org',
@@ -147,13 +139,6 @@ function navLink(string $href, string $label, string $currentPath): string
     $ariaCurrent = $href === $currentPath ? ' aria-current="page"' : '';
     return '<a class="nav-link' . $active . '" href="' . e($href) . '"' . $ariaCurrent . '>' . e($label) . '</a>';
 }
-
-function footerLink(string $href, string $label, string $currentPath): string
-{
-    $active = $href === $currentPath ? ' is-active' : '';
-    $ariaCurrent = $href === $currentPath ? ' aria-current="page"' : '';
-    return '<a class="footer-link' . $active . '" href="' . e($href) . '"' . $ariaCurrent . '>' . e($label) . '</a>';
-}
 ?>
 <!doctype html>
 <html lang="de">
@@ -163,7 +148,7 @@ function footerLink(string $href, string $label, string $currentPath): string
     <title><?= e($metaTitle) ?></title>
     <meta name="description" content="<?= e($page['description']) ?>">
     <meta name="robots" content="<?= e($metaRobots) ?>">
-    <meta name="theme-color" content="#0c2747">
+    <meta name="theme-color" content="#10233d">
     <link rel="canonical" href="<?= e($canonicalUrl) ?>">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="de_DE">
@@ -171,16 +156,13 @@ function footerLink(string $href, string $label, string $currentPath): string
     <meta property="og:title" content="<?= e($metaTitle) ?>">
     <meta property="og:description" content="<?= e($page['description']) ?>">
     <meta property="og:url" content="<?= e($canonicalUrl) ?>">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= e($metaTitle) ?>">
-    <meta name="twitter:description" content="<?= e($page['description']) ?>">
     <script type="application/ld+json"><?=
         (string) json_encode(
             $structuredData,
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
         )
     ?></script>
-    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body class="<?= e($bodyClass) ?>">
 <a class="skip-link" href="#main">Zum Inhalt springen</a>
@@ -198,84 +180,45 @@ function footerLink(string $href, string $label, string $currentPath): string
             <?= navLink('/kontakt', 'Kontakt', $path) ?>
             <?= navLink('/login', 'Login', $path) ?>
             <?= navLink('/dms', 'DMS', $path) ?>
-            <a class="btn btn-primary btn-small" href="/kontakt">Projektanfrage</a>
+            <a class="btn btn-accent btn-sm" href="/kontakt">Projektanfrage</a>
         </nav>
     </div>
 </header>
 
 <main id="main">
-    <?php if ($path !== '/'): ?>
-        <section class="context-bar" aria-label="Seitenkontext">
-            <div class="shell context-row">
-                <a href="/">Startseite</a>
-                <span>/</span>
-                <strong><?= e($page['title']) ?></strong>
-            </div>
-        </section>
-    <?php endif; ?>
-
-    <section class="hero section">
-        <div class="shell hero-grid <?= $path === '/' ? '' : 'hero-grid-single' ?>">
-            <div>
-                <p class="eyebrow">RD Formstack Solutions</p>
-                <h1><?= e($page['headline']) ?></h1>
-                <p class="lead"><?= e($page['intro']) ?></p>
-                <div class="hero-actions">
-                    <a class="btn btn-primary" href="/kontakt">Kostenloses Erstgespräch anfragen</a>
-                    <a class="btn btn-secondary" href="<?= e($heroSecondaryHref) ?>"><?= e($heroSecondaryLabel) ?></a>
-                </div>
-                <?php if ($path === '/'): ?>
-                    <div class="hero-metrics" aria-label="Wertversprechen">
-                        <span>Klare Roadmap statt Technik-Risiko</span>
-                        <span>Antwort in 1 Werktag</span>
-                        <span>Fokus auf umsetzbare Lösungen</span>
+    <?php if ($path === '/'): ?>
+        <section class="hero section">
+            <div class="shell hero-grid">
+                <div>
+                    <p class="eyebrow">Digital Solutions für Prozessarbeit</p>
+                    <h1>Webplattformen, die Abläufe vereinfachen und Teams entlasten</h1>
+                    <p class="lead">RD Formstack Solutions verbindet Webentwicklung, Workflow-Logik und Dokumentenprozesse zu einer stabilen Lösung für Ihr Tagesgeschäft.</p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="/kontakt">Kostenloses Erstgespräch</a>
+                        <a class="btn btn-ghost" href="#leistungen">Leistungsbereiche ansehen</a>
                     </div>
-                <?php endif; ?>
-            </div>
-            <?php if ($path === '/'): ?>
-                <aside class="hero-panel" aria-label="Kernvorteile">
-                    <h2>Worauf wir uns fokussieren</h2>
+                </div>
+                <aside class="hero-panel" aria-label="Projektfokus">
+                    <h2>Womit wir starten</h2>
                     <ul>
-                        <li>Klare UX und saubere Nutzerführung</li>
-                        <li>Digitale Prozesse mit messbarem Nutzen</li>
-                        <li>Modulare Basis für Skalierung und Betrieb</li>
+                        <li>Konkreter Use-Case statt generischer Lastenliste</li>
+                        <li>Schrittweiser Aufbau mit testbaren Inkrementen</li>
+                        <li>Frühe Sichtbarkeit für Fachbereich und Technik</li>
                     </ul>
                 </aside>
-            <?php endif; ?>
-        </div>
-    </section>
-
-    <?php if ($path === '/'): ?>
-        <section class="trust-strip" aria-label="Projektfokus">
-            <div class="shell trust-grid">
-                <div class="trust-item">
-                    <strong>Webentwicklung</strong>
-                    <span>Strukturierte Informationsarchitektur und klare Frontend-Flows</span>
-                </div>
-                <div class="trust-item">
-                    <strong>Digitale Prozesse</strong>
-                    <span>Weniger manuelle Übergaben und transparentere Abläufe</span>
-                </div>
-                <div class="trust-item">
-                    <strong>Beleg &amp; DMS</strong>
-                    <span>Saubere Dokumentenstrecken mit hoher Nachvollziehbarkeit</span>
-                </div>
             </div>
         </section>
-    <?php endif; ?>
 
-    <?php if ($path === '/' || $path === '/leistungen'): ?>
         <section class="section" id="leistungen">
             <div class="shell">
                 <p class="eyebrow">Leistungsbereiche</p>
-                <h2>Von der Konzeption bis zur produktiven Lösung</h2>
-                <p class="section-intro">Vier Bausteine für moderne Web- und Dokumentenprozesse mit klarer Verantwortung und guter Bedienbarkeit.</p>
-                <div class="card-grid">
+                <h2>Von Idee bis produktivem Workflow</h2>
+                <div class="cards-grid">
                     <?php foreach ($services as $service): ?>
-                        <article class="card">
+                        <article class="service-card">
                             <h3><?= e($service['title']) ?></h3>
                             <p><?= e($service['description']) ?></p>
-                            <ul class="feature-list card-list">
+                            <ul>
                                 <?php foreach ($service['highlights'] as $highlight): ?>
                                     <li><?= e($highlight) ?></li>
                                 <?php endforeach; ?>
@@ -283,173 +226,46 @@ function footerLink(string $href, string $label, string $currentPath): string
                         </article>
                     <?php endforeach; ?>
                 </div>
-                <div class="section-cta-row">
-                    <a class="btn btn-primary" href="/kontakt">Leistungen im Erstgespräch klären</a>
-                    <a class="btn btn-secondary" href="/referenzen">Passende Referenzen ansehen</a>
-                </div>
-                <div class="pillar-grid" aria-label="Umsetzungssäulen">
-                    <?php foreach ($deliveryPillars as $pillar): ?>
-                        <article class="pillar-item">
-                            <h3><?= e($pillar['title']) ?></h3>
-                            <p><?= e($pillar['value']) ?></p>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
             </div>
         </section>
-    <?php endif; ?>
 
-    <?php if ($path === '/' || $path === '/referenzen'): ?>
-        <section class="section <?= $path === '/referenzen' ? 'section-alt' : '' ?>" id="referenzen">
+        <section class="section section-muted" id="referenzen">
             <div class="shell">
-                <p class="eyebrow">Referenzen</p>
-                <h2>Ausgewählte Projektbeispiele</h2>
-                <p class="section-intro">Drei typische Kontexte, in denen wir Webentwicklung, Prozesslogik und Dokumentenmanagement wirksam zusammenführen.</p>
-                <div class="reference-grid">
+                <p class="eyebrow">Projektbilder</p>
+                <h2>Typische Szenarien aus der Praxis</h2>
+                <div class="cards-grid ref-grid">
                     <?php foreach ($references as $reference): ?>
-                        <article class="card reference-card">
+                        <article class="ref-card">
+                            <p class="tag"><?= e($reference['industry']) ?></p>
                             <h3><?= e($reference['title']) ?></h3>
-                            <p class="reference-industry"><?= e($reference['industry']) ?></p>
                             <p><?= e($reference['description']) ?></p>
-                            <p class="reference-outcome"><strong>Ergebnis:</strong> <?= e($reference['outcome']) ?></p>
-                            <ul class="reference-focus">
-                                <?php foreach ($reference['focus'] as $focus): ?>
-                                    <li><?= e($focus) ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-                <div class="section-cta-row">
-                    <a class="btn btn-primary" href="/kontakt">Ähnliches Projekt starten</a>
-                </div>
-            </div>
-        </section>
-    <?php endif; ?>
-
-    <?php if ($path === '/' || $path === '/login'): ?>
-        <section class="section section-alt" id="login">
-            <div class="shell placeholder-wrap">
-                <div>
-                    <p class="eyebrow">Login</p>
-                    <h2>Kundenportal in Vorbereitung</h2>
-                    <p>Der geschützte Login-Bereich ist als technischer Platzhalter integriert. Geplant sind rollenbasierte Zugriffe, persönliche Dashboards und sichere Dokumentenansichten.</p>
-                    <p class="placeholder-note">Status: Platzhalterseite für die Integrationsphase. Zugriff wird nach technischer Freigabe aktiviert.</p>
-                </div>
-                <aside class="placeholder-card" aria-label="Login-Platzhalter">
-                    <h3>Geplante Funktionen</h3>
-                    <ul class="feature-list">
-                        <?php foreach ($loginFeatures as $feature): ?>
-                            <li><?= e($feature) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <a class="text-link" href="/kontakt">Interesse am Pilotzugang melden</a>
-                </aside>
-                <div class="placeholder-phases" aria-label="Login-Ausbauphasen">
-                    <?php foreach ($loginPhases as $phase): ?>
-                        <article class="phase-card">
-                            <h3><?= e($phase['phase']) ?></h3>
-                            <p><?= e($phase['focus']) ?></p>
+                            <p><strong>Ergebnis:</strong> <?= e($reference['outcome']) ?></p>
                         </article>
                     <?php endforeach; ?>
                 </div>
             </div>
         </section>
-    <?php endif; ?>
-
-    <?php if ($path === '/' || $path === '/dms'): ?>
-        <section class="section" id="dms">
-            <div class="shell placeholder-wrap">
-                <div>
-                    <p class="eyebrow">DMS-Platzhalter</p>
-                    <h2>DMS-Bereich wird ausgebaut</h2>
-                    <p>Die DMS-Fläche ist als technischer Platzhalter integriert und wird schrittweise mit Dokumentenklassifikation, Revisionshistorie und Freigabeprozessen ergänzt.</p>
-                    <p class="placeholder-note">Status: Kernbereiche vorbereitet, fachliche Workflows werden in Iterationen ergänzt.</p>
-                </div>
-                <aside class="placeholder-card" aria-label="DMS-Platzhalter">
-                    <h3>Nächste Ausbaustufen</h3>
-                    <ul class="feature-list">
-                        <?php foreach ($dmsRoadmap as $item): ?>
-                            <li><?= e($item) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <a class="text-link" href="/kontakt">DMS-Use-Case besprechen</a>
-                </aside>
-                <div class="placeholder-phases" aria-label="DMS-Ausbauphasen">
-                    <?php foreach ($dmsPhases as $phase): ?>
-                        <article class="phase-card">
-                            <h3><?= e($phase['phase']) ?></h3>
-                            <p><?= e($phase['focus']) ?></p>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </section>
-    <?php endif; ?>
-
-    <?php if ($path === '/'): ?>
-        <section class="section section-alt">
+    <?php else: ?>
+        <section class="section page-hero">
             <div class="shell">
-                <p class="eyebrow">Vorgehen</p>
-                <h2>Strukturiertes Vorgehen mit klaren Meilensteinen</h2>
-                <div class="steps-grid">
-                    <?php foreach ($processSteps as $index => $step): ?>
-                        <article class="step-card">
-                            <span><?= $index + 1 ?></span>
-                            <h3><?= e($step['title']) ?></h3>
-                            <p><?= e($step['description']) ?></p>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </section>
-
-        <section class="section faq-section" aria-labelledby="faq-title">
-            <div class="shell">
-                <p class="eyebrow">FAQ</p>
-                <h2 id="faq-title">Häufige Fragen vor dem Erstgespräch</h2>
-                <div class="faq-list">
-                    <?php foreach ($faqs as $faq): ?>
-                        <details class="faq-item">
-                            <summary><?= e($faq['question']) ?></summary>
-                            <p><?= e($faq['answer']) ?></p>
-                        </details>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </section>
-
-        <section class="section section-alt" aria-labelledby="next-steps-title">
-            <div class="shell">
-                <p class="eyebrow">Nächste Schritte</p>
-                <h2 id="next-steps-title">So starten wir die Zusammenarbeit</h2>
-                <div class="pillar-grid">
-                    <?php foreach ($nextSteps as $step): ?>
-                        <article class="pillar-item">
-                            <h3><?= e($step['title']) ?></h3>
-                            <p><?= e($step['text']) ?></p>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-                <div class="section-cta-row">
-                    <a class="btn btn-primary" href="/kontakt">Erstgespräch vereinbaren</a>
-                </div>
+                <p class="eyebrow">RD Formstack Solutions</p>
+                <h1><?= e($page['headline']) ?></h1>
+                <p class="lead"><?= e($page['intro']) ?></p>
             </div>
         </section>
     <?php endif; ?>
 
     <?php if ($path === '/' || $path === '/kontakt'): ?>
-        <section class="section" id="kontakt">
+        <section class="section contact-cta" id="kontakt">
             <div class="shell contact-layout">
                 <div>
                     <p class="eyebrow">Kontakt</p>
-                    <h2>Projekt unverbindlich besprechen</h2>
-                    <p>Beschreiben Sie kurz Ihr Vorhaben. Wir melden uns mit einer realistischen Empfehlung für den nächsten Schritt.</p>
-                    <p class="form-helper">Antwort in der Regel innerhalb eines Werktags.</p>
+                    <h2>Vorhaben in 30 Minuten strukturieren</h2>
+                    <p>Beschreiben Sie den aktuellen Engpass. Sie erhalten eine realistische Empfehlung für die nächsten Schritte.</p>
                     <ul class="contact-points">
-                        <li>Klare Einschätzung zu Aufwand und nächstem Schritt</li>
-                        <li>Technisch realistische Empfehlung statt Standardangebot</li>
-                        <li>Unverbindlich und ohne lange Vorqualifizierung</li>
+                        <li>Antwort in der Regel innerhalb eines Werktags</li>
+                        <li>Klare Einschätzung zu Aufwand und Prioritäten</li>
+                        <li>Unverbindlich und ohne Vertragsbindung</li>
                     </ul>
 
                     <?php if (is_string($flashError)): ?>
@@ -510,9 +326,9 @@ function footerLink(string $href, string $label, string $currentPath): string
                     <button class="btn btn-primary" type="submit">Projektanfrage senden</button>
                 </form>
 
-                <aside class="callout-card contact-sidecard" aria-label="Kontaktinformationen">
-                    <h3>Was Sie im Erstgespräch erwarten können</h3>
-                    <ul class="feature-list">
+                <aside class="contact-sidecard" aria-label="Kontaktinformationen">
+                    <h3>Rahmen für den Ersttermin</h3>
+                    <ul>
                         <?php foreach ($contactHighlights as $highlight): ?>
                             <li><strong><?= e($highlight['label']) ?>:</strong> <?= e($highlight['value']) ?></li>
                         <?php endforeach; ?>
@@ -526,24 +342,15 @@ function footerLink(string $href, string $label, string $currentPath): string
 <footer class="site-footer">
     <div class="shell footer-inner">
         <p>© <?= date('Y') ?> RD Formstack Solutions</p>
-        <div class="footer-links">
-            <?= footerLink('/', 'Startseite', $path) ?>
-            <?= footerLink('/leistungen', 'Leistungen', $path) ?>
-            <?= footerLink('/referenzen', 'Referenzen', $path) ?>
-            <?= footerLink('/kontakt', 'Kontakt', $path) ?>
-            <?= footerLink('/login', 'Login', $path) ?>
-            <?= footerLink('/dms', 'DMS', $path) ?>
-        </div>
+        <nav class="footer-links" aria-label="Footer Navigation">
+            <?= navLink('/', 'Startseite', $path) ?>
+            <?= navLink('/leistungen', 'Leistungen', $path) ?>
+            <?= navLink('/referenzen', 'Referenzen', $path) ?>
+            <?= navLink('/kontakt', 'Kontakt', $path) ?>
+        </nav>
     </div>
 </footer>
 
-<a class="floating-cta" href="/kontakt">Erstgespräch</a>
-<div class="mobile-action-bar" aria-label="Schnellaktionen">
-    <a href="/leistungen">Leistungen</a>
-    <a href="/kontakt">Kontakt</a>
-    <a href="<?= e($mobileActionHref) ?>"><?= e($mobileActionLabel) ?></a>
-</div>
-
-<script src="/assets/js/app.js" defer></script>
+<script src="/assets/js/site.js" defer></script>
 </body>
 </html>

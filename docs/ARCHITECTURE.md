@@ -35,3 +35,43 @@
 
 ## Kein Deployment
 - Deployment ist explizit gesperrt bis Freigabe.
+
+## Zielarchitektur V2 (Ergänzung RDFA-46)
+
+### Layer-Modell
+- Presentation: `public/`, Routing, Controller, View-Rendering.
+- Application: Use-Case-Services für Geschäftsabläufe (z. B. Kontaktprozess, Content-Orchestrierung).
+- Domain: Fachregeln, Validierung, Domänenobjekte.
+- Infrastructure: Repository-Implementierungen, PDO/MySQL, Logging, externe Adapter.
+
+### Sicherheit V2
+- Secrets ausschließlich über Environment-Variablen; keine Credentials im Repository.
+- Mutierende Requests nur mit CSRF-Schutz und serverseitiger Validierung.
+- Prepared Statements und zentralisiertes Escaping bleiben verpflichtend.
+- Security-Header werden zentral verwaltet; CSP schrittweise in Richtung Enforce.
+- Audit-Logging für administrative und sicherheitskritische Aktionen.
+
+### Ziel-Datenmodell V2 (fachliche Kernobjekte)
+- `contacts` fuer Kontaktanfragen inkl. Bearbeitungsstatus.
+- `pages` und `content_blocks` fuer flexible Inhaltsstruktur.
+- `media_assets` fuer referenzierte Dateien/Assets.
+- `users`, `roles`, `user_role_map` fuer Zugriffssteuerung.
+- `audit_log` fuer Nachvollziehbarkeit.
+
+### Deployment-Umgebungen
+- Lokal: Entwicklung mit lokaler `.env` und lokaler Datenbank.
+- Staging: produktionsnahe Validierung mit CI-gesteuerten Abläufen.
+- Produktion: nur nach expliziter Freigabe mit definiertem Rollback.
+
+### Migrationsansatz
+- Keine 1:1-HTML-Kopie der Alt-Seite.
+- Ziel ist funktionale Parität: identische Business-Ergebnisse bei moderner Umsetzung.
+- Legacy wird schrittweise durch V2-Capabilities ersetzt (inkrementelle Migration).
+
+### Phasenplan
+1. Phase 0: Scope/Baseline und Sicherheits-/Architekturentscheidungen fixieren.
+2. Phase 1: Foundation (Bootstrap, Routing, Fehlerhandling, Konfiguration, Migrationen).
+3. Phase 2: Core-Capabilities (Kontakt, Content, Admin-Basis).
+4. Phase 3: Legacy-Migration je Capability mit Regressionstests.
+5. Phase 4: Staging-Härtung, Rollback-Proben, Betriebsdokumentation.
+6. Phase 5: Go-Live-Readiness (ohne Deployment in diesem Arbeitsauftrag).

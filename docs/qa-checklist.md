@@ -136,3 +136,102 @@ Begründung:
 - Runtime-, Lint-, Security-, Responsive- und Accessibility-Pflichtprüfungen sind bestanden.
 
 Freigabe erteilt: **PASS/GO**.
+
+## 6) UX/A11y Erweiterung (RDFA-46, additiv)
+
+Diese Sektion ergaenzt die bestehende QA-Checklist um verbindliche UI/UX- und Accessibility-Pruefungen.
+Bestehende Gate-Kriterien bleiben unveraendert gueltig.
+
+### 6.1 UX-Visual-Consistency Checks (Desktop + Mobile)
+
+Statusregel:
+- **PASS**, wenn alle folgenden Punkte auf 360px, 768px und 1280px erfuellt sind.
+- **FAIL**, wenn ein Punkt verletzt ist.
+
+Pruefpunkte:
+1. Typografie konsistent:
+- Fliesstext mindestens 16px, klare Heading-Hierarchie, keine abgeschnittenen Texte.
+
+2. Layout-Stabilitaet:
+- Keine horizontale Scrollbar.
+- Keine ueberlappenden Inhalte bei Navigation, Hero, Formular, Footer.
+
+3. Komponenten-Konsistenz:
+- Buttons/Inputs haben einheitliche Hoehe (min. 44px) und konsistente Abstaende.
+- Hover/Focus/Active/Disabled-Zustaende sind visuell unterscheidbar.
+
+4. Motion-Verhalten:
+- Transitionen wirken kurz und orientierend (keine stoerenden Spruenge).
+- Bei `prefers-reduced-motion` sind Animationen reduziert/deaktiviert.
+
+### 6.2 Formular-Usability Checks
+
+Statusregel:
+- **PASS**, wenn alle folgenden Punkte fuer das Kontaktformular erfuellt sind.
+- **FAIL**, wenn ein Punkt verletzt ist.
+
+Pruefpunkte:
+1. Pflichtfeld-Transparenz:
+- Erforderliche Felder sind eindeutig als Pflichtfelder markiert.
+
+2. Inline-Validierung:
+- Fehlermeldungen erscheinen feldnah und konkret.
+- Fehler sind nicht nur ueber Farbe codiert.
+
+3. Fehlerverhalten nach Submit:
+- Fokus springt zur Fehlerzusammenfassung oder zum ersten fehlerhaften Feld.
+- Bereits korrekt eingegebene Werte bleiben erhalten.
+
+4. Erfolgsverhalten:
+- Erfolgreicher Submit zeigt eine klare Bestaetigung mit naechstem sinnvollen Schritt.
+
+5. Keyboard-Flow:
+- Tab-Reihenfolge ist logisch und ohne Spruenge.
+- Submit ist per Tastatur ohne Maus moeglich.
+
+### 6.3 A11y-Akzeptanzkriterien (verbindlich, WCAG 2.1 AA-orientiert)
+
+Statusregel:
+- **PASS**, wenn alle folgenden Kriterien erfuellt und nachweisbar sind.
+- **FAIL / NO-GO**, wenn ein Kriterium nicht erfuellt ist.
+
+1. Tastatur:
+- Alle interaktiven Elemente sind per `Tab` erreichbar.
+- Kein Keyboard-Trap.
+- Skip-Link ist erster Fokuspunkt und funktioniert.
+
+2. Fokus:
+- Sichtbarer Fokus auf Links, Buttons, Inputs, Selects, Textareas.
+- Fokus hat ausreichenden Kontrast und wird nicht verdeckt.
+
+3. Kontrast:
+- Text-Kontrast min. 4.5:1 (normal) bzw. 3:1 (gross).
+- UI-Komponenten/Fokusindikatoren min. 3:1 gegen angrenzende Farben.
+
+4. Labels/Semantik:
+- Jedes Formularfeld hat sichtbares Label.
+- Label/Feld-Verknuepfung vorhanden (`for`/`id`).
+- Fehler-/Hilfetexte mit Feld verknuepft (`aria-describedby`), invalid state als `aria-invalid`.
+- Placeholder ersetzt kein Label.
+
+5. Struktur:
+- Genau eine `h1` pro Seite.
+- Landmarken (`header`, `main`, `nav`, `footer`) vorhanden.
+- Statusmeldungen (Erfolg/Fehler) fuer Assistive Tech erkennbar (z. B. `aria-live`).
+
+### 6.4 Empfohlene Nachweisfuehrung (manuell + halbautomatisch)
+
+Beispielhafte Kommandos fuer reproduzierbare Nachweise:
+
+```bash
+# A11y-Smoke (bereits vorhanden)
+bash scripts/ci/accessibility-smoke.sh
+
+# Keyboard-E2E (falls vorhanden)
+bash scripts/ci/accessibility-keyboard-e2e.sh
+```
+
+Manuelle Pflichtdokumentation pro Release:
+1. Screenshots 360/768/1280 fuer Start und Kontaktbereich.
+2. Kurzes Protokoll fuer Tastaturdurchlauf (Skip-Link bis Submit).
+3. Kontrastnachweis fuer Primartext, CTA-Button, Fokusindikator, Fehlermeldung.

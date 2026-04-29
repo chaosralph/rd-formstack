@@ -47,7 +47,7 @@ final class HomepageContent
         return [
             [
                 'title' => 'Webentwicklung',
-                'description' => 'Performante Websites und Anwendungen mit intuitiver Navigation, klarer Struktur und langlebiger Codebasis.',
+                'description' => 'Produktionsreife Webanwendungen mit klarer Nutzerfuehrung, robuster Struktur und wartbarer Codebasis.',
                 'highlights' => [
                     'Informationsarchitektur und Seitenlogik',
                     'Responsive Frontend mit klarer Nutzerführung',
@@ -74,7 +74,7 @@ final class HomepageContent
             ],
             [
                 'title' => 'DMS',
-                'description' => 'Dokumentenmanagement mit klaren Rollen, hoher Auffindbarkeit und konsistenten Freigabestrecken.',
+                'description' => 'Dokumentenmanagement mit Rollenlogik, hoher Auffindbarkeit und konsistenten Freigabeflows.',
                 'highlights' => [
                     'Versionierung und Freigabehistorie',
                     'Suche, Filter und nachvollziehbare Ablageregeln',
