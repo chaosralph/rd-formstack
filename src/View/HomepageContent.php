@@ -32,6 +32,7 @@ final class HomepageContent
             '/' => ['/kontakt', 'Erstgespräch'],
             '/leistungen' => ['/referenzen', 'Referenzen'],
             '/referenzen' => ['/kontakt', 'Projektstart'],
+            '/kontakt' => ['#contact-form', 'Zum Formular'],
             '/login' => ['/kontakt', 'Pilotzugang'],
             '/dms' => ['/kontakt', 'DMS-Anfrage'],
         ];

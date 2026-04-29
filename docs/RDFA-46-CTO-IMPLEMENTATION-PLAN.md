@@ -14,6 +14,7 @@ Stand: 2026-04-29 (UTC)
 - Application Layer: Use-Case-orientierte Services (z. B. Contact Intake, Content-Ausspielung).
 - Domain Layer: Fachregeln, Validierung, Entitäten/Value Objects.
 - Infrastructure Layer: PDO/MySQL, Repositories, Logging, Mail-/Webhook-Adapter (hinter Interfaces).
+- Container-/Wiring-Regel: `src/Bootstrap/` baut Abhängigkeiten auf; Controller dürfen nur Application-Services konsumieren (kein direkter DB-Zugriff).
 
 ### 2) Sicherheitsmodell
 - Secret-Management ausschließlich via Environment-Variablen (`.env` lokal, Secret Store in Staging/Prod).
@@ -33,7 +34,8 @@ Stand: 2026-04-29 (UTC)
 - Lokal: Entwickler-Workstation, lokale `.env`, lokale DB, keine externen Secrets.
 - Staging: produktionsnah, Testdaten, CI-gesteuerte Deploy-Pipeline, Smoke/Regression vor Freigabe.
 - Produktion: nur nach Gate-Freigaben, Change-Fenster und Rollback-Plan.
-- Artefaktprinzip: Build once, promote same artifact lokal/staging/prod.
+- Artefaktprinzip: Build once, promote same artifact staging/prod (lokal darf abweichen).
+- Release-Gates: Merge nur bei grünem CI, Deployment nach Produktion nur manuell und außerhalb dieses Auftrags.
 
 ## Migrationsstrategie (Funktionalitäts-Parität)
 - Discovery: Legacy-Funktionen in Capability-Matrix erfassen (Inhalt, Formulare, SEO, Integrationen).
@@ -41,6 +43,7 @@ Stand: 2026-04-29 (UTC)
 - Re-Design statt Replikation: UX/Markup modernisieren, aber Verhalten/Ergebnis erhalten.
 - Strangler-Fig-Ansatz: Funktionen inkrementell auf V2 übernehmen; Legacy nur als Referenzsystem.
 - Datenmigration: Mapping je Entität, idempotente Import-Skripte, Dry-Run auf Staging.
+- DB-Migrationen: vorwärts-only, versioniert und unveränderlich nach Merge; Korrekturen nur per neuer Folgemigration.
 - Abnahme: Paritäts-Check anhand Akzeptanzkriterien pro Capability, nicht anhand HTML-Diff.
 
 ## Phasenplan
@@ -109,3 +112,6 @@ Stand: 2026-04-29 (UTC)
 - Migrationsstrategie auf Funktionsparität dokumentiert.
 - Risiko-Register mit konkreten Gegenmaßnahmen dokumentiert.
 - Entscheidungslog mit priorisierten Architekturentscheidungen dokumentiert.
+
+## Änderungsnotiz
+- Stand aktualisiert und Planung geschärft am 2026-04-29 (UTC): Layer-Wiring-Regel konkretisiert, Environment-Gates präzisiert, Migrationspolitik auf vorwärts-only festgelegt.

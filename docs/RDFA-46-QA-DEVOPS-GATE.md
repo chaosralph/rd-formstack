@@ -8,24 +8,26 @@ Pflichtumfang des Gates:
 - Smoke: `bash scripts/ci/smoke-routes.sh`
 - A11y-Smoke: `bash scripts/ci/accessibility-smoke.sh`
 
-Ausführung über:
+Ausfuehrung ueber:
 - `bash scripts/ci/qa-gate.sh`
 - oder `composer run check:qa-gate`
 
 ## Gate-Verhalten
-- Der Gate läuft im `set -euo pipefail`-Modus.
-- Pflichtchecks werden konsistent in fester Reihenfolge ausgeführt.
-- Fehler in einem Pflichtcheck führen zu sofortigem Abbruch (Fail-Fast).
-- Bei Fail wird `exit 1` gesetzt.
-- Der Gate erzeugt immer einen Abschlussreport via `trap`.
+- Der Gate laeuft im `set -euo pipefail`-Modus.
+- Pflichtchecks werden konsistent in fester Reihenfolge ausgefuehrt.
+- Fehler in einem Pflichtcheck fuehren zu sofortigem Abbruch (Fail-Fast).
+- Bei Fail wird `exit 1` gesetzt, bei erfolgreichem Lauf `exit 0`.
+- Der Gate erzeugt immer einen Abschlussreport via `trap` (auch bei Fehlern).
+- Konfigurationsflags werden strikt validiert; erlaubt sind nur `0` oder `1`.
 
 ## Konfigurierbare Flags
 - `RD_QA_STRICT` (Default `1`): Strikter Modus.
 - `RD_QA_RUN_A11Y_SMOKE` (Default `1`): A11y-Smoke aktivieren/deaktivieren.
 - `RD_QA_RUN_RESPONSIVE` (Default `0`): Optionales Responsive-Evidence-Skript.
 
-Hinweis zu Strict Mode:
-- Wenn `RD_QA_RUN_A11Y_SMOKE=0` und `RD_QA_STRICT=1`, schlägt der Gate fehl.
+Hinweise:
+- Wenn `RD_QA_RUN_A11Y_SMOKE=0` und `RD_QA_STRICT=1`, schlaegt der Gate fehl.
+- Ungueltige Flag-Werte (nicht `0`/`1`) fuehren deterministisch zu Fail.
 
 ## Evidence-Artefakte
 Alle Gate-Artefakte liegen unter `artifacts/qa/gate/`.
@@ -42,17 +44,18 @@ Report-Inhalte:
 - Start-/Endzeit (UTC)
 - Gesamtstatus (`PASS`/`FAIL`)
 - Konfigurationsflags
-- Warnungszähler
+- Warnungszaehler
 - Fehlgeschlagener Check (falls vorhanden)
 - Liste der Pflicht- und optionalen Checks inkl. Artefaktpfade
+- `check_results` mit Status je Check (`PASS`/`FAIL`/`WARN`/`SKIP`)
 
 Optionales Evidence bei Responsive-Run:
 - `artifacts/qa/gate/evidence/responsive-evidence.log`
 - sowie Artefakte aus `artifacts/qa/responsive/`
 
 ## CI-Integration
-Der Workflow `.github/workflows/required-checks.yml` enthält einen dedizierten Job `qa_gate`, der den Gate zentral ausführt.
+Der Workflow `.github/workflows/required-checks.yml` enthaelt einen dedizierten Job `qa_gate`, der den Gate zentral ausfuehrt.
 
 Wichtig:
-- Keine Secrets für den Gate erforderlich.
+- Keine Secrets fuer den Gate erforderlich.
 - Keine Deployment-Jobs enthalten.

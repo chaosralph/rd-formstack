@@ -1,6 +1,6 @@
 # QA Gate P0 - Neue Website (RD Formstack Solutions)
 
-Stand: 2026-04-28 (UTC)
+Stand: 2026-04-29 (UTC)
 Scope: Landingpage + Kontaktformular (`public/index.php`, `public/assets/*`, `src/Http/ContactController.php`)
 
 ## 0) Standard-Entry (RDFA-34)
@@ -145,23 +145,25 @@ Bestehende Gate-Kriterien bleiben unveraendert gueltig.
 ### 6.1 UX-Visual-Consistency Checks (Desktop + Mobile)
 
 Statusregel:
-- **PASS**, wenn alle folgenden Punkte auf 360px, 768px und 1280px erfuellt sind.
+- **PASS**, wenn alle folgenden Punkte auf 360x800, 768x1024 und 1280x800 erfuellt sind.
 - **FAIL**, wenn ein Punkt verletzt ist.
 
 Pruefpunkte:
-1. Typografie konsistent:
-- Fliesstext mindestens 16px, klare Heading-Hierarchie, keine abgeschnittenen Texte.
+1. `UX-RESP-01` Keine horizontale Scrollbar:
+- Messung: `document.documentElement.scrollWidth <= window.innerWidth`.
 
-2. Layout-Stabilitaet:
-- Keine horizontale Scrollbar.
-- Keine ueberlappenden Inhalte bei Navigation, Hero, Formular, Footer.
+2. `UX-RESP-02` Navigation:
+- Desktop-Navigation sofort sichtbar.
+- Mobile-Navigation (`#nav-toggle`) oeffnet/schliesst korrekt.
 
-3. Komponenten-Konsistenz:
-- Buttons/Inputs haben einheitliche Hoehe (min. 44px) und konsistente Abstaende.
-- Hover/Focus/Active/Disabled-Zustaende sind visuell unterscheidbar.
+3. `UX-RESP-03` Kontaktformular erreichbar:
+- Kontaktformular inkl. Submit auf allen Ziel-Viewports vollstaendig erreichbar.
 
-4. Motion-Verhalten:
-- Transitionen wirken kurz und orientierend (keine stoerenden Spruenge).
+4. `UX-FORM-01` Komponenten-Groessen:
+- Interaktive Controls im Formular mind. 44px Hoehe; Touch-Ziele auf Mobile mind. 44x44px.
+
+5. Motion-Verhalten:
+- Transitionen sind orientierend, ohne stoerende Spruenge.
 - Bei `prefers-reduced-motion` sind Animationen reduziert/deaktiviert.
 
 ### 6.2 Formular-Usability Checks
@@ -171,23 +173,23 @@ Statusregel:
 - **FAIL**, wenn ein Punkt verletzt ist.
 
 Pruefpunkte:
-1. Pflichtfeld-Transparenz:
-- Erforderliche Felder sind eindeutig als Pflichtfelder markiert.
+1. `UX-FORM-02` Pflichtfeld-Transparenz:
+- Erforderliche Felder sind sichtbar markiert und im DOM als `required` erkennbar.
 
-2. Inline-Validierung:
-- Fehlermeldungen erscheinen feldnah und konkret.
-- Fehler sind nicht nur ueber Farbe codiert.
+2. `UX-FORM-03` Inline-Validierung:
+- Fehlermeldungen erscheinen feldnah, konkret und nicht nur farbbasiert.
 
-3. Fehlerverhalten nach Submit:
-- Fokus springt zur Fehlerzusammenfassung oder zum ersten fehlerhaften Feld.
-- Bereits korrekt eingegebene Werte bleiben erhalten.
+3. `UX-FORM-04` Fehlerfokus:
+- Nach invalidem Submit springt Fokus zur Fehlerzusammenfassung oder zum ersten invaliden Feld.
 
-4. Erfolgsverhalten:
-- Erfolgreicher Submit zeigt eine klare Bestaetigung mit naechstem sinnvollen Schritt.
+4. `UX-FORM-05` Werterhalt:
+- Korrekt ausgefuellte Felder bleiben nach invalidem Submit erhalten.
 
-5. Keyboard-Flow:
-- Tab-Reihenfolge ist logisch und ohne Spruenge.
-- Submit ist per Tastatur ohne Maus moeglich.
+5. `UX-FORM-06` Erfolgsverhalten:
+- Erfolgreicher Submit zeigt klare Bestaetigung und naechsten sinnvollen Schritt.
+
+6. Keyboard-Flow:
+- Tab-Reihenfolge ist logisch, Submit per Tastatur moeglich.
 
 ### 6.3 A11y-Akzeptanzkriterien (verbindlich, WCAG 2.1 AA-orientiert)
 
@@ -195,31 +197,69 @@ Statusregel:
 - **PASS**, wenn alle folgenden Kriterien erfuellt und nachweisbar sind.
 - **FAIL / NO-GO**, wenn ein Kriterium nicht erfuellt ist.
 
-1. Tastatur:
-- Alle interaktiven Elemente sind per `Tab` erreichbar.
-- Kein Keyboard-Trap.
-- Skip-Link ist erster Fokuspunkt und funktioniert.
+1. `A11Y-KB-01` Tastatur:
+- Alle interaktiven Elemente per `Tab` erreichbar, kein Keyboard-Trap.
 
-2. Fokus:
+2. `A11Y-KB-02` Skip-Link:
+- Erster Fokuspunkt und funktionaler Sprung in den Hauptinhalt.
+
+3. `A11Y-KB-03` Mobile-Menue:
+- Per Tastatur oeffn-/schliessbar, Fokusfluss korrekt.
+
+4. `A11Y-FOCUS-01` Fokus sichtbar:
 - Sichtbarer Fokus auf Links, Buttons, Inputs, Selects, Textareas.
-- Fokus hat ausreichenden Kontrast und wird nicht verdeckt.
 
-3. Kontrast:
-- Text-Kontrast min. 4.5:1 (normal) bzw. 3:1 (gross).
-- UI-Komponenten/Fokusindikatoren min. 3:1 gegen angrenzende Farben.
+5. `A11Y-FOCUS-02` Fokus-Kontrast:
+- Fokusindikator min. 3:1 gegen angrenzende Farben und nicht verdeckt.
 
-4. Labels/Semantik:
-- Jedes Formularfeld hat sichtbares Label.
-- Label/Feld-Verknuepfung vorhanden (`for`/`id`).
-- Fehler-/Hilfetexte mit Feld verknuepft (`aria-describedby`), invalid state als `aria-invalid`.
-- Placeholder ersetzt kein Label.
+6. `A11Y-CONTRAST-01` Text-Kontrast normal:
+- Mindestens 4.5:1.
 
-5. Struktur:
-- Genau eine `h1` pro Seite.
-- Landmarken (`header`, `main`, `nav`, `footer`) vorhanden.
-- Statusmeldungen (Erfolg/Fehler) fuer Assistive Tech erkennbar (z. B. `aria-live`).
+7. `A11Y-CONTRAST-02` Text-Kontrast gross:
+- Mindestens 3:1.
 
-### 6.4 Empfohlene Nachweisfuehrung (manuell + halbautomatisch)
+8. `A11Y-CONTRAST-03` UI/Fokus-Kontrast:
+- Mindestens 3:1 fuer Komponentenränder/Fokusindikatoren.
+
+9. `A11Y-SEM-01` Labels:
+- Sichtbares Label je Feld, sauber verknuepft via `for`/`id`.
+
+10. `A11Y-SEM-02` Formularstatus:
+- Fehler-/Hilfetexte ueber `aria-describedby` verknuepft, Invalid-Status via `aria-invalid`.
+
+11. `A11Y-SEM-03` Struktur:
+- Genau eine `h1`, Landmarken `header/main/nav/footer` vorhanden.
+
+12. `A11Y-SEM-04` Statusmeldungen:
+- Erfolg/Fehler fuer Assistive Tech erkennbar (z. B. `aria-live`).
+
+### 6.4 Traceability-Mapping Brief <-> QA
+
+| Brief-ID (RDFA-46) | QA-Pruefschritt | Evidenz (Mindestnachweis) |
+|---|---|---|
+| UX-RESP-01 | 6.1.1 + 2.B | 3 Viewportscreenshots + ScrollWidth-Pruefung |
+| UX-RESP-02 | 6.1.2 + 2.B | Mobile-Nav auf/zu Nachweis |
+| UX-RESP-03 | 6.1.3 + 2.B | Kontaktbereich auf 360/768/1280 sichtbar |
+| UX-FORM-01 | 6.1.4 | Groessenpruefung Formular-Controls |
+| UX-FORM-02 | 6.2.1 | DOM-Nachweis `required` + sichtbare Pflichtmarkierung |
+| UX-FORM-03 | 6.2.2 | Invalid-Submit mit feldnahen Fehlern |
+| UX-FORM-04 | 6.2.3 | Fokusnachweis nach invalidem Submit |
+| UX-FORM-05 | 6.2.4 | Werterhalt-Nachweis nach invalidem Submit |
+| UX-FORM-06 | 6.2.5 | Erfolgsnachricht inkl. naechster Schritt |
+| A11Y-KB-01 | 6.3.1 + 2.C | Keyboard-Smoke/Tab-Durchlauf |
+| A11Y-KB-02 | 6.3.2 + 2.C | Skip-Link Fokus und Ziel |
+| A11Y-KB-03 | 6.3.3 | Mobile-Menu per Tastatur |
+| A11Y-FOCUS-01 | 6.3.4 + 2.C | Fokus-Screenshots |
+| A11Y-FOCUS-02 | 6.3.5 | Kontrastmessung Fokusring |
+| A11Y-CONTRAST-01 | 6.3.6 | Kontrastmessung normaler Text |
+| A11Y-CONTRAST-02 | 6.3.7 | Kontrastmessung grosser Text |
+| A11Y-CONTRAST-03 | 6.3.8 | Kontrastmessung UI/Fokus |
+| A11Y-SEM-01 | 6.3.9 + 2.C | DOM-Pruefung `for/id` |
+| A11Y-SEM-02 | 6.3.10 | DOM-Pruefung `aria-describedby/aria-invalid` |
+| A11Y-SEM-03 | 6.3.11 + 2.C | Heading/Landmark-Check |
+| A11Y-SEM-04 | 6.3.12 | Statusmeldung via `aria-live` |
+
+### 6.5 Empfohlene Nachweisfuehrung (manuell + halbautomatisch)
 
 Beispielhafte Kommandos fuer reproduzierbare Nachweise:
 

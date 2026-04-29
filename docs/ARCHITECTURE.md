@@ -1,5 +1,7 @@
 # RD Formstack Solutions - Technische Grundlage
 
+Stand: 2026-04-29 (UTC)
+
 ## Architektur
 - `public/`: Front Controller und statische Assets.
 - `src/Bootstrap/`: Laufzeitinitialisierung (Session, Security-Header, Env-Load).
@@ -11,6 +13,13 @@
 - `database/migrations/`: SQL-Migrationen.
 - `storage/logs/`: Laufzeit-Logs (nicht versioniert).
 
+### Layer-Zuordnung (V2)
+- Presentation: `public/`, `src/Http/Routing/`, `src/Http/` (Controller/Response/View-Anbindung).
+- Application: `src/Application/` (Use-Case-Services; neu anzulegen bzw. schrittweise zu befüllen).
+- Domain: `src/Domain/` (Fachlogik, Regeln, Value Objects; neu anzulegen bzw. schrittweise zu befüllen).
+- Infrastructure: `src/Infrastructure/` plus DB/Logging-Adapter (neu anzulegen bzw. schrittweise zu befüllen).
+- Regel: Direkter DB-Zugriff ist nur in Infrastructure erlaubt; Controller nutzen ausschließlich Application-Services.
+
 ## Sicherheitsentscheidungen
 - Keine Secrets im Repository (`.env` lokal, `.env.example` als Vorlage).
 - PDO mit `ERRMODE_EXCEPTION` und deaktivierter Emulation.
@@ -18,6 +27,7 @@
 - CSRF-Token bei mutierenden Formular-Requests.
 - Serverseitige Validierung und HTML-Escaping.
 - Zentrales Exception-Handling mit generischer Fehlerantwort für Endnutzer.
+- Session-Cookies mit `HttpOnly`, `Secure` (außer lokal ohne TLS) und `SameSite=Lax` als Standard.
 
 ## Erweiterbarkeit
 - Controller und Repository getrennt.
@@ -62,11 +72,13 @@
 - Lokal: Entwicklung mit lokaler `.env` und lokaler Datenbank.
 - Staging: produktionsnahe Validierung mit CI-gesteuerten Abläufen.
 - Produktion: nur nach expliziter Freigabe mit definiertem Rollback.
+- Produktion bleibt manuell freigegeben; keine automatische Produktionsauslieferung in diesem Auftrag.
 
 ### Migrationsansatz
 - Keine 1:1-HTML-Kopie der Alt-Seite.
 - Ziel ist funktionale Parität: identische Business-Ergebnisse bei moderner Umsetzung.
 - Legacy wird schrittweise durch V2-Capabilities ersetzt (inkrementelle Migration).
+- SQL-Migrationen sind vorwärts-only und nach Merge unveränderlich; Fixes erfolgen ausschließlich über neue Migrationen.
 
 ### Phasenplan
 1. Phase 0: Scope/Baseline und Sicherheits-/Architekturentscheidungen fixieren.
@@ -75,3 +87,6 @@
 4. Phase 3: Legacy-Migration je Capability mit Regressionstests.
 5. Phase 4: Staging-Härtung, Rollback-Proben, Betriebsdokumentation.
 6. Phase 5: Go-Live-Readiness (ohne Deployment in diesem Arbeitsauftrag).
+
+## Änderungsnotiz
+- 2026-04-29 (UTC): Konsistenz zu RDFA-46-Plan hergestellt (Layer-Zuordnung, Security-Cookie-Defaults, Environment-/Release-Gates, vorwärts-only Migrationen).

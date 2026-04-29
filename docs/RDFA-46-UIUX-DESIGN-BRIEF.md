@@ -124,47 +124,74 @@ Anwendung:
   - logische Tab-Reihenfolge
   - Enter-/Submit-Verhalten eindeutig
 
-## 5) A11y-Akzeptanzkriterien (verbindlich)
+## 5) Testbare UX/A11y-Akzeptanzkriterien (verbindlich)
 
-### 5.1 Tastatur
+Hinweis: Jede Anforderung ist mit einer eindeutigen ID versehen und muss als PASS/FAIL pruefbar sein.
 
-- Alle interaktiven Elemente sind ohne Maus erreichbar.
-- Kein Keyboard-Trap in Navigation, Formular oder Overlays.
-- Skip-Link ist als erster Fokuspunkt erreichbar und springt in den Hauptinhalt.
-- Mobile Menue kann per Tastatur geoeffnet/geschlossen werden.
+### 5.1 Viewport und Responsive
 
-### 5.2 Fokus
+- `UX-RESP-01`: Auf 360x800, 768x1024, 1280x800 gibt es keine horizontale Scrollbar (`document.documentElement.scrollWidth <= innerWidth`).
+- `UX-RESP-02`: Hauptnavigation ist auf Desktop direkt sichtbar und auf Mobile per `#nav-toggle` oeffn-/schliessbar.
+- `UX-RESP-03`: Kontaktformular inkl. Submit-Button ist auf allen drei Viewports ohne Layoutbruch erreichbar.
 
-- Sichtbarer Fokus auf allen Links, Buttons, Inputs, Selects, Textareas.
-- Fokusindikator unterscheidet sich klar vom Default-Zustand.
-- Fokus darf nicht durch `overflow`, `outline: none` oder Layer verdeckt werden.
+### 5.2 Formular und Interaktion
 
-### 5.3 Kontrast
+- `UX-FORM-01`: Alle interaktiven Elemente im Formular haben mind. 44px Hoehe; Touch-Targets auf Mobile mind. 44x44px.
+- `UX-FORM-02`: Jedes Pflichtfeld ist sichtbar markiert und programmatisch als `required` erkennbar.
+- `UX-FORM-03`: Bei invalidem Submit erscheint pro fehlerhaftem Feld ein feldnaher, konkreter Fehlertext.
+- `UX-FORM-04`: Nach invalidem Submit springt der Fokus zur Fehlerzusammenfassung oder zum ersten invaliden Feld.
+- `UX-FORM-05`: Bereits korrekt eingegebene Werte bleiben nach invalidem Submit erhalten.
+- `UX-FORM-06`: Erfolgreicher Submit zeigt eine eindeutige Erfolgsmeldung mit naechstem Schritt.
 
-- Normaler Text: mindestens 4.5:1.
-- Grosser Text (>= 24px regular oder >= 18.66px bold): mindestens 3:1.
-- UI-Komponenten und Fokusindikatoren: mindestens 3:1 gegen angrenzende Farben.
-- Fehler-, Warn- und Erfolgshinweise sind auch ohne Farbe verstaendlich.
+### 5.3 Tastatur und Fokus
 
-### 5.4 Labels und semantische Verknuepfung
+- `A11Y-KB-01`: Alle interaktiven Elemente sind per Tastatur erreichbar; kein Keyboard-Trap.
+- `A11Y-KB-02`: Skip-Link ist erster Fokuspunkt und setzt Fokus in den Hauptinhalt.
+- `A11Y-KB-03`: Mobile-Menue ist per Tastatur oeffn-/schliessbar; Fokus bleibt im erwarteten Interaktionsfluss.
+- `A11Y-FOCUS-01`: Sichtbarer Fokus auf Links, Buttons, Inputs, Selects, Textareas.
+- `A11Y-FOCUS-02`: Fokusindikator ist gegen angrenzende Farbe mit mindestens 3:1 kontrastiert und nicht verdeckt.
 
-- Jedes Formularfeld besitzt ein sichtbares Label.
-- Label/Feld sind semantisch verknuepft (`label[for]` + eindeutige `id`).
-- Pflicht- und Fehlerstatus sind programmatisch ermittelbar (`required`, `aria-invalid`, `aria-describedby` bei Hilfs-/Fehlertext).
-- Platzhalter ersetzen keine Labels.
+### 5.4 Kontrast, Semantik, Screenreader
 
-### 5.5 Struktur und Screenreader-Basis
+- `A11Y-CONTRAST-01`: Normaler Text hat mindestens 4.5:1 Kontrast.
+- `A11Y-CONTRAST-02`: Grosser Text (>=24px regular oder >=18.66px bold) hat mindestens 3:1 Kontrast.
+- `A11Y-CONTRAST-03`: UI-Komponenten-Grenzen und Fokusindikatoren haben mindestens 3:1 Kontrast.
+- `A11Y-SEM-01`: Jedes Formularfeld hat sichtbares Label mit `label[for]` + eindeutiger Feld-`id`.
+- `A11Y-SEM-02`: Fehler-/Hilfetexte sind mit Feldern verknuepft (`aria-describedby`), Invalid-Status via `aria-invalid`.
+- `A11Y-SEM-03`: Pro Seite existiert genau eine `h1`; Landmarken `header/main/nav/footer` sind vorhanden.
+- `A11Y-SEM-04`: Erfolgs- und Fehlermeldungen werden assistiven Technologien angekuendigt (z. B. `aria-live`).
 
-- Pro Seite genau eine `h1`; Ueberschriftshierarchie ohne Spruenge.
-- Landmarken vorhanden: `header`, `main`, `nav`, `footer`.
-- Interaktive Elemente mit korrekter Rolle und erkennbarem Namen.
-- Statusmeldungen (Fehler/Erfolg) werden assistiven Technologien angekuendigt (z. B. `aria-live`).
+## 6) Mapping zu QA-Checkliste (objektive Validierung)
 
-## 6) Delivery-Definition fuer Implementierung
+| Brief-ID | QA-Check (docs/qa-checklist.md) | Nachweis |
+|---|---|---|
+| UX-RESP-01 | 6.1 Layout-Stabilitaet + 2.B Responsive Smoke | Responsive Screenshots + manueller Viewport-Check |
+| UX-RESP-02 | 6.1 Layout-Stabilitaet + 2.B Responsive Smoke | Nav-Interaktion auf 360/768/1280 |
+| UX-RESP-03 | 6.2 Formular-Usability + 2.B Responsive Smoke | Kontaktbereich-Screenshots + manuelle Bedienung |
+| UX-FORM-01 | 6.2 Formular-Usability | DevTools-Messung/visuelle Kontrolle je Control |
+| UX-FORM-02 | 6.2 Formular-Usability + 6.3 Labels/Semantik | DOM-Check `required` + sichtbare Pflichtmarkierung |
+| UX-FORM-03 | 6.2 Inline-Validierung | Invalid-Submit-Screenshot + Fehlertexte |
+| UX-FORM-04 | 6.2 Fehlerverhalten nach Submit + 6.3 Tastatur | Keyboard-E2E / Fokusnachweis |
+| UX-FORM-05 | 6.2 Fehlerverhalten nach Submit | Re-Submit mit teilweise gueltigen Daten |
+| UX-FORM-06 | 6.2 Erfolgsverhalten + 6.3 Struktur | Erfolgsfall-Screenshot + `aria-live`/Statusnachweis |
+| A11Y-KB-01 | 6.3 Tastatur + 2.C Accessibility Smoke | Tab-Durchlauf-Protokoll |
+| A11Y-KB-02 | 6.3 Tastatur + 2.C Accessibility Smoke | Skip-Link-Screenshot + Fokusziel |
+| A11Y-KB-03 | 6.3 Tastatur + 2.B Responsive Smoke | Keyboard-Test auf Mobile-Nav |
+| A11Y-FOCUS-01 | 6.3 Fokus + 2.C Accessibility Smoke | Fokus-Screenshots interaktiver Elemente |
+| A11Y-FOCUS-02 | 6.3 Fokus + 6.3 Kontrast | Kontrastmessung Fokusring |
+| A11Y-CONTRAST-01 | 6.3 Kontrast | Kontrasttool-Messwerte Text |
+| A11Y-CONTRAST-02 | 6.3 Kontrast | Kontrasttool-Messwerte Headings |
+| A11Y-CONTRAST-03 | 6.3 Kontrast | Kontrasttool-Messwerte Controls/Fokus |
+| A11Y-SEM-01 | 6.3 Labels/Semantik + 2.C Accessibility Smoke | DOM-Inspektion `for/id` |
+| A11Y-SEM-02 | 6.3 Labels/Semantik | DOM-Inspektion `aria-describedby/aria-invalid` |
+| A11Y-SEM-03 | 6.3 Struktur + 2.C Accessibility Smoke | Outline/Landmark-Check |
+| A11Y-SEM-04 | 6.3 Struktur | Screenreader-/DOM-Nachweis `aria-live` |
+
+## 7) Delivery-Definition fuer Implementierung
 
 Die Implementierung gilt fuer UI/UX als bereit zur QA, wenn:
 
 1. Visuelle Tokens fuer Typografie, Farbe, Radius, Spacing und Fokus im CSS zentral definiert sind.
 2. Desktop- und Mobile-Anforderungen aus Abschnitt 3 reproduzierbar erfuellt sind.
 3. Formular-Usability-Anforderungen aus Abschnitt 4 umgesetzt sind.
-4. Alle A11y-Akzeptanzkriterien aus Abschnitt 5 testbar nachgewiesen werden koennen.
+4. Alle Akzeptanzkriterien aus Abschnitt 5 mit PASS/FAIL ueber das Mapping in Abschnitt 6 validierbar sind.
