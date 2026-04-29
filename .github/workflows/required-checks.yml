@@ -10,6 +10,9 @@ jobs:
   qa_gate:
     name: qa-gate
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4

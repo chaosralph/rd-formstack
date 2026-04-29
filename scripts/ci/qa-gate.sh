@@ -3,6 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${ROOT_DIR}"
+export LC_ALL=C
+export LANG=C
+export TZ=UTC
 
 usage() {
   cat <<'USAGE'
@@ -128,9 +131,25 @@ run_required_check() {
   exit 1
 }
 
+check_required_script() {
+  local path="$1"
+  if [ ! -f "${path}" ]; then
+    die_with_error "Required script missing: ${path}"
+  fi
+  if [ ! -x "${path}" ]; then
+    die_with_error "Required script is not executable: ${path}"
+  fi
+}
+
 validate_binary_flag "RD_QA_STRICT" "${STRICT_MODE}"
 validate_binary_flag "RD_QA_RUN_A11Y_SMOKE" "${RUN_A11Y_SMOKE}"
 validate_binary_flag "RD_QA_RUN_RESPONSIVE" "${RUN_RESPONSIVE}"
+check_required_script "scripts/ci/php-lint.sh"
+check_required_script "scripts/ci/smoke-routes.sh"
+check_required_script "scripts/ci/accessibility-smoke.sh"
+if [ "${RUN_RESPONSIVE}" = "1" ]; then
+  check_required_script "scripts/ci/responsive-evidence.sh"
+fi
 
 run_required_check "PHP Lint" "artifacts/qa/gate/evidence/php-lint.log" bash scripts/ci/php-lint.sh
 run_required_check "Route Smoke" "artifacts/qa/gate/evidence/route-smoke.log" bash scripts/ci/smoke-routes.sh

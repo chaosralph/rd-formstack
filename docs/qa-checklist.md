@@ -1,3 +1,26 @@
+## RDFA-48 QA/DevOps Validation Update (2026-04-29 UTC)
+
+Deterministischer Gate-Run (fail-fast) erfolgt ueber:
+
+```bash
+bash scripts/ci/qa-gate.sh --strict=1 --run-a11y-smoke=1 --run-responsive=0
+```
+
+Gueltige Flags:
+- `--strict=0|1`
+- `--run-a11y-smoke=0|1`
+- `--run-responsive=0|1`
+- `-h|--help`
+
+Fail-Fast-Regeln:
+- Bei erstem Pflichtcheck-Fehler beendet das Script sofort mit Exit `1`.
+- Ungueltige oder unbekannte Flags beenden mit klarer Fehlermeldung (Exit `1` bzw. `2`).
+- Report wird immer geschrieben: `artifacts/qa/gate/report.txt`.
+
+CI-Gate-Fokus:
+- Required Workflow ist auf den Job `qa-gate` fokussiert.
+- Keine Deployment-Jobs im Required-Workflow.
+
 # QA Gate P0 - Neue Website (RD Formstack Solutions)
 
 Stand: 2026-04-29 (UTC)

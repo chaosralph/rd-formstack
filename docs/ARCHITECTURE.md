@@ -19,6 +19,7 @@ Stand: 2026-04-29 (UTC)
 - Domain: `src/Domain/` (Fachlogik, Regeln, Value Objects; neu anzulegen bzw. schrittweise zu befüllen).
 - Infrastructure: `src/Infrastructure/` plus DB/Logging-Adapter (neu anzulegen bzw. schrittweise zu befüllen).
 - Regel: Direkter DB-Zugriff ist nur in Infrastructure erlaubt; Controller nutzen ausschließlich Application-Services.
+- Regel (RDFA-47): Mutierende Flows (z. B. Kontakt-Submit) duerfen nicht Controller -> Repository direkt koppeln; verpflichtend ist Controller -> Application-Service -> Repository.
 
 ## Sicherheitsentscheidungen
 - Keine Secrets im Repository (`.env` lokal, `.env.example` als Vorlage).
@@ -60,6 +61,10 @@ Stand: 2026-04-29 (UTC)
 - Prepared Statements und zentralisiertes Escaping bleiben verpflichtend.
 - Security-Header werden zentral verwaltet; CSP schrittweise in Richtung Enforce.
 - Audit-Logging für administrative und sicherheitskritische Aktionen.
+- `APP_BASE_URL` ist verpflichtend fuer Staging/Produktion und Source of Truth fuer Canonical-, Sitemap- und sonstige absolute Seiten-URLs; `HTTP_HOST` ist nur lokaler DEV-Fallback.
+- Rate-Limiter-Fehlermodus ist env-gesteuert ueber `RATE_LIMIT_FAIL_MODE=open|closed`; fail-open ohne Security-Event ist unzulaessig.
+- Header-Policy ist env-gesteuert: `ENABLE_HSTS=true` aktiviert HSTS nur unter TLS, `CSP_REPORT_ONLY=true` schaltet CSP auf Report-Only.
+- Security-Events werden strukturiert geloggt (`event_type`, `severity`, `request_id`, `context`) ohne Roh-PII.
 
 ### Ziel-Datenmodell V2 (fachliche Kernobjekte)
 - `contacts` fuer Kontaktanfragen inkl. Bearbeitungsstatus.
@@ -90,3 +95,4 @@ Stand: 2026-04-29 (UTC)
 
 ## Änderungsnotiz
 - 2026-04-29 (UTC): Konsistenz zu RDFA-46-Plan hergestellt (Layer-Zuordnung, Security-Cookie-Defaults, Environment-/Release-Gates, vorwärts-only Migrationen).
+- 2026-04-29 (UTC): RDFA-47-Regeln praezisiert (Application-Service-Pflicht fuer mutierende Flows, `APP_BASE_URL`, Rate-Limiter-Fail-Mode, env-gesteuerte Header-Policy, Security-Event-Schema).

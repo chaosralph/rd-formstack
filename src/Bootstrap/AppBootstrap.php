@@ -10,6 +10,9 @@ final class AppBootstrap
 {
     public static function init(string $projectRoot): void
     {
+        require_once $projectRoot . '/config/env.php';
+        Env::load($projectRoot . '/.env');
+
         session_set_cookie_params([
             'httponly' => true,
             'samesite' => 'Lax',
@@ -23,9 +26,17 @@ final class AppBootstrap
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: DENY');
         header('Referrer-Policy: strict-origin-when-cross-origin');
-        header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
-        require_once $projectRoot . '/config/env.php';
-        Env::load($projectRoot . '/.env');
+        $csp = "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
+        if (strtolower((string) Env::get('CSP_REPORT_ONLY', 'false')) === 'true') {
+            header('Content-Security-Policy-Report-Only: ' . $csp);
+        } else {
+            header('Content-Security-Policy: ' . $csp);
+        }
+
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        if ($isHttps && strtolower((string) Env::get('ENABLE_HSTS', 'false')) === 'true') {
+            header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+        }
     }
 }

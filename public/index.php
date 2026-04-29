@@ -3,13 +3,16 @@
 declare(strict_types=1);
 
 use App\Bootstrap\AppBootstrap;
+use App\Application\Contact\ContactSubmissionService;
+use App\Controller\ContactController;
 use App\Database\Connection;
-use App\Http\ContactController;
 use App\Http\ErrorHandler;
 use App\Http\Routing\RouteCatalog;
 use App\Http\Request;
 use App\Repository\ContactRepository;
 use App\Security\Csrf;
+use App\Support\AppUrl;
+use App\Support\SecurityHeaderPolicy;
 use App\View\HomepageContent;
 use App\View\SiteRenderer;
 
@@ -32,6 +35,7 @@ AppBootstrap::init($projectRoot);
 
 $requestId = bin2hex(random_bytes(8));
 header('X-Request-Id: ' . $requestId);
+$_SERVER['HTTP_X_REQUEST_ID'] = $requestId;
 set_exception_handler(static function (Throwable $exception) use ($requestId): void {
     ErrorHandler::handle($exception, $requestId);
     exit;
@@ -42,9 +46,10 @@ $path = rtrim($path, '/');
 $path = $path === '' ? '/' : $path;
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$appBaseUrl = AppUrl::baseUrl($scheme, (string) $host);
+SecurityHeaderPolicy::apply();
 
 if (Request::method() === 'GET' && $path === '/sitemap.xml') {
-    $baseUrl = sprintf('%s://%s', $scheme, $host);
     $urls = ['/', '/leistungen', '/referenzen', '/kontakt'];
     $lastMod = gmdate('c');
 
@@ -52,7 +57,7 @@ if (Request::method() === 'GET' && $path === '/sitemap.xml') {
     echo '<?xml version="1.0" encoding="UTF-8"?>';
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
     foreach ($urls as $urlPath) {
-        $loc = htmlspecialchars($baseUrl . $urlPath, ENT_QUOTES, 'UTF-8');
+        $loc = htmlspecialchars(AppUrl::absolute($appBaseUrl, $urlPath), ENT_QUOTES, 'UTF-8');
         echo '<url><loc>' . $loc . '</loc><lastmod>' . $lastMod . '</lastmod></url>';
     }
     echo '</urlset>';
@@ -66,7 +71,8 @@ if (Request::method() === 'POST' && ($_POST['_action'] ?? '') === 'contact.submi
         $databaseConfig = require $projectRoot . '/config/database.php';
         $pdo = Connection::get($databaseConfig);
         $contactRepository = new ContactRepository($pdo);
-        $contactController = new ContactController($contactRepository);
+        $contactService = new ContactSubmissionService($contactRepository);
+        $contactController = new ContactController($contactService);
         $contactController->submit();
     } catch (Throwable) {
         $_SESSION['flash_error'] = 'Kontaktanfrage konnte temporär nicht gespeichert werden. Bitte später erneut versuchen.';
@@ -109,7 +115,7 @@ $processSteps = HomepageContent::processSteps();
 $nextSteps = HomepageContent::nextSteps();
 $mobileActionCta = HomepageContent::mobileActionCta($path);
 $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
-$canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
+$canonicalUrl = AppUrl::absolute($appBaseUrl, $path);
 $siteName = 'RD Formstack Solutions';
 $metaTitle = $siteName . ' | ' . $page['title'];
 $metaRobots = $isNotFound || in_array($path, ['/login', '/dms'], true)
@@ -121,13 +127,13 @@ $structuredData = [
         '@context' => 'https://schema.org',
         '@type' => 'Organization',
         'name' => $siteName,
-        'url' => sprintf('%s://%s/', $scheme, $host),
+        'url' => AppUrl::absolute($appBaseUrl, '/'),
     ],
     [
         '@context' => 'https://schema.org',
         '@type' => 'WebSite',
         'name' => $siteName,
-        'url' => sprintf('%s://%s/', $scheme, $host),
+        'url' => AppUrl::absolute($appBaseUrl, '/'),
         'inLanguage' => 'de-DE',
     ],
 ];

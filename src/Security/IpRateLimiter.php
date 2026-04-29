@@ -30,7 +30,7 @@ final class IpRateLimiter
         $windowStart = $now - $this->windowSeconds;
 
         $this->ensureStorageDirectory();
-        $handle = fopen($this->storagePath, 'c+');
+        $handle = @fopen($this->storagePath, 'c+');
         if ($handle === false) {
             return $this->degrade('rate_limiter_storage_open_failed');
         }

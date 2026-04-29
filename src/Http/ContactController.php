@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http;
 
-use App\Repository\ContactRepository;
+use App\Application\Contact\SubmitContactService;
 use App\Security\Csrf;
 use App\Security\IpRateLimiter;
+use App\Support\Logger;
 
 final class ContactController
 {
@@ -14,7 +15,7 @@ final class ContactController
     private const RATE_LIMIT_WINDOW_SECONDS = 600;
     private const RATE_LIMIT_STORAGE_PATH = __DIR__ . '/../../storage/rate-limits/contact-submit.json';
 
-    public function __construct(private ContactRepository $repository)
+    public function __construct(private SubmitContactService $service)
     {
     }
 
@@ -75,7 +76,13 @@ final class ContactController
             Response::redirect('/kontakt');
         }
 
-        $this->repository->create($name, $company, $email, $phone, $message);
+        $this->service->handle([
+            'name' => $name,
+            'company' => $company,
+            'email' => $email,
+            'phone' => $phone,
+            'message' => $message,
+        ]);
         $_SESSION['flash_success'] = 'Vielen Dank, Ihre Nachricht wurde gespeichert.';
         unset($_SESSION['old']);
         Response::redirect('/kontakt');
@@ -84,6 +91,10 @@ final class ContactController
     public static function guardSubmitRequest(): void
     {
         if (!Csrf::validate(Request::post('_csrf'))) {
+            Logger::security('csrf_invalid', 'medium', $_SERVER['HTTP_X_REQUEST_ID'] ?? null, [
+                'path' => $_SERVER['REQUEST_URI'] ?? '',
+                'method' => Request::method(),
+            ]);
             http_response_code(419);
             $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
             Response::redirect('/kontakt');
@@ -96,6 +107,11 @@ final class ContactController
         );
         $rateLimitResult = $limiter->consume(Request::ip());
         if ($rateLimitResult['allowed'] === false) {
+            Logger::security('rate_limiter_block', 'medium', $_SERVER['HTTP_X_REQUEST_ID'] ?? null, [
+                'path' => $_SERVER['REQUEST_URI'] ?? '',
+                'method' => Request::method(),
+                'retry_after' => $rateLimitResult['retry_after'],
+            ]);
             http_response_code(429);
             header('Retry-After: ' . (string) $rateLimitResult['retry_after']);
             $_SESSION['flash_error'] = 'Zu viele Anfragen von dieser IP. Bitte später erneut versuchen.';
