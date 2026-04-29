@@ -80,13 +80,18 @@ if (Request::method() === 'POST' && ($_POST['_action'] ?? '') === 'contact.submi
 }
 
 $routes = RouteCatalog::pages();
-
-if (!isset($routes[$path])) {
+$isNotFound = !isset($routes[$path]);
+if ($isNotFound) {
     http_response_code(404);
-    $path = '/';
+    $page = [
+        'title' => 'Seite nicht gefunden',
+        'description' => 'Die angeforderte Seite konnte nicht gefunden werden.',
+        'headline' => 'Diese Seite wurde nicht gefunden',
+        'intro' => 'Der Link ist möglicherweise veraltet oder die Adresse wurde falsch eingegeben. Nutzen Sie die Navigation oder starten Sie über die Startseite neu.',
+    ];
+} else {
+    $page = $routes[$path];
 }
-
-$page = $routes[$path];
 $flashError = $_SESSION['flash_error'] ?? null;
 $flashErrors = $_SESSION['flash_errors'] ?? [];
 $flashSuccess = $_SESSION['flash_success'] ?? null;
@@ -107,7 +112,7 @@ $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $pat
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
 $metaTitle = $siteName . ' | ' . $page['title'];
-$metaRobots = in_array($path, ['/login', '/dms'], true)
+$metaRobots = $isNotFound || in_array($path, ['/login', '/dms'], true)
     ? 'noindex,follow,max-image-preview:large'
     : 'index,follow,max-image-preview:large';
 [$heroSecondaryHref, $heroSecondaryLabel] = HomepageContent::heroSecondaryCta($path);
