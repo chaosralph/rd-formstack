@@ -13,6 +13,7 @@ und Lead-Developer-Umsetzungspakete.
 
 ## Security
 - `docs/RDFA-51-SECURITY-THREAT-MODEL.md`
+- `docs/RDFA-52-SECURITY-SCAN-REPORT.md`
 
 ## CTO Review & Gates
 - `docs/RDFA-49-CTO-REVIEW-TEMPLATE.md`
@@ -21,9 +22,11 @@ und Lead-Developer-Umsetzungspakete.
 ## Lead-Developer Aufgabenpakete
 - `docs/RDFA-49-DEVELOPER-AGENT-TASKS.md`
 - `docs/RDFA-50-DEVELOPER-AGENT-TASKS.md`
+- `docs/RDFA-52-DEVELOPER-AGENT-TASKS.md`
 
 ## Statusdokumente
 - `docs/RDFA-49-STATUS-UPDATE.md`
+- `docs/RDFA-52-STATUS-UPDATE.md`
 
 ## Governance
 - Kein Deployment ohne explizite Freigabe durch Owner/CTO.
