@@ -53,6 +53,17 @@ if ($path === '/leistungen'): ?>
                 </ul>
                 <a class="btn btn-primary" href="/kontakt">Pilotzugang anfragen</a>
             </article>
+            <aside class="subpage-sidecard" aria-label="Login-Ausbauphasen">
+                <h3>Ausbauphasen</h3>
+                <ul class="phase-list">
+                    <?php foreach (\App\View\HomepageContent::loginPhases() as $phase): ?>
+                        <li>
+                            <strong><?= $e($phase['phase']) ?>:</strong>
+                            <span><?= $e($phase['focus']) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </aside>
         </div>
     </section>
 <?php elseif ($path === '/dms'): ?>
@@ -69,6 +80,17 @@ if ($path === '/leistungen'): ?>
                 </ul>
                 <a class="btn btn-primary" href="/kontakt">DMS-Use-Case besprechen</a>
             </article>
+            <aside class="subpage-sidecard" aria-label="DMS-Ausbauphasen">
+                <h3>Ausbauphasen</h3>
+                <ul class="phase-list">
+                    <?php foreach (\App\View\HomepageContent::dmsPhases() as $phase): ?>
+                        <li>
+                            <strong><?= $e($phase['phase']) ?>:</strong>
+                            <span><?= $e($phase['focus']) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </aside>
         </div>
     </section>
 <?php endif;

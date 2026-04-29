@@ -1,6 +1,9 @@
 <header class="site-header" id="top">
     <div class="shell header-inner">
-        <a class="brand" href="/">RD Formstack Solutions</a>
+        <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true">RD</span>
+            <span>RD Formstack Solutions</span>
+        </a>
         <button class="nav-toggle" id="nav-toggle" aria-label="Navigation öffnen" aria-controls="main-nav" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>

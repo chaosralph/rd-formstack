@@ -1,6 +1,6 @@
 <section class="section contact-cta" id="kontakt">
     <div class="shell contact-layout">
-        <div>
+        <div class="contact-intro">
             <p class="eyebrow">Kontakt</p>
             <h2>Vorhaben in 30 Minuten strukturieren</h2>
             <p>Beschreiben Sie den aktuellen Engpass. Sie erhalten eine realistische Empfehlung für die nächsten Schritte.</p>
@@ -9,6 +9,7 @@
                 <li>Klare Einschätzung zu Aufwand und Prioritäten</li>
                 <li>Unverbindlich und ohne Vertragsbindung</li>
             </ul>
+            <a class="btn btn-ghost" href="#top">Zur Navigation</a>
 
             <?php if (is_string($flashError)): ?>
                 <div class="alert alert-error" role="alert">
@@ -75,6 +76,7 @@
                     <li><strong><?= $e($highlight['label']) ?>:</strong> <?= $e($highlight['value']) ?></li>
                 <?php endforeach; ?>
             </ul>
+            <p class="contact-note">Tipp: Je konkreter Use-Case, Systemlandschaft und Zielbild beschrieben sind, desto präziser kann die erste Einschätzung ausfallen.</p>
         </aside>
     </div>
 </section>

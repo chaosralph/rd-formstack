@@ -97,10 +97,23 @@ p, li { max-width: 70ch; }
 .brand {
     display: inline-flex;
     align-items: center;
+    gap: 10px;
     text-decoration: none;
     font-family: "IBM Plex Sans", system-ui, sans-serif;
     font-weight: 700;
     letter-spacing: 0.02em;
+}
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    color: #ffffff;
+    background: linear-gradient(155deg, #0b6cd8 0%, #084fa2 100%);
+    box-shadow: 0 6px 16px rgba(8, 79, 162, 0.3);
 }
 
 .nav-toggle {
@@ -433,6 +446,12 @@ h3 { font-size: clamp(1.25rem, 2.6vw, 1.45rem); }
 }
 
 .page-hero { padding-top: var(--space-7); }
+.page-hero-inner { align-items: start; }
+
+.subpage-sidecard p {
+    margin-bottom: var(--space-3);
+    color: var(--color-muted);
+}
 
 .phase-list {
     margin: var(--space-2) 0 var(--space-3);
@@ -449,6 +468,18 @@ h3 { font-size: clamp(1.25rem, 2.6vw, 1.45rem); }
     background:
         radial-gradient(circle at 20% 10%, rgba(172, 216, 255, 0.35), transparent 35%),
         linear-gradient(180deg, transparent, #edf5ff 40%, transparent);
+}
+
+.contact-intro {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+}
+
+.contact-note {
+    margin-top: var(--space-3);
+    color: var(--color-muted);
+    font-size: 15px;
 }
 
 .form-card label {
@@ -554,6 +585,23 @@ textarea { resize: vertical; }
     background: var(--color-surface);
 }
 
+.footer-cta {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.footer-cta-text {
+    margin: 0;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+    font-weight: 700;
+}
+
 .footer-inner {
     min-height: 4rem;
     display: flex;
@@ -598,6 +646,10 @@ main:focus-visible {
     .contact-sidecard { order: 2; }
 
     .contact-layout > div:first-child { order: 1; }
+
+    .footer-cta {
+        padding-top: var(--space-4);
+    }
 }
 
 @media (min-width: 768px) {
