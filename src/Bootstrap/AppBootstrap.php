@@ -12,6 +12,7 @@ final class AppBootstrap
     {
         require_once $projectRoot . '/config/env.php';
         Env::load($projectRoot . '/.env');
+        self::enforceEnvironmentGuards();
 
         session_set_cookie_params([
             'httponly' => true,
@@ -37,6 +38,19 @@ final class AppBootstrap
         $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
         if ($isHttps && strtolower((string) Env::get('ENABLE_HSTS', 'false')) === 'true') {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+        }
+    }
+
+    private static function enforceEnvironmentGuards(): void
+    {
+        $appEnv = strtolower((string) Env::get('APP_ENV', 'development'));
+        if (!in_array($appEnv, ['staging', 'production'], true)) {
+            return;
+        }
+
+        $baseUrl = trim((string) Env::get('APP_BASE_URL', ''));
+        if ($baseUrl === '') {
+            throw new \RuntimeException('APP_BASE_URL is required for staging/production environments.');
         }
     }
 }
