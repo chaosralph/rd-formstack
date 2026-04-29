@@ -122,6 +122,13 @@ function navLink(string $href, string $label, string $currentPath): string
     $ariaCurrent = $href === $currentPath ? ' aria-current="page"' : '';
     return '<a class="nav-link' . $active . '" href="' . e($href) . '"' . $ariaCurrent . '>' . e($label) . '</a>';
 }
+
+function footerLink(string $href, string $label, string $currentPath): string
+{
+    $active = $href === $currentPath ? ' is-active' : '';
+    $ariaCurrent = $href === $currentPath ? ' aria-current="page"' : '';
+    return '<a class="footer-link' . $active . '" href="' . e($href) . '"' . $ariaCurrent . '>' . e($label) . '</a>';
+}
 ?>
 <!doctype html>
 <html lang="de">
@@ -455,12 +462,12 @@ function navLink(string $href, string $label, string $currentPath): string
     <div class="shell footer-inner">
         <p>© <?= date('Y') ?> RD Formstack Solutions</p>
         <div class="footer-links">
-            <a href="/">Startseite</a>
-            <a href="/leistungen">Leistungen</a>
-            <a href="/referenzen">Referenzen</a>
-            <a href="/kontakt">Kontakt</a>
-            <a href="/login">Login</a>
-            <a href="/dms">DMS</a>
+            <?= footerLink('/', 'Startseite', $path) ?>
+            <?= footerLink('/leistungen', 'Leistungen', $path) ?>
+            <?= footerLink('/referenzen', 'Referenzen', $path) ?>
+            <?= footerLink('/kontakt', 'Kontakt', $path) ?>
+            <?= footerLink('/login', 'Login', $path) ?>
+            <?= footerLink('/dms', 'DMS', $path) ?>
         </div>
     </div>
 </footer>

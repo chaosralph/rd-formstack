@@ -739,6 +739,20 @@ textarea:focus {
     gap: 14px;
 }
 
+.footer-link {
+    color: var(--muted);
+}
+
+.footer-link:hover {
+    color: var(--primary);
+}
+
+.footer-link.is-active {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
 .floating-cta {
     display: none;
 }
