@@ -59,6 +59,8 @@ if (Request::method() === 'GET' && $path === '/sitemap.xml') {
 }
 
 if (Request::method() === 'POST' && ($_POST['_action'] ?? '') === 'contact.submit') {
+    ContactController::guardSubmitRequest();
+
     try {
         $databaseConfig = require $projectRoot . '/config/database.php';
         $pdo = Connection::get($databaseConfig);

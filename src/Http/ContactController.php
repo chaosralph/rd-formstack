@@ -12,6 +12,7 @@ final class ContactController
 {
     private const RATE_LIMIT_MAX_ATTEMPTS = 5;
     private const RATE_LIMIT_WINDOW_SECONDS = 600;
+    private const RATE_LIMIT_STORAGE_PATH = __DIR__ . '/../../storage/rate-limits/contact-submit.json';
 
     public function __construct(private ContactRepository $repository)
     {
@@ -19,24 +20,7 @@ final class ContactController
 
     public function submit(): void
     {
-        if (!Csrf::validate(Request::post('_csrf'))) {
-            http_response_code(419);
-            $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
-            Response::redirect('/kontakt');
-        }
-
-        $limiter = new IpRateLimiter(
-            __DIR__ . '/../../storage/rate-limits/contact-submit.json',
-            self::RATE_LIMIT_MAX_ATTEMPTS,
-            self::RATE_LIMIT_WINDOW_SECONDS
-        );
-        $rateLimitResult = $limiter->consume(Request::ip());
-        if ($rateLimitResult['allowed'] === false) {
-            http_response_code(429);
-            header('Retry-After: ' . (string) $rateLimitResult['retry_after']);
-            $_SESSION['flash_error'] = 'Zu viele Anfragen von dieser IP. Bitte später erneut versuchen.';
-            Response::redirect('/kontakt');
-        }
+        self::guardSubmitRequest();
 
         $name = Request::post('name');
         $company = Request::post('company');
@@ -95,5 +79,27 @@ final class ContactController
         $_SESSION['flash_success'] = 'Vielen Dank, Ihre Nachricht wurde gespeichert.';
         unset($_SESSION['old']);
         Response::redirect('/kontakt');
+    }
+
+    public static function guardSubmitRequest(): void
+    {
+        if (!Csrf::validate(Request::post('_csrf'))) {
+            http_response_code(419);
+            $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
+            Response::redirect('/kontakt');
+        }
+
+        $limiter = new IpRateLimiter(
+            self::RATE_LIMIT_STORAGE_PATH,
+            self::RATE_LIMIT_MAX_ATTEMPTS,
+            self::RATE_LIMIT_WINDOW_SECONDS
+        );
+        $rateLimitResult = $limiter->consume(Request::ip());
+        if ($rateLimitResult['allowed'] === false) {
+            http_response_code(429);
+            header('Retry-After: ' . (string) $rateLimitResult['retry_after']);
+            $_SESSION['flash_error'] = 'Zu viele Anfragen von dieser IP. Bitte später erneut versuchen.';
+            Response::redirect('/kontakt');
+        }
     }
 }
