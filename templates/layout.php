@@ -32,6 +32,7 @@
         <?php require __DIR__ . '/pages/home.php'; ?>
     <?php else: ?>
         <?php require __DIR__ . '/pages/page-hero.php'; ?>
+        <?php require __DIR__ . '/pages/subpage-content.php'; ?>
     <?php endif; ?>
 
     <?php if ($path === '/' || $path === '/kontakt'): ?>
