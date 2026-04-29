@@ -254,9 +254,14 @@ function navLink(string $href, string $label, string $currentPath): string
                     <?php foreach ($references as $reference): ?>
                         <article class="card reference-card">
                             <h3><?= e($reference['title']) ?></h3>
+                            <p class="reference-industry"><?= e($reference['industry']) ?></p>
                             <p><?= e($reference['description']) ?></p>
                             <p class="reference-outcome"><strong>Ergebnis:</strong> <?= e($reference['outcome']) ?></p>
-                            <p class="reference-stack">Stack: <?= e($reference['stack']) ?></p>
+                            <ul class="reference-focus">
+                                <?php foreach ($reference['focus'] as $focus): ?>
+                                    <li><?= e($focus) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
                         </article>
                     <?php endforeach; ?>
                 </div>

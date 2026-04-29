@@ -85,28 +85,31 @@ final class HomepageContent
     }
 
     /**
-     * @return list<array{title:string,description:string,outcome:string,stack:string}>
+     * @return list<array{title:string,industry:string,description:string,outcome:string,focus:list<string>}>
      */
     public static function references(): array
     {
         return [
             [
                 'title' => 'Mittelstand Backoffice',
+                'industry' => 'Finanznahe Verwaltung',
                 'description' => 'Digitale Eingangsverarbeitung für Belege und Anfragen mit klarer Priorisierung und reduziertem Abstimmungsaufwand.',
                 'outcome' => 'Schnellere Bearbeitungszeiten und klarere Verantwortlichkeiten in der täglichen Vorgangsbearbeitung.',
-                'stack' => 'Workflow-Design, Formularlogik, Status-Transparenz',
+                'focus' => ['Workflow-Design', 'Formularlogik', 'Status-Transparenz'],
             ],
             [
                 'title' => 'Service-Organisation',
+                'industry' => 'Technischer Service',
                 'description' => 'Webbasiertes Arbeitsboard für Status, Verantwortlichkeiten und Übergaben zwischen Fachabteilungen.',
                 'outcome' => 'Weniger Rückfragen durch einheitliche Datenlage und ein klar priorisiertes Aufgabenbild.',
-                'stack' => 'Web-Frontend, Rollenlogik, Prozesssteuerung',
+                'focus' => ['Web-Frontend', 'Rollenlogik', 'Prozesssteuerung'],
             ],
             [
                 'title' => 'Verwaltung & Dokumente',
+                'industry' => 'Öffentliche Verwaltung',
                 'description' => 'Vereinheitlichte Dokumentenablage mit nachvollziehbaren Freigaben und schneller Auffindbarkeit.',
                 'outcome' => 'Strukturierte Dokumentenstrecken mit stabiler Suchbarkeit und besserer Nachvollziehbarkeit.',
-                'stack' => 'Dokumentenstruktur, Freigaben, Suchkonzept',
+                'focus' => ['Dokumentenstruktur', 'Freigaben', 'Suchkonzept'],
             ],
         ];
     }

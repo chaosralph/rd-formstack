@@ -437,6 +437,15 @@ textarea:focus-visible {
     min-height: 185px;
 }
 
+.reference-industry {
+    margin-bottom: 0.7rem !important;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 .reference-outcome {
     margin-top: 0.9rem;
 }
@@ -445,10 +454,23 @@ textarea:focus-visible {
     color: var(--primary);
 }
 
-.reference-stack {
-    margin-top: 0.45rem;
-    color: var(--muted);
-    font-size: 0.93rem;
+.reference-focus {
+    margin: 0.7rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.reference-focus li {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #c8d8ea;
+    background: #f4f8fe;
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 
 .card p,
