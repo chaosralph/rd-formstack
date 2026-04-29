@@ -119,6 +119,21 @@ $metaRobots = $isNotFound || in_array($path, ['/login', '/dms'], true)
     : 'index,follow,max-image-preview:large';
 [$heroSecondaryHref, $heroSecondaryLabel] = HomepageContent::heroSecondaryCta($path);
 [$mobileActionHref, $mobileActionLabel] = HomepageContent::mobileActionCta($path);
+$structuredData = [
+    [
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => $siteName,
+        'url' => sprintf('%s://%s/', $scheme, $host),
+    ],
+    [
+        '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => $siteName,
+        'url' => sprintf('%s://%s/', $scheme, $host),
+        'inLanguage' => 'de-DE',
+    ],
+];
 
 function e(string $value): string
 {
@@ -158,6 +173,12 @@ function footerLink(string $href, string $label, string $currentPath): string
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?= e($metaTitle) ?>">
     <meta name="twitter:description" content="<?= e($page['description']) ?>">
+    <script type="application/ld+json"><?=
+        (string) json_encode(
+            $structuredData,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        )
+    ?></script>
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body class="<?= e($bodyClass) ?>">
