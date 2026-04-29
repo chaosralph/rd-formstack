@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /login
+Disallow: /dms
+Sitemap: /sitemap.xml

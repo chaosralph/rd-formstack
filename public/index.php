@@ -39,6 +39,24 @@ set_exception_handler(static function (Throwable $exception) use ($requestId): v
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = rtrim($path, '/');
 $path = $path === '' ? '/' : $path;
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+if (Request::method() === 'GET' && $path === '/sitemap.xml') {
+    $baseUrl = sprintf('%s://%s', $scheme, $host);
+    $urls = ['/', '/leistungen', '/referenzen', '/kontakt'];
+    $lastMod = gmdate('c');
+
+    header('Content-Type: application/xml; charset=UTF-8');
+    echo '<?xml version="1.0" encoding="UTF-8"?>';
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    foreach ($urls as $urlPath) {
+        $loc = htmlspecialchars($baseUrl . $urlPath, ENT_QUOTES, 'UTF-8');
+        echo '<url><loc>' . $loc . '</loc><lastmod>' . $lastMod . '</lastmod></url>';
+    }
+    echo '</urlset>';
+    exit;
+}
 
 if (Request::method() === 'POST' && ($_POST['_action'] ?? '') === 'contact.submit') {
     try {
@@ -83,8 +101,6 @@ $dmsRoadmap = HomepageContent::dmsRoadmap();
 $contactHighlights = HomepageContent::contactHighlights();
 $faqs = HomepageContent::faqs();
 $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
 $metaTitle = $siteName . ' | ' . $page['title'];
