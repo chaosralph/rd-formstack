@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\Config\Env;
+use App\Support\Logger;
+
 final class IpRateLimiter
 {
     /**
@@ -29,12 +32,12 @@ final class IpRateLimiter
         $this->ensureStorageDirectory();
         $handle = fopen($this->storagePath, 'c+');
         if ($handle === false) {
-            return ['allowed' => true, 'retry_after' => 0];
+            return $this->degrade('rate_limiter_storage_open_failed');
         }
 
         if (!flock($handle, LOCK_EX)) {
             fclose($handle);
-            return ['allowed' => true, 'retry_after' => 0];
+            return $this->degrade('rate_limiter_lock_failed');
         }
 
         $contents = stream_get_contents($handle);
@@ -102,5 +105,27 @@ final class IpRateLimiter
         fflush($handle);
         flock($handle, LOCK_UN);
         fclose($handle);
+    }
+
+    /**
+     * @return array{allowed: bool, retry_after: int}
+     */
+    private function degrade(string $reason): array
+    {
+        $mode = strtolower((string) Env::get('RATE_LIMIT_FAIL_MODE', 'open'));
+        if (!in_array($mode, ['open', 'closed'], true)) {
+            $mode = 'open';
+        }
+
+        Logger::security('rate_limiter_degrade', 'high', $_SERVER['HTTP_X_REQUEST_ID'] ?? null, [
+            'reason' => $reason,
+            'mode' => $mode,
+        ]);
+
+        if ($mode === 'closed') {
+            return ['allowed' => false, 'retry_after' => 60];
+        }
+
+        return ['allowed' => true, 'retry_after' => 0];
     }
 }

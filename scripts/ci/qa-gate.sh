@@ -4,9 +4,45 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${ROOT_DIR}"
 
+usage() {
+  cat <<'USAGE'
+Usage: bash scripts/ci/qa-gate.sh [options]
+
+Options:
+  --strict=0|1              Enable strict mode (default: env RD_QA_STRICT or 1)
+  --run-a11y-smoke=0|1      Run accessibility smoke (default: env RD_QA_RUN_A11Y_SMOKE or 1)
+  --run-responsive=0|1      Run responsive evidence (default: env RD_QA_RUN_RESPONSIVE or 0)
+  -h, --help                Show this help
+USAGE
+}
+
 STRICT_MODE="${RD_QA_STRICT:-1}"
 RUN_RESPONSIVE="${RD_QA_RUN_RESPONSIVE:-0}"
 RUN_A11Y_SMOKE="${RD_QA_RUN_A11Y_SMOKE:-1}"
+
+for arg in "$@"; do
+  case "$arg" in
+    --strict=*)
+      STRICT_MODE="${arg#*=}"
+      ;;
+    --run-a11y-smoke=*)
+      RUN_A11Y_SMOKE="${arg#*=}"
+      ;;
+    --run-responsive=*)
+      RUN_RESPONSIVE="${arg#*=}"
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "[FAIL] Unknown argument: ${arg}" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
 OUT_DIR="${ROOT_DIR}/artifacts/qa/gate"
 REPORT_FILE="${OUT_DIR}/report.txt"
 EVIDENCE_DIR="${OUT_DIR}/evidence"
@@ -25,7 +61,7 @@ write_report() {
   local finished_utc
   finished_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   {
-    echo "RDFA-46 QA DevOps Gate"
+    echo "RDFA-48 QA DevOps Gate"
     echo "started_utc=${STARTED_UTC}"
     echo "finished_utc=${finished_utc}"
     echo "status=${REPORT_STATUS}"
@@ -53,7 +89,7 @@ trap write_report EXIT
 die_with_error() {
   local message="$1"
   FAILED_CHECK="$message"
-  echo "[FAIL] ${message}"
+  echo "[FAIL] ${message}" >&2
   exit 1
 }
 
@@ -73,8 +109,8 @@ warn() {
 run_required_check() {
   local label="$1"
   local evidence_file="$2"
-  shift
-  shift
+  shift 2
+
   local log_file="${ROOT_DIR}/${evidence_file}"
   mkdir -p "$(dirname "${log_file}")"
 
@@ -87,7 +123,7 @@ run_required_check() {
   fi
 
   CHECK_RESULTS+=("${label}|FAIL|${evidence_file}")
-  printf '[FAIL] %s (siehe %s)\n' "${label}" "${log_file}"
+  printf '[FAIL] %s (see %s)\n' "${label}" "${log_file}" >&2
   FAILED_CHECK="${label}"
   exit 1
 }
@@ -104,7 +140,7 @@ if [ "${RUN_A11Y_SMOKE}" = "1" ]; then
 else
   REQUIRED_CHECKS+=("Accessibility Smoke|skipped|n/a")
   CHECK_RESULTS+=("Accessibility Smoke|SKIP|n/a")
-  warn 'Accessibility Smoke wurde per RD_QA_RUN_A11Y_SMOKE=0 uebersprungen.'
+  warn 'Accessibility Smoke skipped via RD_QA_RUN_A11Y_SMOKE=0.'
   if [ "${STRICT_MODE}" = "1" ]; then
     FAILED_CHECK="Accessibility Smoke (skipped in strict mode)"
     exit 1
@@ -119,7 +155,7 @@ if [ "${RUN_RESPONSIVE}" = "1" ]; then
     printf '[PASS] %s\n' "Responsive Evidence"
   else
     CHECK_RESULTS+=("Responsive Evidence|WARN|artifacts/qa/gate/evidence/responsive-evidence.log")
-    printf '[WARN] %s (siehe %s)\n' "Responsive Evidence" "${EVIDENCE_DIR}/responsive-evidence.log"
+    printf '[WARN] %s (see %s)\n' "Responsive Evidence" "${EVIDENCE_DIR}/responsive-evidence.log"
     WARNINGS=$((WARNINGS + 1))
   fi
 else
@@ -131,5 +167,5 @@ REPORT_STATUS="PASS"
 
 echo "QA Gate Result: PASS"
 if [ "${WARNINGS}" -gt 0 ]; then
-  echo "Hinweis: ${WARNINGS} Warnungen vorhanden."
+  echo "Note: ${WARNINGS} warning(s) present."
 fi
