@@ -231,4 +231,25 @@ final class HomepageContent
             ],
         ];
     }
+
+    /**
+     * @return list<array{title:string,text:string}>
+     */
+    public static function nextSteps(): array
+    {
+        return [
+            [
+                'title' => '1. Kurzgespräch',
+                'text' => 'Sie schildern Ziel und Rahmen in 20-30 Minuten.',
+            ],
+            [
+                'title' => '2. Konkrete Empfehlung',
+                'text' => 'Sie erhalten eine priorisierte, realistische Umsetzungsskizze.',
+            ],
+            [
+                'title' => '3. Umsetzungsstart',
+                'text' => 'Wir starten mit einem klar geschnittenen, testbaren ersten Inkrement.',
+            ],
+        ];
+    }
 }

@@ -110,6 +110,7 @@ $dmsRoadmap = HomepageContent::dmsRoadmap();
 $dmsPhases = HomepageContent::dmsPhases();
 $contactHighlights = HomepageContent::contactHighlights();
 $faqs = HomepageContent::faqs();
+$nextSteps = HomepageContent::nextSteps();
 $bodyClass = 'page-' . ($path === '/' ? 'home' : trim(str_replace('/', '-', $path), '-'));
 $canonicalUrl = sprintf('%s://%s%s', $scheme, $host, $path);
 $siteName = 'RD Formstack Solutions';
@@ -414,6 +415,24 @@ function footerLink(string $href, string $label, string $currentPath): string
                             <p><?= e($faq['answer']) ?></p>
                         </details>
                     <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt" aria-labelledby="next-steps-title">
+            <div class="shell">
+                <p class="eyebrow">Nächste Schritte</p>
+                <h2 id="next-steps-title">So starten wir die Zusammenarbeit</h2>
+                <div class="pillar-grid">
+                    <?php foreach ($nextSteps as $step): ?>
+                        <article class="pillar-item">
+                            <h3><?= e($step['title']) ?></h3>
+                            <p><?= e($step['text']) ?></p>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+                <div class="section-cta-row">
+                    <a class="btn btn-primary" href="/kontakt">Erstgespräch vereinbaren</a>
                 </div>
             </div>
         </section>
