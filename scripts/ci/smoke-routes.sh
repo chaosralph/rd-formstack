@@ -29,6 +29,24 @@ for route in "${routes[@]}"; do
       echo "Route ${route} returned unexpected content-type: ${content_type}" >&2
       exit 1
     fi
+  else
+    robots_meta="$(curl -s "${BASE_URL}${route}" | tr '\n' ' ' | sed -n 's/.*<meta name="robots" content="\([^"]*\)".*/\1/p')"
+    if [ -z "${robots_meta}" ]; then
+      echo "Route ${route} missing robots meta tag" >&2
+      exit 1
+    fi
+
+    if [ "${route}" = "/login" ] || [ "${route}" = "/dms" ]; then
+      if [[ "${robots_meta}" != noindex* ]]; then
+        echo "Route ${route} expected noindex robots meta, got: ${robots_meta}" >&2
+        exit 1
+      fi
+    else
+      if [[ "${robots_meta}" != index* ]]; then
+        echo "Route ${route} expected index robots meta, got: ${robots_meta}" >&2
+        exit 1
+      fi
+    fi
   fi
 
   echo "smoke OK: ${route} (${status_code})"
