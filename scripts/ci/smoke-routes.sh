@@ -15,13 +15,22 @@ server_pid=$!
 trap 'kill "${server_pid}" 2>/dev/null || true' EXIT
 sleep 1
 
-routes=("/" "/leistungen" "/referenzen" "/kontakt" "/login" "/dms")
+routes=("/" "/leistungen" "/referenzen" "/kontakt" "/login" "/dms" "/sitemap.xml")
 for route in "${routes[@]}"; do
   status_code="$(curl -s -o /dev/null -w '%{http_code}' "${BASE_URL}${route}")"
   if [ "${status_code}" != "200" ]; then
     echo "Route ${route} returned ${status_code}" >&2
     exit 1
   fi
+
+  if [ "${route}" = "/sitemap.xml" ]; then
+    content_type="$(curl -s -o /dev/null -D - "${BASE_URL}${route}" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tail -n1)"
+    if [[ "${content_type}" != *"application/xml"* ]]; then
+      echo "Route ${route} returned unexpected content-type: ${content_type}" >&2
+      exit 1
+    fi
+  fi
+
   echo "smoke OK: ${route} (${status_code})"
 done
 
