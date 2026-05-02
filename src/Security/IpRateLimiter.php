@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Config\Env;
-use App\Support\Logger;
+use App\Support\SecurityEventLogger;
 
 final class IpRateLimiter
 {
@@ -117,7 +117,7 @@ final class IpRateLimiter
             $mode = 'open';
         }
 
-        Logger::security('rate_limiter_degrade', 'high', $_SERVER['HTTP_X_REQUEST_ID'] ?? null, [
+        SecurityEventLogger::high('rate_limiter_degrade', [
             'reason' => $reason,
             'mode' => $mode,
         ]);

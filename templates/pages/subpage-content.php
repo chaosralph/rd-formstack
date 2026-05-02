@@ -20,6 +20,10 @@ if ($path === '/leistungen'): ?>
                     </article>
                 <?php endforeach; ?>
             </div>
+            <div class="section-cta-row">
+                <a class="btn btn-primary" href="/kontakt">Leistungspaket abstimmen</a>
+                <a class="btn btn-ghost" href="/referenzen">Passende Referenzen sehen</a>
+            </div>
         </div>
     </section>
 <?php elseif ($path === '/referenzen'): ?>
@@ -36,6 +40,10 @@ if ($path === '/leistungen'): ?>
                         <p><strong>Ergebnis:</strong> <?= $e($reference['outcome']) ?></p>
                     </article>
                 <?php endforeach; ?>
+            </div>
+            <div class="section-cta-row">
+                <a class="btn btn-primary" href="/kontakt">Ähnliches Projekt anfragen</a>
+                <a class="btn btn-ghost" href="/leistungen">Leistungsbereiche prüfen</a>
             </div>
         </div>
     </section>

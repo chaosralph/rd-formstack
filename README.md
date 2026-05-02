@@ -28,3 +28,10 @@ Initiale technische Grundlage auf Basis von PHP, MySQL/MariaDB, HTML, CSS, JavaS
 ## Infra Access Enablement (RDFA-33)
 - Plan: `docs/RDFA-33-INFRA-ACCESS-PLAN.md`
 - Developer-Aufgaben: `docs/RDFA-33-DEVELOPER-AGENT-TASKS.md`
+
+## CTO Architecture Governance
+- Zentrale Übersicht: `docs/CTO-ARCHITECTURE-INDEX.md`
+- Kernarchitektur: `docs/ARCHITECTURE.md`
+- Security Threat Model: `docs/RDFA-51-SECURITY-THREAT-MODEL.md`
+- Action Matrix: `docs/RDFA-55-CTO-ACTION-MATRIX.md`
+- Governance: Kein Deployment ohne explizite Freigabe.

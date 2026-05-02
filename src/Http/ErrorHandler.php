@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Support\Logger;
+use App\Support\SecurityEventLogger;
 use Throwable;
 
 final class ErrorHandler
 {
     public static function handle(Throwable $exception, string $requestId): void
     {
-        Logger::security('unhandled_exception', 'high', $requestId, [
+        $_SERVER['HTTP_X_REQUEST_ID'] = $requestId;
+        SecurityEventLogger::high('unhandled_exception', [
             'type' => $exception::class,
             'path' => $_SERVER['REQUEST_URI'] ?? '',
             'method' => $_SERVER['REQUEST_METHOD'] ?? '',

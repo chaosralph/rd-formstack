@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application;
+namespace App\Application\Contact;
 
 use App\Repository\ContactRepository;
+use App\Support\SecurityEventLogger;
+use Throwable;
 
 final class ContactSubmissionService
 {
@@ -28,7 +30,16 @@ final class ContactSubmissionService
             return ['ok' => false, 'errors' => $errors];
         }
 
-        $this->repository->create($name, $company, $email, $phone, $message);
+        try {
+            $this->repository->create($name, $company, $email, $phone, $message);
+        } catch (Throwable $e) {
+            SecurityEventLogger::high('contact_submission_persistence_failed', [
+                'event_category' => 'security',
+                'exception_class' => $e::class,
+            ]);
+
+            return ['ok' => false, 'errors' => ['Nachricht konnte aktuell nicht gespeichert werden. Bitte später erneut versuchen.']];
+        }
 
         return ['ok' => true, 'errors' => []];
     }

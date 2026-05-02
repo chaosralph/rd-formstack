@@ -1,10 +1,24 @@
 (function () {
+    var progressBar = document.getElementById('scroll-progress-bar');
     var navToggle = document.getElementById('nav-toggle');
     var mainNav = document.getElementById('main-nav');
     var main = document.getElementById('main');
 
     if (main) {
         main.setAttribute('tabindex', '-1');
+    }
+
+    if (progressBar) {
+        var updateScrollProgress = function () {
+            var scrollTop = window.scrollY;
+            var scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            var percent = scrollHeight > 0 ? Math.min((scrollTop / scrollHeight) * 100, 100) : 0;
+            progressBar.style.width = percent + '%';
+        };
+
+        updateScrollProgress();
+        window.addEventListener('scroll', updateScrollProgress, { passive: true });
+        window.addEventListener('resize', updateScrollProgress);
     }
 
     var getFocusableNavItems = function () {
@@ -134,6 +148,58 @@
         event.preventDefault();
         scrollToAnchor(destination, false);
     });
+
+    var sectionNavLinks = Array.prototype.slice.call(document.querySelectorAll('.main-nav .nav-link[href^="#"]'));
+    var sectionTargets = sectionNavLinks
+        .map(function (link) {
+            var selector = link.getAttribute('href') || '';
+            if (!selector || selector === '#') {
+                return null;
+            }
+            var node = document.querySelector(selector);
+            return node instanceof HTMLElement ? { link: link, section: node } : null;
+        })
+        .filter(function (entry) { return entry !== null; });
+
+    if (sectionTargets.length > 0) {
+        var updateSectionNavState = function () {
+            var currentY = window.scrollY + 140;
+            var activeIndex = 0;
+
+            sectionTargets.forEach(function (entry, index) {
+                if (entry.section.offsetTop <= currentY) {
+                    activeIndex = index;
+                }
+            });
+
+            sectionTargets.forEach(function (entry, index) {
+                entry.link.classList.toggle('is-active', index === activeIndex);
+            });
+        };
+
+        updateSectionNavState();
+        window.addEventListener('scroll', updateSectionNavState, { passive: true });
+    }
+
+    if ('IntersectionObserver' in window) {
+        var revealTargets = Array.prototype.slice.call(document.querySelectorAll('.service-card, .ref-card, .proof-card, .process-card, .quick-link, .contact-sidecard, .form-card'));
+        if (revealTargets.length > 0) {
+            var revealObserver = new IntersectionObserver(function (entries, observer) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-revealed');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12 });
+
+            revealTargets.forEach(function (element, index) {
+                element.classList.add('reveal');
+                element.style.setProperty('--reveal-delay', Math.min(index * 24, 200) + 'ms');
+                revealObserver.observe(element);
+            });
+        }
+    }
 
     var message = document.getElementById('message');
     var messageCounter = document.getElementById('message-counter');

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http;
 
-use App\Support\Logger;
+use App\Support\SecurityEventLogger;
 
 final class Request
 {
@@ -39,7 +39,7 @@ final class Request
         }
 
         if ($invalidForwardedForParts > 0) {
-            Logger::security('request_forwarded_for_invalid', 'medium', $_SERVER['HTTP_X_REQUEST_ID'] ?? null, [
+            SecurityEventLogger::warning('request_forwarded_for_invalid', [
                 'invalid_parts' => $invalidForwardedForParts,
                 'path' => $_SERVER['REQUEST_URI'] ?? '',
                 'method' => self::method(),

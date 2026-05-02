@@ -8,6 +8,7 @@
                 <a class="btn btn-primary" href="#kontakt">Kostenloses Erstgespräch</a>
                 <a class="btn btn-ghost" href="#leistungen">Leistungen ansehen</a>
             </div>
+            <p class="hero-meta">Technisch sauber umgesetzt, fachlich verständlich dokumentiert und auf realistische Betriebsabläufe ausgerichtet.</p>
             <ul class="hero-trust" aria-label="Schnelle Orientierung">
                 <li><strong>Schnell:</strong> Erstes Feedback in der Regel innerhalb eines Werktags</li>
                 <li><strong>Klar:</strong> Fokus auf konkrete Engpässe statt Buzzwords</li>
@@ -45,6 +46,23 @@
     </div>
 </section>
 
+<section class="section section-proof" aria-label="Warum RD Formstack Solutions">
+    <div class="shell proof-grid">
+        <article class="proof-card">
+            <p>Transparente Priorisierung</p>
+            <strong>Jeder Umsetzungsschritt ist fachlich begründet und budgetierbar.</strong>
+        </article>
+        <article class="proof-card">
+            <p>Produktionsreife Umsetzung</p>
+            <strong>Von Formular bis Prozesslogik werden Sicherheits- und Betriebsaspekte früh mitgedacht.</strong>
+        </article>
+        <article class="proof-card">
+            <p>Messbarer Fortschritt</p>
+            <strong>Kurze Iterationen mit klaren Ergebnissen statt monolithischer Big-Bang-Projekte.</strong>
+        </article>
+    </div>
+</section>
+
 <section class="section" id="leistungen">
     <div class="shell">
         <p class="eyebrow">Leistungsbereiche</p>
@@ -63,6 +81,10 @@
                 </article>
             <?php endforeach; ?>
         </div>
+        <div class="section-cta-row">
+            <a class="btn btn-primary" href="#kontakt">Passendes Leistungspaket abstimmen</a>
+            <a class="btn btn-ghost" href="/leistungen">Alle Leistungsdetails</a>
+        </div>
     </div>
 </section>
 
@@ -79,6 +101,31 @@
                     <p><strong>Ergebnis:</strong> <?= $e($reference['outcome']) ?></p>
                 </article>
             <?php endforeach; ?>
+        </div>
+        <div class="section-cta-row">
+            <a class="btn btn-primary" href="/referenzen">Weitere Projektszenarien</a>
+            <a class="btn btn-ghost" href="#kontakt">Eigenen Case besprechen</a>
+        </div>
+    </div>
+</section>
+
+<section class="section section-faq" aria-label="Häufige Fragen">
+    <div class="shell">
+        <p class="eyebrow">Häufige Fragen</p>
+        <h2>Was Entscheider vor dem Start typischerweise klären</h2>
+        <div class="faq-grid">
+            <details class="faq-card" open>
+                <summary>Wie schnell kann ein erster Umsetzungsschritt starten?</summary>
+                <p>Nach dem Erstgespräch kann die erste priorisierte Maßnahme in der Regel kurzfristig geplant und vorbereitet werden.</p>
+            </details>
+            <details class="faq-card">
+                <summary>Arbeiten Sie auch mit bestehenden Systemen?</summary>
+                <p>Ja. Ziel ist eine saubere Integration in bestehende Abläufe, statt isolierter Einzellösungen.</p>
+            </details>
+            <details class="faq-card">
+                <summary>Wie wird der Projektfortschritt transparent gemacht?</summary>
+                <p>Durch klar abgegrenzte Etappen mit nachvollziehbaren Ergebnissen und abgestimmten Prioritäten.</p>
+            </details>
         </div>
     </div>
 </section>
@@ -99,6 +146,9 @@
             <?php foreach ($nextSteps as $step): ?>
                 <p><strong><?= $e($step['title']) ?>:</strong> <?= $e($step['text']) ?></p>
             <?php endforeach; ?>
+        </div>
+        <div class="section-cta-row">
+            <a class="btn btn-accent" href="#kontakt">Nächsten Schritt terminieren</a>
         </div>
     </div>
 </section>

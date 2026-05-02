@@ -8,12 +8,12 @@
             <span></span><span></span><span></span>
         </button>
         <nav class="main-nav" id="main-nav" aria-label="Hauptnavigation">
-            <?= $navLink('/', 'Start', $path) ?>
-            <?= $navLink('/leistungen', 'Leistungen', $path) ?>
-            <?= $navLink('/referenzen', 'Referenzen', $path) ?>
-            <?= $navLink('/kontakt', 'Kontakt', $path) ?>
-            <?= $navLink('/login', 'Login', $path) ?>
-            <?= $navLink('/dms', 'DMS', $path) ?>
+            <?= $path === '/' ? $navLink('#leistungen', 'Leistungen', $path) : $navLink('/leistungen', 'Leistungen', $path) ?>
+            <?= $path === '/' ? $navLink('#referenzen', 'Referenzen', $path) : $navLink('/referenzen', 'Referenzen', $path) ?>
+            <?= $path === '/' ? $navLink('#ablauf', 'Ablauf', $path) : $navLink('/', 'Ablauf', $path) ?>
+            <?= $path === '/' ? $navLink('#kontakt', 'Kontakt', $path) : $navLink('/kontakt', 'Kontakt', $path) ?>
+            <a class="nav-link nav-link-muted" href="/login">Login</a>
+            <a class="nav-link nav-link-muted" href="/dms">DMS</a>
             <a class="btn btn-accent btn-sm" href="/kontakt">Projektanfrage</a>
         </nav>
     </div>

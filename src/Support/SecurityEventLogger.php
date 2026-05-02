@@ -6,6 +6,8 @@ namespace App\Support;
 
 final class SecurityEventLogger
 {
+    private static ?string $requestId = null;
+
     public static function info(string $event, array $context = []): void
     {
         self::log('low', $event, $context);
@@ -25,9 +27,39 @@ final class SecurityEventLogger
     {
         Logger::security(
             $event,
-            $severity,
-            isset($_SERVER['HTTP_X_REQUEST_ID']) && is_string($_SERVER['HTTP_X_REQUEST_ID']) ? $_SERVER['HTTP_X_REQUEST_ID'] : null,
+            self::normalizeSeverity($severity),
+            self::resolveRequestId(),
             $context
         );
+    }
+
+    private static function normalizeSeverity(string $severity): string
+    {
+        $normalized = strtolower(trim($severity));
+        if (!in_array($normalized, ['low', 'medium', 'high'], true)) {
+            return 'medium';
+        }
+
+        return $normalized;
+    }
+
+    private static function resolveRequestId(): string
+    {
+        if (self::$requestId !== null && self::$requestId !== '') {
+            return self::$requestId;
+        }
+
+        $serverKeys = ['HTTP_X_REQUEST_ID', 'REQUEST_ID'];
+        foreach ($serverKeys as $key) {
+            $value = $_SERVER[$key] ?? null;
+            if (is_string($value) && trim($value) !== '') {
+                self::$requestId = trim($value);
+                return self::$requestId;
+            }
+        }
+
+        self::$requestId = bin2hex(random_bytes(8));
+        $_SERVER['HTTP_X_REQUEST_ID'] = self::$requestId;
+        return self::$requestId;
     }
 }

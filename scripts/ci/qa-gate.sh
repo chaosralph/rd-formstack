@@ -145,6 +145,7 @@ validate_binary_flag "RD_QA_STRICT" "${STRICT_MODE}"
 validate_binary_flag "RD_QA_RUN_A11Y_SMOKE" "${RUN_A11Y_SMOKE}"
 validate_binary_flag "RD_QA_RUN_RESPONSIVE" "${RUN_RESPONSIVE}"
 check_required_script "scripts/ci/php-lint.sh"
+check_required_script "scripts/ci/secrets-scan.sh"
 check_required_script "scripts/ci/db-write-prepare-guard.sh"
 check_required_script "scripts/ci/smoke-routes.sh"
 check_required_script "scripts/ci/header-host-regression.sh"
@@ -154,6 +155,7 @@ if [ "${RUN_RESPONSIVE}" = "1" ]; then
 fi
 
 run_required_check "PHP Lint" "artifacts/qa/gate/evidence/php-lint.log" bash scripts/ci/php-lint.sh
+run_required_check "Secrets Scan" "artifacts/qa/gate/evidence/secrets-scan.log" bash scripts/ci/secrets-scan.sh
 run_required_check "DB Write Prepare Guard" "artifacts/qa/gate/evidence/db-write-prepare-guard.log" bash scripts/ci/db-write-prepare-guard.sh
 run_required_check "Route Smoke" "artifacts/qa/gate/evidence/route-smoke.log" bash scripts/ci/smoke-routes.sh
 run_required_check "Header Host Regression" "artifacts/qa/gate/evidence/header-host-regression.log" bash scripts/ci/header-host-regression.sh

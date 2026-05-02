@@ -50,7 +50,7 @@ CI-Gate-Fokus:
 # QA Gate P0 - Neue Website (RD Formstack Solutions)
 
 Stand: 2026-04-29 (UTC)
-Scope: Landingpage + Kontaktformular (`public/index.php`, `public/assets/*`, `src/Http/ContactController.php`)
+Scope: Landingpage + Kontaktformular (`public/index.php`, `public/assets/*`, `src/Controller/ContactController.php`)
 
 ## 0) Standard-Entry (RDFA-34)
 
