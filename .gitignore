@@ -1,0 +1,19 @@
+# Lokale / produktive Geheimnisse
+config/config.php
+dms/dms/config.php
+.env
+.installed
+
+# Benutzerdaten und generierte Dateien
+uploads/
+dms/dms/uploads/
+
+# Composer-Abhängigkeiten (auf Server: composer install in dms/dms/)
+dms/dms/vendor/
+
+# Entwicklungsstand – liegt auf main-Branch
+rd-formstack-main/
+
+# Logs und temporäre Dateien
+*.log
+storage/logs/

@@ -1,0 +1,60 @@
+# RD Formstack Solutions - Apache Konfiguration
+
+# PHP Settings (auskommentiert für Shared Hosting - dort über php.ini/Hosting-Panel)
+# Falls diese auf deinem Server funktionieren, Kommentar entfernen:
+# php_value upload_max_filesize 10M
+# php_value post_max_size 10M
+# php_value max_execution_time 300
+# php_value max_input_time 300
+# php_flag display_errors Off
+# php_flag log_errors On
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# URL Rewriting
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # === HTTPS-Redirect (Produktion) ===
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    
+    # API Routes
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api/(.*)$ api/$1 [L,QSA]
+    
+    # Protect sensitive files/directories
+    RewriteRule ^(config|classes|database|uploads)/ - [F,L]
+</IfModule>
+
+# Protect sensitive file types
+<FilesMatch "\.(sql|md|log|php\.bak)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to hidden files (.installed, .env etc.)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Enable CORS for API
+<IfModule mod_headers.c>
+    <FilesMatch "\.(php)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Header set Access-Control-Allow-Headers "Content-Type, X-Auth-Token, Authorization"
+    </FilesMatch>
+</IfModule>
