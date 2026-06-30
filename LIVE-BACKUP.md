@@ -26,5 +26,7 @@ Dieser Branch (`production/live`) enthält den **Legacy-PHP-Stand** von `rd.time
 
 ## Snapshot
 
-- Quelle: Live-Download per SSH
+- Quelle: Live-Download per SSH (`rd-formstack-live/`)
 - Datum: 2026-06-30
+- Dateien im Backup: 62 (ohne Uploads, Vendor, Secrets)
+- Gesamt-Download: 401 Dateien (~237 MB inkl. Uploads/Vendor lokal)

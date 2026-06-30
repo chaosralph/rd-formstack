@@ -17,3 +17,9 @@ rd-formstack-main/
 # Logs und temporäre Dateien
 *.log
 storage/logs/
+
+# Versehentliche Leerdateien vom Server
+dms/dms/cd
+dms/dms/chmod
+dms/dms/ls
+dms/dms/composer
