@@ -1,0 +1,8 @@
+.git
+.gitignore
+.env
+storage/logs/*.log
+storage/rate-limits/*.json
+node_modules
+artifacts
+test-results

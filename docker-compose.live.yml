@@ -1,0 +1,55 @@
+services:
+  rddigital-web:
+    build: .
+    container_name: rddigital-web
+    restart: unless-stopped
+    depends_on:
+      rddigital-db:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - default
+      - traefik-proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-proxy
+      - traefik.http.services.rddigital.loadbalancer.server.port=80
+      - traefik.http.routers.rddigital-apex.rule=Host(`rddigital.de`)
+      - traefik.http.routers.rddigital-apex.entrypoints=web,websecure
+      - traefik.http.routers.rddigital-apex.tls=true
+      - traefik.http.routers.rddigital-apex.tls.certresolver=letsencrypt
+      - traefik.http.routers.rddigital-www.rule=Host(`www.rddigital.de`)
+      - traefik.http.routers.rddigital-www.entrypoints=web,websecure
+      - traefik.http.routers.rddigital-www.tls=true
+      - traefik.http.routers.rddigital-www.tls.certresolver=letsencrypt
+      - traefik.http.routers.rddigital-www.middlewares=rddigital-www-redirect
+      - traefik.http.middlewares.rddigital-www-redirect.redirectregex.regex=^https?://www\.rddigital\.de/(.*)
+      - traefik.http.middlewares.rddigital-www-redirect.redirectregex.replacement=https://rddigital.de/$${1}
+      - traefik.http.middlewares.rddigital-www-redirect.redirectregex.permanent=true
+
+  rddigital-db:
+    image: mariadb:11.4
+    container_name: rddigital-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - rddigital_db:/var/lib/mysql
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  rddigital_db:
+
+networks:
+  traefik-proxy:
+    external: true
