@@ -86,31 +86,37 @@ final class HomepageContent
     }
 
     /**
-     * @return list<array{title:string,industry:string,description:string,outcome:string,focus:list<string>}>
+     * @return list<array{title:string,industry:string,description:string,outcome:string,focus:list<string>,url:string,linkLabel:string}>
      */
     public static function references(): array
     {
         return [
             [
-                'title' => 'Mittelstand Backoffice',
-                'industry' => 'Finanznahe Verwaltung',
-                'description' => 'Digitale Eingangsverarbeitung für Belege und Anfragen mit klarer Priorisierung und reduziertem Abstimmungsaufwand.',
-                'outcome' => 'Schnellere Bearbeitungszeiten und klarere Verantwortlichkeiten in der täglichen Vorgangsbearbeitung.',
-                'focus' => ['Workflow-Design', 'Formularlogik', 'Status-Transparenz'],
+                'title' => 'TimePro Solutions',
+                'industry' => 'Digitale Zeiterfassung',
+                'description' => 'Webplattform für Zeiterfassung, Schichtplanung und abrechnungsreife Exporte mit Fokus auf mobile Teams und Dienstleistungsunternehmen.',
+                'outcome' => 'Ein klar positioniertes SaaS-Angebot für digitale Arbeitszeitprozesse mit mobiler Nutzung und branchenspezifischem Einsatz.',
+                'focus' => ['Zeiterfassung', 'Schichtplanung', 'Mobile App'],
+                'url' => 'https://timepro-solutions.de',
+                'linkLabel' => 'Zur Website',
             ],
             [
-                'title' => 'Service-Organisation',
-                'industry' => 'Technischer Service',
-                'description' => 'Webbasiertes Arbeitsboard für Status, Verantwortlichkeiten und Übergaben zwischen Fachabteilungen.',
-                'outcome' => 'Weniger Rückfragen durch einheitliche Datenlage und ein klar priorisiertes Aufgabenbild.',
-                'focus' => ['Web-Frontend', 'Rollenlogik', 'Prozesssteuerung'],
+                'title' => 'RM CargoTec',
+                'industry' => 'Transport & Logistik',
+                'description' => 'Digitale Präsenz für Transport, Schwerlastlogistik und interne Online-Tools wie Begleitschein- und Prozessmodule.',
+                'outcome' => 'Leistungsdarstellung und digitale Prozessbausteine für Logistikabläufe in einem konsistenten Unternehmensauftritt gebündelt.',
+                'focus' => ['Logistikprozesse', 'Online-Tools', 'System-Integration'],
+                'url' => 'https://rm-cargotec.de',
+                'linkLabel' => 'Zur Website',
             ],
             [
-                'title' => 'Verwaltung & Dokumente',
-                'industry' => 'Öffentliche Verwaltung',
-                'description' => 'Vereinheitlichte Dokumentenablage mit nachvollziehbaren Freigaben und schneller Auffindbarkeit.',
-                'outcome' => 'Strukturierte Dokumentenstrecken mit stabiler Suchbarkeit und besserer Nachvollziehbarkeit.',
-                'focus' => ['Dokumentenstruktur', 'Freigaben', 'Suchkonzept'],
+                'title' => 'Zusteller',
+                'industry' => 'Tourenplanung & Zustellung',
+                'description' => 'Webanwendung für Touranlage, Import, Geocoding, Routenoptimierung und mobile Zustellung im operativen Tagesgeschäft.',
+                'outcome' => 'Durchgängiger Ablauf von der Stoppliste bis zur mobilen Abarbeitung mit klarem Fokus auf produktive Feldnutzung.',
+                'focus' => ['Import & Geocoding', 'Routenoptimierung', 'Mobile Zustellung'],
+                'url' => 'https://zusteller.rddigital.de',
+                'linkLabel' => 'Zur Plattform',
             ],
         ];
     }

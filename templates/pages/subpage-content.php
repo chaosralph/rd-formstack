@@ -38,6 +38,14 @@ if ($path === '/leistungen'): ?>
                         <h3><?= $e($reference['title']) ?></h3>
                         <p><?= $e($reference['description']) ?></p>
                         <p><strong>Ergebnis:</strong> <?= $e($reference['outcome']) ?></p>
+                        <ul>
+                            <?php foreach ($reference['focus'] as $focus): ?>
+                                <li><?= $e($focus) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <p>
+                            <a class="btn btn-ghost" href="<?= $e($reference['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $e($reference['linkLabel']) ?></a>
+                        </p>
                     </article>
                 <?php endforeach; ?>
             </div>
