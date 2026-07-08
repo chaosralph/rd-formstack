@@ -61,38 +61,48 @@ if ($path === '/leistungen'): ?>
             <article class="service-card legal-card">
                 <div class="legal-notice" role="note">
                     <strong>Hinweis zum Projektstand:</strong>
-                    Diese Seite bildet die technische Grundlage für die Anbieterkennzeichnung ab. Nicht im Projekt oder auf der Website verifizierbare Pflichtangaben werden bewusst nicht geraten, sondern als offene Felder ausgewiesen.
+                    Diese Seite bildet die technische Grundlage für die Anbieterkennzeichnung ab. Nicht bereitgestellte oder rechtlich gesondert zu prüfende Angaben werden nicht geraten, sondern nur dort als offen benannt, wo sie noch nicht vorliegen.
                 </div>
 
                 <h2>Angaben gemäß § 5 TMG</h2>
                 <dl class="legal-facts">
                     <div>
-                        <dt>Angebotsname</dt>
-                        <dd>RD Formstack Solutions</dd>
+                        <dt>Diensteanbieter</dt>
+                        <dd>RD Formstack Solutions Inh. Ralph Domin</dd>
+                    </div>
+                    <div>
+                        <dt>Vertretungsberechtigte Person</dt>
+                        <dd>Ralph Domin</dd>
+                    </div>
+                    <div>
+                        <dt>Anschrift</dt>
+                        <dd>Am Wingert 2, 63579 Freigericht</dd>
                     </div>
                     <div>
                         <dt>Website</dt>
                         <dd><a href="https://rddigital.de">https://rddigital.de</a></dd>
                     </div>
                     <div>
-                        <dt>Verifizierter Kontaktweg im aktuellen Projektstand</dt>
-                        <dd><a href="/kontakt">Kontaktformular unter /kontakt</a></dd>
+                        <dt>Kontakt</dt>
+                        <dd><a href="/kontakt">Kontaktformular unter /kontakt</a><br><a href="mailto:info@rddigital.de">info@rddigital.de</a></dd>
+                    </div>
+                    <div>
+                        <dt>Umsatzsteuer-ID</dt>
+                        <dd>DE457064219</dd>
+                    </div>
+                    <div>
+                        <dt>Registereintrag</dt>
+                        <dd>Nicht vorhanden, Einzelunternehmen</dd>
                     </div>
                 </dl>
 
-                <h3>Offene Pflichtangaben zur Ergänzung</h3>
+                <h3>Weitere Angaben</h3>
                 <ul>
-                    <li>Vollständiger Name oder Firma des Diensteanbieters</li>
-                    <li>Ladungsfähige Postanschrift</li>
-                    <li>Vertretungsberechtigte Person, falls einschlägig</li>
-                    <li>Direkte Kontaktmöglichkeit per E-Mail und ggf. Telefon</li>
-                    <li>Registergericht und Registernummer, falls vorhanden</li>
-                    <li>Umsatzsteuer-ID / Wirtschafts-ID, falls vorhanden</li>
-                    <li>Berufsrechtliche Angaben, falls reglementierte Tätigkeit vorliegt</li>
+                    <li>Berufsrechtliche Angaben bestehen nur, sofern eine reglementierte Tätigkeit vorliegt.</li>
                 </ul>
 
                 <h3>Redaktionell verantwortlich</h3>
-                <p>Offenes Feld: Verantwortliche Person / Anschrift für journalistisch-redaktionelle Inhalte ist im vorliegenden Projektstand nicht verifiziert.</p>
+                <p>Ralph Domin, Am Wingert 2, 63579 Freigericht</p>
 
                 <h3>Streitbeilegung</h3>
                 <p>Plattform der EU-Kommission zur Online-Streitbeilegung: <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr/</a>.</p>
@@ -117,17 +127,17 @@ if ($path === '/leistungen'): ?>
             <article class="service-card legal-card">
                 <div class="legal-notice" role="note">
                     <strong>Hinweis zum Projektstand:</strong>
-                    Diese Datenschutzerklärung basiert auf dem aktuell verifizierbaren technischen Verhalten der Website. Angaben zum Verantwortlichen, zu Aufbewahrungsfristen und zu externen Dienstleistern müssen bei Bedarf mit den realen Betriebsdaten ergänzt werden.
+                    Diese Datenschutzerklärung basiert auf dem aktuell verifizierbaren technischen Verhalten der Website und den bereitgestellten Anbieterangaben. Angaben zu Aufbewahrungsfristen, externen Dienstleistern und ggf. einem Datenschutzbeauftragten müssen bei Bedarf mit den realen Betriebsdaten ergänzt werden.
                 </div>
 
                 <h2>1. Verantwortlicher</h2>
-                <p>Verifizierbar ist aktuell nur die Angebotsbezeichnung <strong>RD Formstack Solutions</strong> für die Website <strong>rddigital.de</strong>.</p>
+                <p>Verantwortlich für die Datenverarbeitung auf dieser Website ist:</p>
                 <ul>
-                    <li>Offenes Feld: Vollständiger Name / Firma des Verantwortlichen</li>
-                    <li>Offenes Feld: Ladungsfähige Anschrift</li>
-                    <li>Offenes Feld: E-Mail-Adresse für Datenschutzanfragen</li>
-                    <li>Offenes Feld: Telefon, falls bereitgestellt</li>
-                    <li>Offenes Feld: Datenschutzbeauftragte Person, falls gesetzlich erforderlich</li>
+                    <li>RD Formstack Solutions Inh. Ralph Domin</li>
+                    <li>Am Wingert 2, 63579 Freigericht</li>
+                    <li>E-Mail für Anfragen: <a href="mailto:info@rddigital.de">info@rddigital.de</a></li>
+                    <li>Alternativ erreichbar über das <a href="/kontakt">Kontaktformular</a></li>
+                    <li>Datenschutzbeauftragte Person, falls gesetzlich erforderlich: derzeit nicht separat ausgewiesen</li>
                 </ul>
 
                 <h2>2. Aufruf der Website</h2>
