@@ -34,6 +34,18 @@ final class RouteCatalog
                 'intro' => 'Beschreiben Sie Ihr Vorhaben. Wir melden uns mit einer realistischen Einschätzung für die nächsten Schritte.',
                 'description' => 'Kontaktieren Sie RD Formstack Solutions für ein unverbindliches Erstgespräch zu Website, Workflow und DMS-Projekten.',
             ],
+            '/impressum' => [
+                'title' => 'Impressum',
+                'headline' => 'Impressum und Pflichtangaben',
+                'intro' => 'Technische Basis für die Anbieterkennzeichnung von rddigital.de. Nicht verifizierte Pflichtangaben sind ausdrücklich als offene Felder markiert.',
+                'description' => 'Technische Impressumsseite für rddigital.de mit verifizierbaren Basisangaben und klar markierten offenen Pflichtfeldern.',
+            ],
+            '/datenschutz' => [
+                'title' => 'Datenschutzerklärung',
+                'headline' => 'Datenschutzhinweise für diese Website',
+                'intro' => 'Technisch abgeleitete Datenschutzhinweise für rddigital.de auf Basis des aktuellen Projektstands und der verifizierbaren Datenverarbeitung.',
+                'description' => 'Datenschutzerklärung für rddigital.de mit Angaben zu Hosting, Kontaktformular, Session-Cookie und offenen Verantwortlichkeitsfeldern.',
+            ],
             '/login' => [
                 'title' => 'Login',
                 'headline' => 'Kundenportal in Vorbereitung',

@@ -50,7 +50,7 @@ $appBaseUrl = AppUrl::baseUrl($scheme, (string) $host);
 SecurityHeaderPolicy::apply();
 
 if (Request::method() === 'GET' && $path === '/sitemap.xml') {
-    $urls = ['/', '/leistungen', '/referenzen', '/kontakt'];
+    $urls = ['/', '/leistungen', '/referenzen', '/kontakt', '/impressum', '/datenschutz'];
     $lastMod = gmdate('c');
 
     header('Content-Type: application/xml; charset=UTF-8');

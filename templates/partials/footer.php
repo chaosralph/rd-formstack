@@ -10,6 +10,8 @@
             <?= $navLink('/leistungen', 'Leistungen', $path) ?>
             <?= $navLink('/referenzen', 'Referenzen', $path) ?>
             <?= $navLink('/kontakt', 'Kontakt', $path) ?>
+            <?= $navLink('/impressum', 'Impressum', $path) ?>
+            <?= $navLink('/datenschutz', 'Datenschutz', $path) ?>
         </nav>
     </div>
 </footer>
