@@ -187,20 +187,76 @@ if ($path === '/leistungen'): ?>
         </div>
     </section>
 <?php elseif ($path === '/login'): ?>
-    <section class="section" id="login-placeholder">
-        <div class="shell contact-layout">
-            <article class="service-card">
-                <p class="eyebrow">Login-Platzhalter</p>
-                <h2>Kundenportal ist vorbereitet</h2>
-                <p>Der Login-Bereich ist technisch angebunden und wird in der nächsten Ausbaustufe mit Nutzerrollen, Projektstatus und Benachrichtigungen ergänzt.</p>
-                <ul>
-                    <?php foreach (\App\View\HomepageContent::loginFeatures() as $item): ?>
-                        <li><?= $e($item) ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <a class="btn btn-primary" href="/kontakt">Pilotzugang anfragen</a>
+    <section class="section" id="login-access">
+        <div class="shell contact-layout auth-layout">
+            <article class="service-card form-card auth-card">
+                <p class="eyebrow">Portal-Login</p>
+                <h2>Mit bestehendem Zugang einloggen</h2>
+                <p>Nach dem Login landen Sie direkt im Dashboard. Dort folgen Referenzen, Postbox, Profil und weitere Module.</p>
+
+                <?php if ($authRuntimeError): ?>
+                    <div class="alert alert-error" role="alert">Die Login-Datenbank ist aktuell nicht erreichbar.</div>
+                <?php endif; ?>
+
+                <?php if (is_string($flashError)): ?>
+                    <div class="alert alert-error" role="alert">
+                        <p><?= $e($flashError) ?></p>
+                        <?php if (is_array($flashErrors) && $flashErrors !== []): ?>
+                            <ul class="alert-list">
+                                <?php foreach ($flashErrors as $field => $errorItem): ?>
+                                    <?php if (is_string($errorItem)): ?>
+                                        <li><strong><?= $e((string) $field) ?>:</strong> <?= $e($errorItem) ?></li>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (is_string($flashSuccess)): ?>
+                    <div class="alert alert-success" role="status"><?= $e($flashSuccess) ?></div>
+                <?php endif; ?>
+
+                <form method="post" action="/login" class="auth-form-stack">
+                    <input type="hidden" name="_action" value="auth.login">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+
+                    <label for="auth-email">E-Mail <span class="req">*</span></label>
+                    <input id="auth-email" type="email" name="email" autocomplete="email" required value="<?= $e((string) ($old['auth_email'] ?? '')) ?>">
+
+                    <label for="auth-password">Passwort <span class="req">*</span></label>
+                    <input id="auth-password" type="password" name="password" autocomplete="current-password" required>
+
+                    <button class="btn btn-primary" type="submit">Einloggen</button>
+                </form>
             </article>
-            <aside class="subpage-sidecard" aria-label="Login-Ausbauphasen">
+
+            <aside class="subpage-sidecard auth-sidecard" aria-label="Erstzugang und Ausbauphasen">
+                <h3>Erstzugang</h3>
+                <?php if ($authSetupAvailable && !$authRuntimeError): ?>
+                    <p>Noch kein Nutzer vorhanden. Richten Sie hier den ersten Admin-Zugang ein.</p>
+                    <form method="post" action="/login" class="auth-form-stack">
+                        <input type="hidden" name="_action" value="auth.setup">
+                        <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+
+                        <label for="setup-display-name">Name <span class="req">*</span></label>
+                        <input id="setup-display-name" type="text" name="display_name" autocomplete="name" required value="<?= $e((string) ($old['setup_display_name'] ?? '')) ?>">
+
+                        <label for="setup-email">E-Mail <span class="req">*</span></label>
+                        <input id="setup-email" type="email" name="email" autocomplete="email" required value="<?= $e((string) ($old['setup_email'] ?? '')) ?>">
+
+                        <label for="setup-password">Passwort <span class="req">*</span></label>
+                        <input id="setup-password" type="password" name="password" autocomplete="new-password" required>
+
+                        <label for="setup-password-confirmation">Passwort bestätigen <span class="req">*</span></label>
+                        <input id="setup-password-confirmation" type="password" name="password_confirmation" autocomplete="new-password" required>
+
+                        <button class="btn btn-ghost" type="submit">Ersten Zugang anlegen</button>
+                    </form>
+                <?php else: ?>
+                    <p>Der Erstzugang ist bereits eingerichtet. Neue Module folgen jetzt im Dashboard.</p>
+                <?php endif; ?>
+
                 <h3>Ausbauphasen</h3>
                 <ul class="phase-list">
                     <?php foreach (\App\View\HomepageContent::loginPhases() as $phase): ?>
@@ -211,6 +267,63 @@ if ($path === '/leistungen'): ?>
                     <?php endforeach; ?>
                 </ul>
             </aside>
+        </div>
+    </section>
+<?php elseif ($path === '/dashboard'): ?>
+    <section class="section section-muted" id="dashboard-home">
+        <div class="shell dashboard-layout">
+            <article class="service-card dashboard-hero-card">
+                <p class="eyebrow">Geschützter Bereich</p>
+                <h2>Willkommen<?= is_array($authUser) && ($authUser['display_name'] ?? '') !== '' ? ', ' . $e((string) $authUser['display_name']) : '' ?></h2>
+                <p>Dies ist der erste produktive Einstiegspunkt nach dem Login. Von hier aus werden die nächsten Module für Betrieb und Pflege von rddigital.de aufgebaut.</p>
+
+                <?php if (is_string($flashSuccess)): ?>
+                    <div class="alert alert-success" role="status"><?= $e($flashSuccess) ?></div>
+                <?php endif; ?>
+
+                <?php if (is_string($flashError)): ?>
+                    <div class="alert alert-error" role="alert"><?= $e($flashError) ?></div>
+                <?php endif; ?>
+
+                <div class="dashboard-toolbar">
+                    <span class="tag">Rolle: <?= $e((string) (($authUser['role'] ?? 'admin'))) ?></span>
+                    <span class="tag">E-Mail: <?= $e((string) (($authUser['email'] ?? ''))) ?></span>
+                </div>
+            </article>
+
+            <div class="dashboard-grid">
+                <article class="service-card dashboard-module-card">
+                    <h3>Postbox</h3>
+                    <p>Kontaktanfragen im Dashboard lesen, bearbeiten und später direkt per E-Mail beantworten.</p>
+                    <ul>
+                        <li>Nächster Schritt: Inbox mit Status und Antwort-Workflow</li>
+                        <li>Quelle: bestehendes Kontaktformular</li>
+                    </ul>
+                </article>
+
+                <article class="service-card dashboard-module-card">
+                    <h3>Referenzen</h3>
+                    <p>Referenzkarten künftig im Dashboard anlegen, bearbeiten und auf der Landingpage ausgeben.</p>
+                    <ul>
+                        <li>Nächster Schritt: CRUD + Sortierung + Sichtbarkeit</li>
+                        <li>Ziel: Landingpage-Pflege ohne Codeänderung</li>
+                    </ul>
+                </article>
+
+                <article class="service-card dashboard-module-card">
+                    <h3>Profil</h3>
+                    <p>Persönliche Daten und Passwort künftig direkt im geschützten Bereich pflegen.</p>
+                    <ul>
+                        <li>Nächster Schritt: Profilseite + Passwortwechsel</li>
+                    </ul>
+                </article>
+
+                <article class="service-card dashboard-module-card placeholder-card">
+                    <h3>DMS</h3>
+                    <p>Der DMS-Bereich bleibt vorerst ein geplanter Ausbaupfad und wird hier später direkt angebunden.</p>
+                    <a class="btn btn-ghost" href="/dms">DMS-Platzhalter öffnen</a>
+                </article>
+            </div>
         </div>
     </section>
 <?php elseif ($path === '/dms'): ?>

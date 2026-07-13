@@ -48,9 +48,33 @@ final class RouteCatalog
             ],
             '/login' => [
                 'title' => 'Login',
-                'headline' => 'Kundenportal in Vorbereitung',
-                'intro' => 'Der geschützte Login-Bereich ist als Platzhalter integriert und wird in der nächsten Ausbaustufe freigeschaltet.',
-                'description' => 'Login-Platzhalter für das geplante Kundenportal mit rollenbasierten Zugängen und persönlichen Projektansichten.',
+                'headline' => 'Geschützter Zugang für das Kundenportal',
+                'intro' => 'Melden Sie sich an, um Dashboard, Referenzen-Verwaltung und eingehende Kontaktanfragen zentral zu bearbeiten.',
+                'description' => 'Geschützter Login für das RD-Portal mit Admin-Zugang, Dashboard und weiteren Modulen für Inhalte und Kommunikation.',
+            ],
+            '/dashboard' => [
+                'title' => 'Dashboard',
+                'headline' => 'Dashboard für Inhalte, Anfragen und nächste Ausbaustufen',
+                'intro' => 'Der geschützte Bereich bündelt Login, Profil, Postbox, Referenzen und weitere Module für die operative Pflege von rddigital.de.',
+                'description' => 'Internes Dashboard für RD Formstack Solutions zur Verwaltung von Inhalten, Kontaktanfragen und Portal-Modulen.',
+            ],
+            '/dashboard/postbox' => [
+                'title' => 'Postbox',
+                'headline' => 'Kontaktanfragen in der Postbox bearbeiten',
+                'intro' => 'Alle Anfragen aus dem Kontaktformular werden hier mit Status, Notizen und Antwortverlauf zentral bearbeitet.',
+                'description' => 'Geschützte Postbox für eingehende Kontaktanfragen mit Statuspflege und E-Mail-Antworten.',
+            ],
+            '/dashboard/references' => [
+                'title' => 'Referenzen verwalten',
+                'headline' => 'Referenzen pflegen und live auf der Landingpage ausgeben',
+                'intro' => 'Referenzen können hier angelegt, sortiert, ein- oder ausgeblendet und direkt für die öffentliche Darstellung vorbereitet werden.',
+                'description' => 'Dashboard-Modul zur Verwaltung öffentlicher Referenzen auf rddigital.de.',
+            ],
+            '/dashboard/profile' => [
+                'title' => 'Profil',
+                'headline' => 'Persönliche Daten und Passwort pflegen',
+                'intro' => 'Profil- und Zugangsdaten lassen sich hier direkt im geschützten Bereich aktualisieren.',
+                'description' => 'Profilverwaltung für den geschützten Bereich von rddigital.de.',
             ],
             '/dms' => [
                 'title' => 'DMS',

@@ -28,7 +28,8 @@
 
 <?php require __DIR__ . '/partials/header.php'; ?>
 
-<?php if ($path !== '/'): ?>
+<?php $isDashboardRoute = str_starts_with($path, '/dashboard'); ?>
+<?php if ($path !== '/' && !$isDashboardRoute): ?>
     <div class="page-context">
         <div class="shell page-context-inner">
             <p><a href="/">Startseite</a> <span aria-hidden="true">/</span> <strong><?= $e($page['title']) ?></strong></p>
@@ -40,6 +41,8 @@
 <main id="main">
     <?php if ($path === '/'): ?>
         <?php require __DIR__ . '/pages/home.php'; ?>
+    <?php elseif ($isDashboardRoute): ?>
+        <?php require __DIR__ . '/pages/dashboard.php'; ?>
     <?php else: ?>
         <?php require __DIR__ . '/pages/page-hero.php'; ?>
         <?php require __DIR__ . '/pages/subpage-content.php'; ?>
@@ -50,12 +53,14 @@
     <?php endif; ?>
 </main>
 
-<aside class="conversion-rail" aria-label="Schnellkontakt">
-    <p>Projektstart in klaren Etappen</p>
-    <a class="btn btn-accent" href="/kontakt">Erstgespräch sichern</a>
-</aside>
+<?php if (!$isDashboardRoute): ?>
+    <aside class="conversion-rail" aria-label="Schnellkontakt">
+        <p>Projektstart in klaren Etappen</p>
+        <a class="btn btn-accent" href="/kontakt">Erstgespräch sichern</a>
+    </aside>
 
-<a class="floating-cta btn btn-accent" href="<?= $e($mobileActionCta[0]) ?>"><?= $e($mobileActionCta[1]) ?></a>
+    <a class="floating-cta btn btn-accent" href="<?= $e($mobileActionCta[0]) ?>"><?= $e($mobileActionCta[1]) ?></a>
+<?php endif; ?>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 

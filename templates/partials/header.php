@@ -12,8 +12,18 @@
             <?= $path === '/' ? $navLink('#referenzen', 'Referenzen', $path) : $navLink('/referenzen', 'Referenzen', $path) ?>
             <?= $path === '/' ? $navLink('#ablauf', 'Ablauf', $path) : $navLink('/', 'Ablauf', $path) ?>
             <?= $path === '/' ? $navLink('#kontakt', 'Kontakt', $path) : $navLink('/kontakt', 'Kontakt', $path) ?>
-            <a class="nav-link nav-link-muted" href="/login">Login</a>
-            <a class="nav-link nav-link-muted" href="/dms">DMS</a>
+            <?php if (is_array($authUser)): ?>
+                <?= $navLink('/dashboard', 'Dashboard', $path) ?>
+                <a class="nav-link nav-link-muted" href="/dms">DMS</a>
+                <form class="nav-inline-form" method="post" action="/logout">
+                    <input type="hidden" name="_action" value="auth.logout">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                    <button type="submit" class="nav-link-button">Logout</button>
+                </form>
+            <?php else: ?>
+                <a class="nav-link nav-link-muted" href="/login">Login</a>
+                <a class="nav-link nav-link-muted" href="/dms">DMS</a>
+            <?php endif; ?>
             <a class="btn btn-accent btn-sm" href="/kontakt">Projektanfrage</a>
         </nav>
     </div>

@@ -16,7 +16,8 @@ final class HomepageContent
             '/leistungen' => ['/referenzen', 'Referenzen ansehen'],
             '/referenzen' => ['/kontakt', 'Projektanfrage starten'],
             '/kontakt' => ['/leistungen', 'Leistungen entdecken'],
-            '/login' => ['/kontakt', 'Pilotzugang anfragen'],
+            '/login' => ['/dashboard', 'Zum Dashboard'],
+            '/dashboard' => ['/kontakt', 'Projektanfrage'],
             '/dms' => ['/kontakt', 'DMS-Use-Case besprechen'],
         ];
 
@@ -33,7 +34,8 @@ final class HomepageContent
             '/leistungen' => ['/referenzen', 'Referenzen'],
             '/referenzen' => ['/kontakt', 'Projektstart'],
             '/kontakt' => ['#contact-form', 'Zum Formular'],
-            '/login' => ['/kontakt', 'Pilotzugang'],
+            '/login' => ['/dashboard', 'Dashboard'],
+            '/dashboard' => ['/kontakt', 'Projektanfrage'],
             '/dms' => ['/kontakt', 'DMS-Anfrage'],
         ];
 
