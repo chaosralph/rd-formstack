@@ -231,9 +231,9 @@ if ($path === '/leistungen'): ?>
                 </form>
             </article>
 
-            <aside class="subpage-sidecard auth-sidecard" aria-label="Erstzugang und Ausbauphasen">
-                <h3>Erstzugang</h3>
+            <aside class="subpage-sidecard auth-sidecard" aria-label="Zugang und Ausbauphasen">
                 <?php if ($authSetupAvailable && !$authRuntimeError): ?>
+                    <h3>Erstzugang</h3>
                     <p>Noch kein Nutzer vorhanden. Richten Sie hier den ersten Admin-Zugang ein.</p>
                     <form method="post" action="/login" class="auth-form-stack">
                         <input type="hidden" name="_action" value="auth.setup">
@@ -254,7 +254,11 @@ if ($path === '/leistungen'): ?>
                         <button class="btn btn-ghost" type="submit">Ersten Zugang anlegen</button>
                     </form>
                 <?php else: ?>
-                    <p>Der Erstzugang ist bereits eingerichtet. Neue Module folgen jetzt im Dashboard.</p>
+                    <h3>Zugang eingerichtet</h3>
+                    <p>Der Admin-Zugang ist bereits eingerichtet. Melden Sie sich mit Ihrem bestehenden Konto an und ändern Sie das temporäre Passwort danach direkt im Profil.</p>
+                    <div class="section-cta-row">
+                        <a class="btn btn-ghost" href="/kontakt">Support anfragen</a>
+                    </div>
                 <?php endif; ?>
 
                 <h3>Ausbauphasen</h3>
