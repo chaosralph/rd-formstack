@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../config/env.php';
 require_once __DIR__ . '/../../src/Support/Logger.php';
+require_once __DIR__ . '/../../src/Support/SecurityEventLogger.php';
 require_once __DIR__ . '/../../src/Security/IpRateLimiter.php';
 
 use App\Security\IpRateLimiter;
