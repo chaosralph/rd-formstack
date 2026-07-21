@@ -94,6 +94,12 @@ final class RouteCatalog
                 'intro' => 'Profil- und Zugangsdaten lassen sich hier direkt im geschützten Bereich aktualisieren.',
                 'description' => 'Profilverwaltung für den geschützten Bereich von rddigital.de.',
             ],
+            '/dashboard/users' => [
+                'title' => 'Benutzerverwaltung',
+                'headline' => 'Benutzer, Rollen und Aktiv-Status zentral pflegen',
+                'intro' => 'Admins können hier Rollen im laufenden Betrieb pflegen und Benutzerkonten ohne DB-Eingriff verwalten.',
+                'description' => 'Benutzerverwaltung für Rollen, Aktiv-Status und Kontodaten im geschützten Bereich von rddigital.de.',
+            ],
             '/dms' => [
                 'title' => 'DMS',
                 'headline' => 'DMS-Basis mit Suche, Versionierung und Freigabe',

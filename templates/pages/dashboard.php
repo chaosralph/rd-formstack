@@ -15,6 +15,15 @@ $dashboardNavItems = [
     '/dashboard/references' => 'Referenzen',
     '/dashboard/profile' => 'Profil',
 ];
+if (!empty($dashboardCanManageUsers)) {
+    $dashboardNavItems['/dashboard/users'] = 'Benutzer';
+}
+
+$dashboardRoleLabels = [
+    'admin' => 'Admin',
+    'reviewer' => 'Reviewer',
+    'editor' => 'Editor',
+];
 ?>
 <section class="section section-muted dashboard-shell-section" id="dashboard-app">
     <div class="shell dashboard-page-shell">
@@ -105,6 +114,18 @@ $dashboardNavItems = [
                     </ul>
                     <a class="btn btn-primary" href="/dashboard/inbox">Inbox öffnen</a>
                 </article>
+
+                <?php if (!empty($dashboardCanManageUsers)): ?>
+                    <article class="service-card dashboard-module-card">
+                        <h2>Benutzer</h2>
+                        <p>Rollen, Aktiv-Status und Kontaktdaten direkt im Dashboard pflegen.</p>
+                        <ul>
+                            <li>Rollen: Admin, Reviewer, Editor</li>
+                            <li>Freigaben im DMS laufen über Reviewer oder Admin</li>
+                        </ul>
+                        <a class="btn btn-primary" href="/dashboard/users">Benutzerverwaltung öffnen</a>
+                    </article>
+                <?php endif; ?>
 
                 <article class="service-card dashboard-module-card">
                     <h2>Outreach</h2>
@@ -634,7 +655,7 @@ $dashboardNavItems = [
                         <div class="dashboard-detail-card-head">
                             <div>
                                 <h2>Versionierung und Freigabe</h2>
-                                <p>Neue Versionen setzen den Status wieder auf Draft, bis das Dokument erneut eingereicht und freigegeben wird.</p>
+                                <p>Editoren erstellen und überarbeiten Dokumente, Reviewer oder Admins geben sie mit optionalem Kommentar frei oder zurück.</p>
                             </div>
                             <span class="tag"><?= is_array($dashboardSelectedDmsDocument) ? $e((string) ($dashboardSelectedDmsDocument['status'] ?? 'draft')) : 'draft' ?></span>
                         </div>
@@ -643,6 +664,7 @@ $dashboardNavItems = [
                             <div class="dashboard-action-row" style="margin-bottom:12px">
                                 <span class="tag">Versionen: <?= $e((string) ($dashboardSelectedDmsDocument['version_count'] ?? 0)) ?></span>
                                 <span class="tag">Ereignisse: <?= $e((string) ($dashboardSelectedDmsDocument['event_count'] ?? 0)) ?></span>
+                                <span class="tag">Rolle: <?= $e((string) ($dashboardRoleLabels[strtolower((string) ($authUser['role'] ?? 'editor'))] ?? (string) ($authUser['role'] ?? 'editor'))) ?></span>
                                 <?php if (($dashboardSelectedDmsDocument['approved_at'] ?? '') !== ''): ?>
                                     <span class="tag">Freigabe: <?= $e((string) $dashboardSelectedDmsDocument['approved_at']) ?><?= ($dashboardSelectedDmsDocument['approved_by_display_name'] ?? '') !== '' ? ' · ' . $e((string) $dashboardSelectedDmsDocument['approved_by_display_name']) : '' ?></span>
                                 <?php endif; ?>
@@ -664,25 +686,31 @@ $dashboardNavItems = [
                                 </div>
                             </form>
 
-                            <div class="dashboard-action-row" style="margin-top:12px">
-                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
+                            <div class="dashboard-action-row" style="margin-top:12px; align-items:flex-start">
+                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" class="auth-form-stack dashboard-form-stack" style="margin-top:0; min-width:220px">
                                     <input type="hidden" name="_action" value="dashboard.dms.submit">
                                     <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
                                     <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+                                    <label for="dms-submit-note">Review-Notiz für Einreichung</label>
+                                    <input id="dms-submit-note" type="text" name="dms_review_note" placeholder="optional, z. B. bitte Rechtschreibung prüfen">
                                     <button class="btn btn-ghost" type="submit"<?= (int) ($dashboardSelectedDmsDocument['current_version_id'] ?? 0) > 0 ? '' : ' disabled' ?>>Zur Freigabe einreichen</button>
                                 </form>
 
-                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
+                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" class="auth-form-stack dashboard-form-stack" style="margin-top:0; min-width:220px">
                                     <input type="hidden" name="_action" value="dashboard.dms.approve">
                                     <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
                                     <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+                                    <label for="dms-approve-note">Freigabe-Kommentar</label>
+                                    <input id="dms-approve-note" type="text" name="dms_review_note" placeholder="optional, z. B. freigegeben für Versand">
                                     <button class="btn btn-primary" type="submit"<?= ((string) ($dashboardSelectedDmsDocument['status'] ?? '') === 'in_review' && !empty($dashboardCanApproveDms)) ? '' : ' disabled' ?>>Freigeben</button>
                                 </form>
 
-                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
+                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" class="auth-form-stack dashboard-form-stack" style="margin-top:0; min-width:220px">
                                     <input type="hidden" name="_action" value="dashboard.dms.reset">
                                     <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
                                     <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+                                    <label for="dms-reset-note">Rückgabe-Kommentar</label>
+                                    <input id="dms-reset-note" type="text" name="dms_review_note" placeholder="optional, z. B. Abschnitt 3 nachschärfen">
                                     <button class="btn btn-danger" type="submit"<?= !empty($dashboardCanApproveDms) ? '' : ' disabled' ?>>Auf Draft zurücksetzen</button>
                                 </form>
                             </div>
@@ -742,6 +770,9 @@ $dashboardNavItems = [
                                         <?php endif; ?>
                                         <?php if (!empty($event['details']['original_filename'])): ?>
                                             <p>Datei: <?= $e((string) $event['details']['original_filename']) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($event['details']['review_note'])): ?>
+                                            <p>Kommentar: <?= $e((string) $event['details']['review_note']) ?></p>
                                         <?php endif; ?>
                                         <small><?= $e((string) ($event['created_at'] ?? '')) ?></small>
                                     </article>
@@ -855,6 +886,78 @@ $dashboardNavItems = [
 
                         <button class="btn btn-primary" type="submit">Passwort aktualisieren</button>
                     </form>
+                </article>
+            </div>
+        <?php elseif ($dashboardSection === 'users' && !empty($dashboardCanManageUsers)): ?>
+            <div class="dashboard-postbox-layout dashboard-references-layout">
+                <aside class="service-card dashboard-list-card">
+                    <div class="dashboard-list-card-head">
+                        <h2>Benutzer</h2>
+                        <span class="tag"><?= $e((string) count($dashboardUsers ?? [])) ?> Konten</span>
+                    </div>
+                    <?php if (($dashboardUsers ?? []) === []): ?>
+                        <p>Noch keine Benutzer vorhanden.</p>
+                    <?php else: ?>
+                        <div class="dashboard-contact-list">
+                            <?php foreach ($dashboardUsers as $dashboardUser): ?>
+                                <?php $dashboardUserRole = strtolower((string) ($dashboardUser['role'] ?? 'editor')); ?>
+                                <a class="dashboard-contact-item<?= is_array($dashboardSelectedUser) && (int) $dashboardSelectedUser['id'] === (int) $dashboardUser['id'] ? ' is-active' : '' ?>" href="/dashboard/users?user=<?= $e((string) $dashboardUser['id']) ?>">
+                                    <div class="dashboard-contact-item-head">
+                                        <strong><?= $e((string) ($dashboardUser['display_name'] ?? 'Benutzer')) ?></strong>
+                                        <span class="tag<?= !empty($dashboardUser['is_active']) ? '' : ' tag-warning' ?>"><?= !empty($dashboardUser['is_active']) ? 'aktiv' : 'inaktiv' ?></span>
+                                    </div>
+                                    <p><?= $e((string) ($dashboardUser['email'] ?? '')) ?></p>
+                                    <small>Rolle: <?= $e((string) ($dashboardRoleLabels[$dashboardUserRole] ?? $dashboardUserRole)) ?></small>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </aside>
+
+                <article class="service-card dashboard-detail-card">
+                    <?php if (is_array($dashboardSelectedUser)): ?>
+                        <div class="dashboard-detail-card-head">
+                            <div>
+                                <h2>Benutzer bearbeiten</h2>
+                                <p>Rollen steuern DMS-Freigaben: Editor erstellt, Reviewer/Admin gibt frei.</p>
+                            </div>
+                            <span class="tag">ID: <?= $e((string) $dashboardSelectedUser['id']) ?></span>
+                        </div>
+
+                        <form method="post" action="/dashboard/users?user=<?= $e((string) $dashboardSelectedUser['id']) ?>" class="auth-form-stack dashboard-form-stack">
+                            <input type="hidden" name="_action" value="dashboard.user.update">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                            <input type="hidden" name="user_id" value="<?= $e((string) $dashboardSelectedUser['id']) ?>">
+
+                            <label for="user-display-name">Name</label>
+                            <input id="user-display-name" type="text" name="display_name" required value="<?= $e((string) ($dashboardUserForm['user_display_name'] ?? ($dashboardSelectedUser['display_name'] ?? ''))) ?>">
+
+                            <label for="user-email">E-Mail</label>
+                            <input id="user-email" type="email" name="email" required value="<?= $e((string) ($dashboardUserForm['user_email'] ?? ($dashboardSelectedUser['email'] ?? ''))) ?>">
+
+                            <label for="user-role">Rolle</label>
+                            <select id="user-role" name="role">
+                                <?php $selectedRole = strtolower((string) ($dashboardUserForm['user_role'] ?? ($dashboardSelectedUser['role'] ?? 'editor'))); ?>
+                                <?php foreach ($dashboardRoleLabels as $roleValue => $roleLabel): ?>
+                                    <option value="<?= $e($roleValue) ?>"<?= $selectedRole === $roleValue ? ' selected' : '' ?>><?= $e($roleLabel) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+
+                            <label class="checkbox-row"><input type="checkbox" name="is_active" value="1"<?= !empty($dashboardUserForm['user_is_active']) ? ' checked' : '' ?>> <span>Konto aktiv</span></label>
+
+                            <div class="dashboard-action-row">
+                                <button class="btn btn-primary" type="submit">Benutzer speichern</button>
+                            </div>
+                        </form>
+
+                        <div class="dashboard-action-row" style="margin-top:12px">
+                            <span class="tag">Letzter Login: <?= $e((string) (($dashboardSelectedUser['last_login_at'] ?? '') !== '' ? $dashboardSelectedUser['last_login_at'] : 'noch keiner')) ?></span>
+                            <span class="tag">Aktuelle Rolle: <?= $e((string) ($dashboardRoleLabels[strtolower((string) ($dashboardSelectedUser['role'] ?? 'editor'))] ?? ($dashboardSelectedUser['role'] ?? 'editor'))) ?></span>
+                        </div>
+                    <?php else: ?>
+                        <h2>Kein Benutzer ausgewählt</h2>
+                        <p>Wählen Sie links einen Benutzer aus, um Rolle und Aktiv-Status zu pflegen.</p>
+                    <?php endif; ?>
                 </article>
             </div>
         <?php endif; ?>

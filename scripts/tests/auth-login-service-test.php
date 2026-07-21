@@ -55,6 +55,44 @@ final class InMemoryUserRepository implements UserRepositoryInterface
 
         return null;
     }
+
+    public function touchLastLogin(int $id): void
+    {
+    }
+
+    public function emailExistsForOtherUser(string $email, int $userId): bool
+    {
+        return false;
+    }
+
+    public function updateProfile(int $id, string $displayName, string $email): void
+    {
+    }
+
+    public function updatePassword(int $id, string $passwordHash): void
+    {
+    }
+
+    public function listUsers(): array
+    {
+        return $this->users;
+    }
+
+    public function updateUserAdmin(int $id, string $displayName, string $email, string $role, bool $isActive): void
+    {
+    }
+
+    public function countActiveAdmins(): int
+    {
+        $count = 0;
+        foreach ($this->users as $user) {
+            if (($user['role'] ?? '') === 'admin' && ($user['is_active'] ?? true) === true) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
 }
 
 $hash = password_hash('geheim123', PASSWORD_DEFAULT);

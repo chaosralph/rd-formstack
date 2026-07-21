@@ -200,11 +200,13 @@ final class DmsRepository
         return $versionId;
     }
 
-    public function submitForApproval(int $documentId, int $actorUserId): void
+    public function submitForApproval(int $documentId, int $actorUserId, string $reviewNote = ''): void
     {
         $stmt = $this->pdo->prepare(
             'UPDATE dms_documents
              SET status = :status,
+                 approved_at = NULL,
+                 approved_by_user_id = NULL,
                  updated_at = NOW()
              WHERE id = :id'
         );
@@ -213,10 +215,16 @@ final class DmsRepository
             ':status' => 'in_review',
         ]);
 
-        $this->recordEvent($documentId, $actorUserId, 'submitted_for_approval', 'Dokument zur Freigabe eingereicht');
+        $details = [];
+        $reviewNote = trim($reviewNote);
+        if ($reviewNote !== '') {
+            $details['review_note'] = $reviewNote;
+        }
+
+        $this->recordEvent($documentId, $actorUserId, 'submitted_for_approval', 'Dokument zur Freigabe eingereicht', $details);
     }
 
-    public function approveDocument(int $documentId, int $actorUserId): void
+    public function approveDocument(int $documentId, int $actorUserId, string $reviewNote = ''): void
     {
         $stmt = $this->pdo->prepare(
             'UPDATE dms_documents
@@ -232,10 +240,16 @@ final class DmsRepository
             ':approved_by_user_id' => $actorUserId,
         ]);
 
-        $this->recordEvent($documentId, $actorUserId, 'document_approved', 'Dokument freigegeben');
+        $details = [];
+        $reviewNote = trim($reviewNote);
+        if ($reviewNote !== '') {
+            $details['review_note'] = $reviewNote;
+        }
+
+        $this->recordEvent($documentId, $actorUserId, 'document_approved', 'Dokument freigegeben', $details);
     }
 
-    public function resetToDraft(int $documentId, int $actorUserId): void
+    public function resetToDraft(int $documentId, int $actorUserId, string $reviewNote = ''): void
     {
         $stmt = $this->pdo->prepare(
             'UPDATE dms_documents
@@ -250,7 +264,13 @@ final class DmsRepository
             ':status' => 'draft',
         ]);
 
-        $this->recordEvent($documentId, $actorUserId, 'reset_to_draft', 'Dokument auf Draft zurückgesetzt');
+        $details = [];
+        $reviewNote = trim($reviewNote);
+        if ($reviewNote !== '') {
+            $details['review_note'] = $reviewNote;
+        }
+
+        $this->recordEvent($documentId, $actorUserId, 'reset_to_draft', 'Dokument zur Überarbeitung auf Draft zurückgesetzt', $details);
     }
 
     /** @return list<array<string,mixed>> */

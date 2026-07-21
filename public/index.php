@@ -111,6 +111,7 @@ $dashboardSectionForPath = static function (string $path): string {
         '/dashboard/inbox' => 'inbox',
         '/dashboard/outreach' => 'outreach',
         '/dashboard/dms' => 'dms',
+        '/dashboard/users' => 'users',
         default => 'home',
     };
 };
@@ -143,6 +144,8 @@ $normalizeDmsPayload = static function (): array {
         'dms_change_note' => trim(Request::post('dms_change_note')),
     ];
 };
+
+$normalizeDmsReviewNote = static fn (): string => trim(Request::post('dms_review_note'));
 
 $readUploadedDmsFile = static function (string $field): array {
     $file = $_FILES[$field] ?? null;
@@ -193,14 +196,40 @@ $readUploadedDmsFile = static function (string $field): array {
     ];
 };
 
+$allowedDashboardRoles = ['admin', 'reviewer', 'editor'];
+$normalizeUserRole = static function (string $role) use ($allowedDashboardRoles): string {
+    $normalized = strtolower(trim($role));
+    return in_array($normalized, $allowedDashboardRoles, true) ? $normalized : 'editor';
+};
+
+$userRoleLabel = static function (string $role): string {
+    return match (strtolower(trim($role))) {
+        'admin' => 'Admin',
+        'reviewer' => 'Reviewer',
+        'editor' => 'Editor',
+        default => 'Unbekannt',
+    };
+};
+
+$isAdminUser = static function (array $user): bool {
+    return strtolower(trim((string) ($user['role'] ?? ''))) === 'admin';
+};
+
 $isDmsApprover = static function (array $user): bool {
     $role = strtolower(trim((string) ($user['role'] ?? '')));
-    return in_array($role, ['admin'], true);
+    return in_array($role, ['admin', 'reviewer'], true);
 };
 
 $requireDmsApprover = static function (array $user, string $fallback) use ($redirect, $isDmsApprover): void {
     if (!$isDmsApprover($user)) {
         $_SESSION['flash_error'] = 'Für diese DMS-Freigabeaktion fehlen die Rechte.';
+        $redirect($fallback);
+    }
+};
+
+$requireAdminUser = static function (array $user, string $fallback) use ($redirect, $isAdminUser): void {
+    if (!$isAdminUser($user)) {
+        $_SESSION['flash_error'] = 'Für diese Verwaltungsaktion fehlen die Rechte.';
         $redirect($fallback);
     }
 };
@@ -904,8 +933,11 @@ if (Request::method() === 'POST' && $action === 'dashboard.dms.submit') {
         $redirect($fallback);
     }
 
-    $dms()->submitForApproval($documentId, (int) ($authUser['id'] ?? 0));
-    $_SESSION['flash_success'] = 'Dokument wurde zur Freigabe eingereicht.';
+    $reviewNote = $normalizeDmsReviewNote();
+    $dms()->submitForApproval($documentId, (int) ($authUser['id'] ?? 0), $reviewNote);
+    $_SESSION['flash_success'] = $reviewNote !== ''
+        ? 'Dokument wurde mit Review-Notiz zur Freigabe eingereicht.'
+        : 'Dokument wurde zur Freigabe eingereicht.';
     $redirect($fallback);
 }
 
@@ -922,8 +954,11 @@ if (Request::method() === 'POST' && $action === 'dashboard.dms.approve') {
         $redirect('/dashboard/dms');
     }
 
-    $dms()->approveDocument($documentId, (int) ($authUser['id'] ?? 0));
-    $_SESSION['flash_success'] = 'Dokument wurde freigegeben.';
+    $reviewNote = $normalizeDmsReviewNote();
+    $dms()->approveDocument($documentId, (int) ($authUser['id'] ?? 0), $reviewNote);
+    $_SESSION['flash_success'] = $reviewNote !== ''
+        ? 'Dokument wurde mit Review-Kommentar freigegeben.'
+        : 'Dokument wurde freigegeben.';
     $redirect($fallback);
 }
 
@@ -940,8 +975,11 @@ if (Request::method() === 'POST' && $action === 'dashboard.dms.reset') {
         $redirect('/dashboard/dms');
     }
 
-    $dms()->resetToDraft($documentId, (int) ($authUser['id'] ?? 0));
-    $_SESSION['flash_success'] = 'Dokument wurde wieder auf Draft gesetzt.';
+    $reviewNote = $normalizeDmsReviewNote();
+    $dms()->resetToDraft($documentId, (int) ($authUser['id'] ?? 0), $reviewNote);
+    $_SESSION['flash_success'] = $reviewNote !== ''
+        ? 'Dokument wurde mit Rückgabe-Kommentar wieder auf Draft gesetzt.'
+        : 'Dokument wurde wieder auf Draft gesetzt.';
     $redirect($fallback);
 }
 
@@ -1057,12 +1095,74 @@ if (Request::method() === 'POST' && $action === 'dashboard.password.update') {
     $redirect('/dashboard/profile');
 }
 
+if (Request::method() === 'POST' && $action === 'dashboard.user.update') {
+    $authUser = $requireAuth('/dashboard/users');
+    $requireAdminUser($authUser, '/dashboard');
+
+    $userId = (int) Request::post('user_id');
+    $fallback = '/dashboard/users' . ($userId > 0 ? '?user=' . $userId : '');
+    $requireCsrf($fallback);
+
+    $targetUser = $userId > 0 ? $users()->findById($userId) : null;
+    if (!is_array($targetUser)) {
+        $_SESSION['flash_error'] = 'Benutzer wurde nicht gefunden.';
+        $redirect('/dashboard/users');
+    }
+
+    $displayName = trim(Request::post('display_name'));
+    $email = strtolower(trim(Request::post('email')));
+    $role = $normalizeUserRole((string) Request::post('role'));
+    $isActive = Request::post('is_active') === '1' || Request::post('is_active') === 'on';
+    $errors = [];
+
+    if ($displayName === '') {
+        $errors['display_name'] = 'Bitte einen Namen angeben.';
+    }
+    if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        $errors['email'] = 'Bitte eine gültige E-Mail-Adresse angeben.';
+    } elseif ($users()->emailExistsForOtherUser($email, $userId)) {
+        $errors['email'] = 'Diese E-Mail-Adresse wird bereits verwendet.';
+    }
+
+    $targetWasActiveAdmin = strtolower((string) ($targetUser['role'] ?? '')) === 'admin' && !empty($targetUser['is_active']);
+    if ($targetWasActiveAdmin && (!$isActive || $role !== 'admin') && $users()->countActiveAdmins() <= 1) {
+        $errors['role'] = 'Mindestens ein aktiver Admin muss erhalten bleiben.';
+    }
+
+    if ($errors !== []) {
+        $_SESSION['flash_error'] = 'Bitte prüfen Sie die Benutzerdaten.';
+        $_SESSION['flash_errors'] = $errors;
+        $_SESSION['old'] = [
+            'user_display_name' => $displayName,
+            'user_email' => $email,
+            'user_role' => $role,
+            'user_is_active' => $isActive,
+        ];
+        $redirect($fallback);
+    }
+
+    $users()->updateUserAdmin($userId, $displayName, $email, $role, $isActive);
+    $updatedTargetUser = $users()->findById($userId);
+    if ((int) ($authUser['id'] ?? 0) === $userId && is_array($updatedTargetUser)) {
+        AuthSession::login($updatedTargetUser);
+    }
+
+    $_SESSION['flash_success'] = 'Benutzerkonto wurde aktualisiert.';
+    $redirect($fallback);
+}
+
 if ($path === '/login' && AuthSession::check()) {
     $redirect('/dashboard');
 }
 
 if ($isDashboardRoute) {
     $requireAuth($path . ($queryString !== '' ? '?' . $queryString : ''));
+}
+
+$dashboardAccessUser = AuthSession::user();
+if ($dashboardSection === 'users' && is_array($dashboardAccessUser) && !$isAdminUser($dashboardAccessUser)) {
+    $_SESSION['flash_error'] = 'Benutzerverwaltung ist nur für Admins verfügbar.';
+    $redirect('/dashboard');
 }
 
 if ($path === '/dashboard/dms/download') {
@@ -1154,6 +1254,9 @@ $dashboardDmsStatusFilter = (string) ($_GET['status'] ?? 'all');
 $dashboardReferences = [];
 $dashboardSelectedReference = null;
 $dashboardReferenceForm = [];
+$dashboardUsers = [];
+$dashboardSelectedUser = null;
+$dashboardUserForm = [];
 $dashboardStats = [
     'open_contacts' => 0,
     'references_total' => 0,
@@ -1170,6 +1273,7 @@ $dashboardStats = [
 ];
 $dashboardProfileUser = is_array($authUser) ? $users()->findById((int) ($authUser['id'] ?? 0)) : null;
 $dashboardCanApproveDms = is_array($authUser) ? $isDmsApprover($authUser) : false;
+$dashboardCanManageUsers = is_array($authUser) ? $isAdminUser($authUser) : false;
 
 if ($isDashboardRoute && is_array($authUser)) {
     try {
@@ -1319,6 +1423,25 @@ if ($isDashboardRoute && is_array($authUser)) {
             );
         }
 
+        if ($dashboardSection === 'users' && $dashboardCanManageUsers) {
+            $dashboardUsers = $users()->listUsers();
+            $selectedUserId = isset($_GET['user']) ? (int) $_GET['user'] : (isset($dashboardUsers[0]['id']) ? (int) $dashboardUsers[0]['id'] : 0);
+            if ($selectedUserId > 0) {
+                $dashboardSelectedUser = $users()->findById($selectedUserId);
+            }
+
+            $dashboardUserForm = is_array($old) && isset($old['user_display_name']) ? $old : (
+                is_array($dashboardSelectedUser)
+                    ? [
+                        'user_display_name' => (string) ($dashboardSelectedUser['display_name'] ?? ''),
+                        'user_email' => (string) ($dashboardSelectedUser['email'] ?? ''),
+                        'user_role' => (string) ($dashboardSelectedUser['role'] ?? 'editor'),
+                        'user_is_active' => !empty($dashboardSelectedUser['is_active']),
+                    ]
+                    : []
+            );
+        }
+
         if ($dashboardSection === 'profile' && is_array($dashboardProfileUser) && $old === []) {
             $old = [
                 'profile_display_name' => (string) ($dashboardProfileUser['display_name'] ?? ''),
@@ -1367,6 +1490,7 @@ SiteRenderer::render('layout.php', [
     'dashboardCampaigns' => $dashboardCampaigns,
     'dashboardCampaignFilter' => $dashboardCampaignFilter,
     'dashboardCanApproveDms' => $dashboardCanApproveDms,
+    'dashboardCanManageUsers' => $dashboardCanManageUsers,
     'dashboardContacts' => $dashboardContacts,
     'dashboardDmsDocuments' => $dashboardDmsDocuments,
     'dashboardDmsEvents' => $dashboardDmsEvents,
@@ -1378,6 +1502,8 @@ SiteRenderer::render('layout.php', [
     'dashboardOutreachForm' => $dashboardOutreachForm,
     'dashboardOutreachRecipients' => $dashboardOutreachRecipients,
     'dashboardProfileUser' => $dashboardProfileUser,
+    'dashboardUserForm' => $dashboardUserForm,
+    'dashboardUsers' => $dashboardUsers,
     'dashboardReferenceForm' => $dashboardReferenceForm,
     'dashboardReferences' => $dashboardReferences,
     'dashboardReplies' => $dashboardReplies,
@@ -1388,6 +1514,7 @@ SiteRenderer::render('layout.php', [
     'dashboardSelectedReference' => $dashboardSelectedReference,
     'dashboardStats' => $dashboardStats,
     'dashboardInboxLeads' => $dashboardInboxLeads,
+    'dashboardSelectedUser' => $dashboardSelectedUser,
     'e' => $e,
     'flashError' => $flashError,
     'flashErrors' => $flashErrors,

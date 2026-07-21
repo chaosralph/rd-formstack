@@ -15,7 +15,7 @@ final class UserRepository implements UserRepositoryInterface
     public function findActiveByEmail(string $email): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, email, password_hash, display_name, role, is_active, last_login_at
+            'SELECT id, email, password_hash, display_name, role, is_active, last_login_at, created_at, updated_at
              FROM users
              WHERE LOWER(email) = LOWER(:email)
                AND is_active = 1
@@ -53,7 +53,7 @@ final class UserRepository implements UserRepositoryInterface
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, email, password_hash, display_name, role, is_active, last_login_at
+            'SELECT id, email, password_hash, display_name, role, is_active, last_login_at, created_at, updated_at
              FROM users
              WHERE id = :id
              LIMIT 1'
@@ -104,5 +104,51 @@ final class UserRepository implements UserRepositoryInterface
             ':id' => $id,
             ':password_hash' => $passwordHash,
         ]);
+    }
+
+    public function listUsers(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT id, email, display_name, role, is_active, last_login_at, created_at, updated_at
+             FROM users
+             ORDER BY CASE role
+                 WHEN "admin" THEN 1
+                 WHEN "reviewer" THEN 2
+                 WHEN "editor" THEN 3
+                 ELSE 9
+             END,
+             is_active DESC,
+             display_name ASC,
+             email ASC'
+        );
+
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
+    }
+
+    public function updateUserAdmin(int $id, string $displayName, string $email, string $role, bool $isActive): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE users
+             SET display_name = :display_name,
+                 email = :email,
+                 role = :role,
+                 is_active = :is_active,
+                 updated_at = NOW()
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            ':id' => $id,
+            ':display_name' => trim($displayName),
+            ':email' => strtolower(trim($email)),
+            ':role' => strtolower(trim($role)),
+            ':is_active' => $isActive ? 1 : 0,
+        ]);
+    }
+
+    public function countActiveAdmins(): int
+    {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1");
+        return (int) $stmt->fetchColumn();
     }
 }

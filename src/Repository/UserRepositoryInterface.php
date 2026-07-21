@@ -23,4 +23,11 @@ interface UserRepositoryInterface
     public function updateProfile(int $id, string $displayName, string $email): void;
 
     public function updatePassword(int $id, string $passwordHash): void;
+
+    /** @return list<array<string, mixed>> */
+    public function listUsers(): array;
+
+    public function updateUserAdmin(int $id, string $displayName, string $email, string $role, bool $isActive): void;
+
+    public function countActiveAdmins(): int;
 }
