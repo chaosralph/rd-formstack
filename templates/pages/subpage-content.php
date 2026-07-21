@@ -324,28 +324,31 @@ if ($path === '/leistungen'): ?>
 
                 <article class="service-card dashboard-module-card placeholder-card">
                     <h3>DMS</h3>
-                    <p>Der DMS-Bereich bleibt vorerst ein geplanter Ausbaupfad und wird hier später direkt angebunden.</p>
-                    <a class="btn btn-ghost" href="/dms">DMS-Platzhalter öffnen</a>
+                    <p>Der DMS-Bereich hat jetzt eine erste echte Basis mit Dokumentliste, Suche, Versionierung und Freigabe im geschützten Bereich.</p>
+                    <a class="btn btn-ghost" href="/dms">DMS-Übersicht öffnen</a>
                 </article>
             </div>
         </div>
     </section>
 <?php elseif ($path === '/dms'): ?>
-    <section class="section" id="dms-placeholder">
+    <section class="section" id="dms-overview">
         <div class="shell contact-layout">
             <article class="service-card">
-                <p class="eyebrow">DMS-Platzhalter</p>
-                <h2>DMS-Ausbau ist geplant</h2>
-                <p>Die DMS-Fläche ist als Platzhalter verfügbar und wird iterativ mit Suche, Versionierung und Freigabelogik ausgebaut.</p>
+                <p class="eyebrow">DMS-Übersicht</p>
+                <h2>DMS-Basis ist jetzt produktnah vorbereitet</h2>
+                <p>Im geschützten Bereich steht jetzt ein erster echter DMS-Workflow bereit: Dokumente anlegen, Versionen hochladen, zur Freigabe einreichen und den Verlauf nachvollziehen.</p>
                 <ul>
                     <?php foreach (\App\View\HomepageContent::dmsRoadmap() as $item): ?>
                         <li><?= $e($item) ?></li>
                     <?php endforeach; ?>
                 </ul>
-                <a class="btn btn-primary" href="/kontakt">DMS-Use-Case besprechen</a>
+                <div class="dashboard-action-row">
+                    <a class="btn btn-primary" href="/dashboard/dms">Zum geschützten DMS</a>
+                    <a class="btn btn-ghost" href="/kontakt">DMS-Use-Case besprechen</a>
+                </div>
             </article>
             <aside class="subpage-sidecard" aria-label="DMS-Ausbauphasen">
-                <h3>Ausbauphasen</h3>
+                <h3>Aktueller Funktionsstand</h3>
                 <ul class="phase-list">
                     <?php foreach (\App\View\HomepageContent::dmsPhases() as $phase): ?>
                         <li>

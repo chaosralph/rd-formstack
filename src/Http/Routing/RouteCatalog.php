@@ -76,6 +76,12 @@ final class RouteCatalog
                 'intro' => 'Eigene Outreach-Kampagnen werden hier als Entwurf gespeichert, erst nach Freigabe von Anschreiben und Empfängerliste versendet und danach mit Versandstatus protokolliert.',
                 'description' => 'Geschütztes Outreach-Modul mit Entwurf, Empfängerfreigabe und kontrolliertem Mailversand.',
             ],
+            '/dashboard/dms' => [
+                'title' => 'DMS',
+                'headline' => 'Dokumente versionieren, durchsuchen und freigeben',
+                'intro' => 'Der geschützte DMS-Bereich bündelt Dokumentliste, Suchgrundgerüst, Versionierung, Freigabe und Audit-Verlauf in einer ersten produktnahen Basis.',
+                'description' => 'Geschütztes DMS-Modul für Dokumentverwaltung mit Upload, Versionen, Freigabe und Verlauf.',
+            ],
             '/dashboard/references' => [
                 'title' => 'Referenzen verwalten',
                 'headline' => 'Referenzen pflegen und live auf der Landingpage ausgeben',
@@ -90,9 +96,9 @@ final class RouteCatalog
             ],
             '/dms' => [
                 'title' => 'DMS',
-                'headline' => 'DMS-Bereich als technischer Platzhalter',
-                'intro' => 'Die DMS-Fläche ist vorbereitet und wird stufenweise mit Freigabe, Historie und Suchlogik ergänzt.',
-                'description' => 'DMS-Platzhalter mit geplanter Dokumentensuche, Revisionshistorie und Freigabeprozessen für strukturierte Ablagen.',
+                'headline' => 'DMS-Basis mit Suche, Versionierung und Freigabe',
+                'intro' => 'Die DMS-Fläche zeigt jetzt den ersten echten Funktionsstand und verweist für die geschützte Bearbeitung direkt ins Dashboard.',
+                'description' => 'DMS-Übersicht mit erstem produktnahen Funktionsstand für Dokumentliste, Versionierung und Freigabeprozesse.',
             ],
         ];
     }

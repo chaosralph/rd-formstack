@@ -25,6 +25,9 @@ fi
 if [ -f scripts/apply-outreach-audit-migration.php ]; then
   docker compose -f docker-compose.live.yml exec -T rddigital-web php scripts/apply-outreach-audit-migration.php
 fi
+if [ -f scripts/apply-dms-migration.php ]; then
+  docker compose -f docker-compose.live.yml exec -T rddigital-web php scripts/apply-dms-migration.php
+fi
 
 echo "== next verification =="
 echo "curl -I https://rddigital.de"

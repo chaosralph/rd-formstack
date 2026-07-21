@@ -22,6 +22,7 @@ use App\Http\Routing\RouteCatalog;
 use App\Mail\ImapMailboxReader;
 use App\Mail\NativeMailTransport;
 use App\Repository\ContactRepository;
+use App\Repository\DmsRepository;
 use App\Repository\OutreachRepository;
 use App\Repository\ReferenceRepository;
 use App\Repository\UserRepository;
@@ -86,6 +87,7 @@ $resolvePdo = static function () use ($projectRoot) {
 
 $users = static fn (): UserRepository => new UserRepository($resolvePdo());
 $contacts = static fn (): ContactRepository => new ContactRepository($resolvePdo());
+$dms = static fn (): DmsRepository => new DmsRepository($resolvePdo());
 $outreach = static fn (): OutreachRepository => new OutreachRepository($resolvePdo());
 $referencesRepo = static fn (): ReferenceRepository => new ReferenceRepository($resolvePdo());
 $mailer = static fn (): NativeMailTransport => new NativeMailTransport();
@@ -108,6 +110,7 @@ $dashboardSectionForPath = static function (string $path): string {
         '/dashboard/profile' => 'profile',
         '/dashboard/inbox' => 'inbox',
         '/dashboard/outreach' => 'outreach',
+        '/dashboard/dms' => 'dms',
         default => 'home',
     };
 };
@@ -130,6 +133,64 @@ $requireCsrf = static function (string $fallback) use ($redirect): void {
         $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
         $redirect($fallback);
     }
+};
+
+$normalizeDmsPayload = static function (): array {
+    return [
+        'dms_title' => trim(Request::post('dms_title')),
+        'dms_category' => trim(Request::post('dms_category')),
+        'dms_summary' => trim(Request::post('dms_summary')),
+        'dms_change_note' => trim(Request::post('dms_change_note')),
+    ];
+};
+
+$readUploadedDmsFile = static function (string $field): array {
+    $file = $_FILES[$field] ?? null;
+    if (!is_array($file)) {
+        return ['error' => 'Bitte eine Datei auswählen.'];
+    }
+
+    $errorCode = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($errorCode !== UPLOAD_ERR_OK) {
+        return ['error' => $errorCode === UPLOAD_ERR_NO_FILE
+            ? 'Bitte eine Datei auswählen.'
+            : 'Datei konnte nicht hochgeladen werden.'];
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+        return ['error' => 'Upload wurde vom Server nicht akzeptiert.'];
+    }
+
+    $size = (int) ($file['size'] ?? 0);
+    if ($size <= 0) {
+        return ['error' => 'Die ausgewählte Datei ist leer.'];
+    }
+    if ($size > 15 * 1024 * 1024) {
+        return ['error' => 'Bitte nur Dateien bis maximal 15 MB hochladen.'];
+    }
+
+    $originalFilename = basename(str_replace('\\', '/', (string) ($file['name'] ?? 'dokument')));
+    $safeFilename = preg_replace('/[^A-Za-z0-9._-]+/', '-', $originalFilename) ?? 'dokument';
+    $safeFilename = trim($safeFilename, '-.');
+    if ($safeFilename === '') {
+        $safeFilename = 'dokument';
+    }
+
+    $content = file_get_contents($tmpName);
+    if (!is_string($content) || $content === '') {
+        return ['error' => 'Dateiinhalt konnte nicht gelesen werden.'];
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($tmpName);
+
+    return [
+        'original_filename' => $safeFilename,
+        'mime_type' => is_string($mimeType) && $mimeType !== '' ? $mimeType : 'application/octet-stream',
+        'file_size' => $size,
+        'binary_content' => $content,
+    ];
 };
 
 $normalizeOutreachPayload = static function (): array {
@@ -691,6 +752,185 @@ if (Request::method() === 'POST' && $action === 'dashboard.inbox.sync') {
     $redirect('/dashboard/inbox');
 }
 
+if (Request::method() === 'POST' && $action === 'dashboard.dms.create') {
+    $authUser = $requireAuth('/dashboard/dms');
+    $requireCsrf('/dashboard/dms');
+
+    $payload = $normalizeDmsPayload();
+    $errors = [];
+    if ($payload['dms_title'] === '') {
+        $errors['dms_title'] = 'Bitte einen Dokumenttitel angeben.';
+    }
+    if ($payload['dms_category'] === '') {
+        $errors['dms_category'] = 'Bitte eine Kategorie angeben.';
+    }
+
+    $upload = $readUploadedDmsFile('document_file');
+    if (isset($upload['error']) && is_string($upload['error'])) {
+        $errors['document_file'] = $upload['error'];
+    }
+
+    if ($errors !== []) {
+        $_SESSION['flash_error'] = 'Bitte DMS-Titel, Kategorie und Datei prüfen.';
+        $_SESSION['flash_errors'] = $errors;
+        $_SESSION['old'] = $payload;
+        $redirect('/dashboard/dms');
+    }
+
+    $documentId = $dms()->createDocument(
+        (int) ($authUser['id'] ?? 0),
+        $payload['dms_title'],
+        $payload['dms_category'],
+        $payload['dms_summary']
+    );
+    $dms()->addVersion(
+        $documentId,
+        (int) ($authUser['id'] ?? 0),
+        (string) $upload['original_filename'],
+        (string) $upload['mime_type'],
+        (int) $upload['file_size'],
+        (string) $upload['binary_content'],
+        $payload['dms_change_note']
+    );
+
+    $_SESSION['flash_success'] = 'DMS-Dokument wurde angelegt und Version 1 hochgeladen.';
+    $redirect('/dashboard/dms?document=' . $documentId);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.dms.update_meta') {
+    $authUser = $requireAuth('/dashboard/dms');
+    $documentId = (int) Request::post('document_id');
+    $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
+    $requireCsrf($fallback);
+
+    $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
+    if (!is_array($document)) {
+        $_SESSION['flash_error'] = 'DMS-Dokument wurde nicht gefunden.';
+        $redirect('/dashboard/dms');
+    }
+
+    $payload = $normalizeDmsPayload();
+    $errors = [];
+    if ($payload['dms_title'] === '') {
+        $errors['dms_title'] = 'Bitte einen Dokumenttitel angeben.';
+    }
+    if ($payload['dms_category'] === '') {
+        $errors['dms_category'] = 'Bitte eine Kategorie angeben.';
+    }
+
+    if ($errors !== []) {
+        $_SESSION['flash_error'] = 'Bitte Metadaten prüfen.';
+        $_SESSION['flash_errors'] = $errors;
+        $_SESSION['old'] = $payload;
+        $redirect($fallback);
+    }
+
+    $dms()->updateDocumentMeta(
+        $documentId,
+        $payload['dms_title'],
+        $payload['dms_category'],
+        $payload['dms_summary'],
+        (int) ($authUser['id'] ?? 0)
+    );
+
+    $_SESSION['flash_success'] = 'DMS-Metadaten wurden aktualisiert.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.dms.upload_version') {
+    $authUser = $requireAuth('/dashboard/dms');
+    $documentId = (int) Request::post('document_id');
+    $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
+    $requireCsrf($fallback);
+
+    $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
+    if (!is_array($document)) {
+        $_SESSION['flash_error'] = 'DMS-Dokument wurde nicht gefunden.';
+        $redirect('/dashboard/dms');
+    }
+
+    $payload = $normalizeDmsPayload();
+    $upload = $readUploadedDmsFile('document_file');
+    if (isset($upload['error']) && is_string($upload['error'])) {
+        $_SESSION['flash_error'] = $upload['error'];
+        $_SESSION['old'] = [
+            'dms_title' => (string) ($document['title'] ?? ''),
+            'dms_category' => (string) ($document['category'] ?? ''),
+            'dms_summary' => (string) ($document['summary'] ?? ''),
+            'dms_change_note' => $payload['dms_change_note'],
+        ];
+        $redirect($fallback);
+    }
+
+    $dms()->addVersion(
+        $documentId,
+        (int) ($authUser['id'] ?? 0),
+        (string) $upload['original_filename'],
+        (string) $upload['mime_type'],
+        (int) $upload['file_size'],
+        (string) $upload['binary_content'],
+        $payload['dms_change_note']
+    );
+
+    $_SESSION['flash_success'] = 'Neue Dokumentversion wurde hochgeladen. Status steht wieder auf Draft bis zur erneuten Freigabe.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.dms.submit') {
+    $authUser = $requireAuth('/dashboard/dms');
+    $documentId = (int) Request::post('document_id');
+    $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
+    $requireCsrf($fallback);
+
+    $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
+    if (!is_array($document)) {
+        $_SESSION['flash_error'] = 'DMS-Dokument wurde nicht gefunden.';
+        $redirect('/dashboard/dms');
+    }
+    if ((int) ($document['current_version_id'] ?? 0) <= 0) {
+        $_SESSION['flash_error'] = 'Ohne hochgeladene Version ist keine Freigabe möglich.';
+        $redirect($fallback);
+    }
+
+    $dms()->submitForApproval($documentId, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Dokument wurde zur Freigabe eingereicht.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.dms.approve') {
+    $authUser = $requireAuth('/dashboard/dms');
+    $documentId = (int) Request::post('document_id');
+    $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
+    $requireCsrf($fallback);
+
+    $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
+    if (!is_array($document)) {
+        $_SESSION['flash_error'] = 'DMS-Dokument wurde nicht gefunden.';
+        $redirect('/dashboard/dms');
+    }
+
+    $dms()->approveDocument($documentId, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Dokument wurde freigegeben.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.dms.reset') {
+    $authUser = $requireAuth('/dashboard/dms');
+    $documentId = (int) Request::post('document_id');
+    $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
+    $requireCsrf($fallback);
+
+    $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
+    if (!is_array($document)) {
+        $_SESSION['flash_error'] = 'DMS-Dokument wurde nicht gefunden.';
+        $redirect('/dashboard/dms');
+    }
+
+    $dms()->resetToDraft($documentId, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Dokument wurde wieder auf Draft gesetzt.';
+    $redirect($fallback);
+}
+
 if (Request::method() === 'POST' && $action === 'dashboard.reference.save') {
     $requireAuth('/dashboard/references');
     $referenceId = (int) Request::post('reference_id');
@@ -811,6 +1051,30 @@ if ($isDashboardRoute) {
     $requireAuth($path . ($queryString !== '' ? '?' . $queryString : ''));
 }
 
+if ($path === '/dashboard/dms/download') {
+    $requireAuth('/dashboard/dms/download');
+    $versionId = isset($_GET['version']) ? (int) $_GET['version'] : 0;
+    $version = $versionId > 0 ? $dms()->findVersionBinaryById($versionId) : null;
+    if (!is_array($version) || (string) ($version['binary_content'] ?? '') === '') {
+        http_response_code(404);
+        echo 'Datei nicht gefunden.';
+        exit;
+    }
+
+    $downloadFilename = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($version['original_filename'] ?? 'dokument')) ?? 'dokument';
+    $downloadFilename = trim($downloadFilename, '-.');
+    if ($downloadFilename === '') {
+        $downloadFilename = 'dokument';
+    }
+
+    header('Content-Type: ' . (string) ($version['mime_type'] ?? 'application/octet-stream'));
+    header('Content-Length: ' . (string) strlen((string) $version['binary_content']));
+    header('Content-Disposition: attachment; filename="' . $downloadFilename . '"');
+    header('X-Content-Type-Options: nosniff');
+    echo (string) $version['binary_content'];
+    exit;
+}
+
 $routes = RouteCatalog::pages();
 $isNotFound = !isset($routes[$path]);
 if ($isNotFound) {
@@ -866,6 +1130,13 @@ $dashboardOutreachRecipients = [];
 $dashboardOutreachEvents = [];
 $dashboardOutreachForm = [];
 $dashboardCampaignFilter = (string) ($_GET['status'] ?? 'active');
+$dashboardDmsDocuments = [];
+$dashboardSelectedDmsDocument = null;
+$dashboardDmsVersions = [];
+$dashboardDmsEvents = [];
+$dashboardDmsForm = [];
+$dashboardDmsSearch = trim((string) ($_GET['q'] ?? ''));
+$dashboardDmsStatusFilter = (string) ($_GET['status'] ?? 'all');
 $dashboardReferences = [];
 $dashboardSelectedReference = null;
 $dashboardReferenceForm = [];
@@ -874,6 +1145,9 @@ $dashboardStats = [
     'references_total' => 0,
     'references_visible' => 0,
     'inbound_leads' => 0,
+    'dms_total' => 0,
+    'dms_in_review' => 0,
+    'dms_approved' => 0,
     'outreach_drafts' => 0,
     'outreach_approved' => 0,
     'outreach_sent' => 0,
@@ -889,6 +1163,9 @@ if ($isDashboardRoute && is_array($authUser)) {
         $dashboardStats['references_total'] = count($dashboardReferences);
         $dashboardStats['references_visible'] = count(array_filter($dashboardReferences, static fn (array $item): bool => !empty($item['is_visible'])));
         $dashboardStats['inbound_leads'] = $contacts()->countInbound();
+        $dashboardStats['dms_total'] = $dms()->countDocuments();
+        $dashboardStats['dms_in_review'] = $dms()->countDocumentsByStatus('in_review');
+        $dashboardStats['dms_approved'] = $dms()->countDocumentsByStatus('approved');
         $dashboardStats['outreach_drafts'] = $outreach()->countDraftCampaigns();
         $dashboardStats['outreach_approved'] = $outreach()->countApprovedCampaigns();
         $dashboardStats['outreach_sent'] = $outreach()->countSentCampaigns();
@@ -908,6 +1185,41 @@ if ($isDashboardRoute && is_array($authUser)) {
 
         if ($dashboardSection === 'inbox' || $dashboardSection === 'home') {
             $dashboardInboxLeads = $contacts()->listInboundLeads(25);
+        }
+
+        if ($dashboardSection === 'dms' || $dashboardSection === 'home') {
+            $allowedDmsStatusFilters = ['all', 'draft', 'in_review', 'approved'];
+            if (!in_array($dashboardDmsStatusFilter, $allowedDmsStatusFilters, true)) {
+                $dashboardDmsStatusFilter = 'all';
+            }
+
+            if ($dashboardSection === 'dms') {
+                $dashboardDmsDocuments = $dms()->listDocuments($dashboardDmsSearch, $dashboardDmsStatusFilter);
+                $selectedDmsDocumentId = isset($_GET['document']) ? (int) $_GET['document'] : (isset($dashboardDmsDocuments[0]['id']) ? (int) $dashboardDmsDocuments[0]['id'] : 0);
+                if ($selectedDmsDocumentId > 0) {
+                    $dashboardSelectedDmsDocument = $dms()->findDocumentById($selectedDmsDocumentId);
+                    if (is_array($dashboardSelectedDmsDocument)) {
+                        $dashboardDmsVersions = $dms()->listVersions($selectedDmsDocumentId);
+                        $dashboardDmsEvents = $dms()->listEvents($selectedDmsDocumentId);
+                    }
+                }
+
+                $dashboardDmsForm = is_array($old) && isset($old['dms_title']) ? $old : (
+                    is_array($dashboardSelectedDmsDocument)
+                        ? [
+                            'dms_title' => (string) $dashboardSelectedDmsDocument['title'],
+                            'dms_category' => (string) $dashboardSelectedDmsDocument['category'],
+                            'dms_summary' => (string) $dashboardSelectedDmsDocument['summary'],
+                            'dms_change_note' => '',
+                        ]
+                        : [
+                            'dms_title' => '',
+                            'dms_category' => 'Allgemein',
+                            'dms_summary' => '',
+                            'dms_change_note' => '',
+                        ]
+                );
+            }
         }
 
         if ($dashboardSection === 'outreach' || $dashboardSection === 'home') {
@@ -1040,6 +1352,12 @@ SiteRenderer::render('layout.php', [
     'dashboardCampaigns' => $dashboardCampaigns,
     'dashboardCampaignFilter' => $dashboardCampaignFilter,
     'dashboardContacts' => $dashboardContacts,
+    'dashboardDmsDocuments' => $dashboardDmsDocuments,
+    'dashboardDmsEvents' => $dashboardDmsEvents,
+    'dashboardDmsForm' => $dashboardDmsForm,
+    'dashboardDmsSearch' => $dashboardDmsSearch,
+    'dashboardDmsStatusFilter' => $dashboardDmsStatusFilter,
+    'dashboardDmsVersions' => $dashboardDmsVersions,
     'dashboardOutreachEvents' => $dashboardOutreachEvents,
     'dashboardOutreachForm' => $dashboardOutreachForm,
     'dashboardOutreachRecipients' => $dashboardOutreachRecipients,
@@ -1050,6 +1368,7 @@ SiteRenderer::render('layout.php', [
     'dashboardSection' => $dashboardSection,
     'dashboardSelectedCampaign' => $dashboardSelectedCampaign,
     'dashboardSelectedContact' => $dashboardSelectedContact,
+    'dashboardSelectedDmsDocument' => $dashboardSelectedDmsDocument,
     'dashboardSelectedReference' => $dashboardSelectedReference,
     'dashboardStats' => $dashboardStats,
     'dashboardInboxLeads' => $dashboardInboxLeads,

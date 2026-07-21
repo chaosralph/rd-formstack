@@ -190,9 +190,9 @@ final class HomepageContent
     public static function dmsRoadmap(): array
     {
         return [
-            'Suche und Filter für Dokumente',
-            'Versions- und Freigabeprotokolle',
-            'Import/Export über definierte Schnittstellen',
+            'Dokumente im geschützten Bereich suchen und nach Status filtern',
+            'Versionen hochladen, vergleichen und mit Änderungsnotiz nachvollziehen',
+            'Dokumente zur Freigabe einreichen und den Audit-Verlauf prüfen',
         ];
     }
 
@@ -214,9 +214,9 @@ final class HomepageContent
     public static function dmsPhases(): array
     {
         return [
-            ['phase' => 'Phase 1', 'focus' => 'Dokumentensuche mit Filter- und Kontextansicht'],
-            ['phase' => 'Phase 2', 'focus' => 'Versionierung, Freigaben und Änderungsverlauf'],
-            ['phase' => 'Phase 3', 'focus' => 'Import-/Export-Strecken mit klaren Übergaberegeln'],
+            ['phase' => 'Phase 1', 'focus' => 'Dokumentliste, Suche und Statusfilter stehen im Dashboard bereit'],
+            ['phase' => 'Phase 2', 'focus' => 'Versionierung, Freigabe und Audit-Verlauf sind als erste Basis umgesetzt'],
+            ['phase' => 'Phase 3', 'focus' => 'Import-/Export-Strecken und tiefere DMS-Prozesse folgen als nächster Ausbau'],
         ];
     }
 
@@ -236,7 +236,7 @@ final class HomepageContent
             ],
             [
                 'question' => 'Sind Login- und DMS-Bereich schon produktiv nutzbar?',
-                'answer' => 'Aktuell sind beide Bereiche als technische Platzhalter angelegt und werden schrittweise mit Funktionen ausgebaut.',
+                'answer' => 'Der Login-Bereich ist aktiv. Das DMS hat jetzt eine erste echte Basis mit Suche, Versionierung, Freigabe und Verlauf im geschützten Dashboard.',
             ],
         ];
     }

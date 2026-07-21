@@ -11,6 +11,7 @@ $dashboardNavItems = [
     '/dashboard/postbox' => 'Postbox',
     '/dashboard/inbox' => 'Inbox',
     '/dashboard/outreach' => 'Outreach',
+    '/dashboard/dms' => 'DMS',
     '/dashboard/references' => 'Referenzen',
     '/dashboard/profile' => 'Profil',
 ];
@@ -46,6 +47,9 @@ $dashboardNavItems = [
                 <span class="tag">E-Mail: <?= $e((string) (($authUser['email'] ?? ''))) ?></span>
                 <span class="tag">Offene Anfragen: <?= $e((string) ($dashboardStats['open_contacts'] ?? 0)) ?></span>
                 <span class="tag">IMAP-Leads: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
+                <span class="tag">DMS gesamt: <?= $e((string) ($dashboardStats['dms_total'] ?? 0)) ?></span>
+                <span class="tag">DMS in Review: <?= $e((string) ($dashboardStats['dms_in_review'] ?? 0)) ?></span>
+                <span class="tag">DMS freigegeben: <?= $e((string) ($dashboardStats['dms_approved'] ?? 0)) ?></span>
                 <span class="tag">Outreach-Entwürfe: <?= $e((string) ($dashboardStats['outreach_drafts'] ?? 0)) ?></span>
                 <span class="tag">Outreach gesendet: <?= $e((string) ($dashboardStats['outreach_sent'] ?? 0)) ?></span>
                 <span class="tag">Outreach mit Fehlern: <?= $e((string) ($dashboardStats['outreach_failed'] ?? 0)) ?></span>
@@ -114,10 +118,15 @@ $dashboardNavItems = [
                     <a class="btn btn-primary" href="/dashboard/outreach">Outreach öffnen</a>
                 </article>
 
-                <article class="service-card dashboard-module-card placeholder-card">
+                <article class="service-card dashboard-module-card">
                     <h2>DMS</h2>
-                    <p>Der DMS-Bereich bleibt als nächster Ausbaupfad sichtbar und später direkt an dieses Dashboard angedockt.</p>
-                    <a class="btn btn-ghost" href="/dms">DMS-Platzhalter öffnen</a>
+                    <p>Dokumente versionieren, zur Freigabe einreichen und zentral mit Suchgrundgerüst verwalten.</p>
+                    <ul>
+                        <li>Dokumente: <?= $e((string) ($dashboardStats['dms_total'] ?? 0)) ?></li>
+                        <li>In Review: <?= $e((string) ($dashboardStats['dms_in_review'] ?? 0)) ?></li>
+                        <li>Freigegeben: <?= $e((string) ($dashboardStats['dms_approved'] ?? 0)) ?></li>
+                    </ul>
+                    <a class="btn btn-primary" href="/dashboard/dms">DMS öffnen</a>
                 </article>
             </div>
         <?php elseif ($dashboardSection === 'postbox'): ?>
@@ -506,6 +515,229 @@ $dashboardNavItems = [
                                         <?php endif; ?>
                                         <?php if (!empty($event['details']['source_campaign_id'])): ?>
                                             <p>Quelle: Kampagne #<?= $e((string) $event['details']['source_campaign_id']) ?></p>
+                                        <?php endif; ?>
+                                        <small><?= $e((string) ($event['created_at'] ?? '')) ?></small>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </article>
+                </div>
+            </div>
+        <?php elseif ($dashboardSection === 'dms'): ?>
+            <div class="dashboard-postbox-layout dashboard-references-layout">
+                <aside class="service-card dashboard-list-card">
+                    <div class="dashboard-list-card-head">
+                        <h2>DMS-Dokumente</h2>
+                        <a class="btn btn-ghost btn-sm" href="/dashboard/dms">Neu</a>
+                    </div>
+                    <form method="get" action="/dashboard/dms" class="auth-form-stack dashboard-form-stack" style="margin-top:0; gap:10px;">
+                        <label for="dms-search">Suche</label>
+                        <input id="dms-search" type="text" name="q" value="<?= $e((string) ($dashboardDmsSearch ?? '')) ?>" placeholder="Titel, Kategorie, Dateiname, Notiz">
+                        <label for="dms-status">Status</label>
+                        <select id="dms-status" name="status">
+                            <?php foreach (['all' => 'Alle', 'draft' => 'Draft', 'in_review' => 'In Review', 'approved' => 'Freigegeben'] as $filterValue => $filterLabel): ?>
+                                <option value="<?= $e($filterValue) ?>"<?= ($dashboardDmsStatusFilter ?? 'all') === $filterValue ? ' selected' : '' ?>><?= $e($filterLabel) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-primary" type="submit">Filtern</button>
+                    </form>
+                    <div class="dashboard-action-row" style="margin:12px 0">
+                        <span class="tag">Dokumente: <?= $e((string) ($dashboardStats['dms_total'] ?? 0)) ?></span>
+                        <span class="tag">Review: <?= $e((string) ($dashboardStats['dms_in_review'] ?? 0)) ?></span>
+                        <span class="tag">Freigegeben: <?= $e((string) ($dashboardStats['dms_approved'] ?? 0)) ?></span>
+                    </div>
+                    <?php if (($dashboardDmsDocuments ?? []) === []): ?>
+                        <p>Noch keine DMS-Dokumente vorhanden.</p>
+                    <?php else: ?>
+                        <div class="dashboard-contact-list">
+                            <?php foreach ($dashboardDmsDocuments as $document): ?>
+                                <a class="dashboard-contact-item<?= is_array($dashboardSelectedDmsDocument) && (int) $dashboardSelectedDmsDocument['id'] === (int) $document['id'] ? ' is-active' : '' ?>" href="/dashboard/dms?status=<?= $e((string) ($dashboardDmsStatusFilter ?? 'all')) ?>&q=<?= urlencode((string) ($dashboardDmsSearch ?? '')) ?>&document=<?= $e((string) $document['id']) ?>">
+                                    <div class="dashboard-contact-item-head">
+                                        <strong><?= $e((string) $document['title']) ?></strong>
+                                        <span class="tag tag-status tag-status-<?= $e((string) $document['status']) ?>"><?= $e((string) $document['status']) ?></span>
+                                    </div>
+                                    <p><?= $e((string) $document['category']) ?></p>
+                                    <small>Versionen: <?= $e((string) ($document['version_count'] ?? 0)) ?> · Ereignisse: <?= $e((string) ($document['event_count'] ?? 0)) ?></small>
+                                    <small>
+                                        <?= $e((string) (($document['current_original_filename'] ?? '') !== '' ? $document['current_original_filename'] : 'noch keine Datei')) ?>
+                                        <?php if ((int) ($document['current_version_number'] ?? 0) > 0): ?> · v<?= $e((string) $document['current_version_number']) ?><?php endif; ?>
+                                    </small>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </aside>
+
+                <div class="dashboard-detail-stack">
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-detail-card-head">
+                            <div>
+                                <h2><?= is_array($dashboardSelectedDmsDocument) ? 'DMS-Dokument bearbeiten' : 'Neues DMS-Dokument anlegen' ?></h2>
+                                <p>Version 1 wird beim Anlegen direkt hochgeladen. Neue Uploads erzeugen automatisch neue Versionen.</p>
+                            </div>
+                            <span class="tag">Max. 15 MB pro Datei</span>
+                        </div>
+
+                        <?php if (is_array($dashboardSelectedDmsDocument)): ?>
+                            <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" class="auth-form-stack dashboard-form-stack">
+                                <input type="hidden" name="_action" value="dashboard.dms.update_meta">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+
+                                <label for="dms-title">Titel</label>
+                                <input id="dms-title" type="text" name="dms_title" required value="<?= $e((string) ($dashboardDmsForm['dms_title'] ?? '')) ?>">
+
+                                <label for="dms-category">Kategorie</label>
+                                <input id="dms-category" type="text" name="dms_category" required value="<?= $e((string) ($dashboardDmsForm['dms_category'] ?? '')) ?>">
+
+                                <label for="dms-summary">Kurzbeschreibung</label>
+                                <textarea id="dms-summary" name="dms_summary" rows="5"><?= $e((string) ($dashboardDmsForm['dms_summary'] ?? '')) ?></textarea>
+
+                                <div class="dashboard-action-row">
+                                    <button class="btn btn-primary" type="submit">Metadaten speichern</button>
+                                </div>
+                            </form>
+                        <?php else: ?>
+                            <form method="post" action="/dashboard/dms" enctype="multipart/form-data" class="auth-form-stack dashboard-form-stack">
+                                <input type="hidden" name="_action" value="dashboard.dms.create">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+
+                                <label for="dms-title">Titel</label>
+                                <input id="dms-title" type="text" name="dms_title" required value="<?= $e((string) ($dashboardDmsForm['dms_title'] ?? '')) ?>">
+
+                                <label for="dms-category">Kategorie</label>
+                                <input id="dms-category" type="text" name="dms_category" required value="<?= $e((string) ($dashboardDmsForm['dms_category'] ?? 'Allgemein')) ?>">
+
+                                <label for="dms-summary">Kurzbeschreibung</label>
+                                <textarea id="dms-summary" name="dms_summary" rows="5"><?= $e((string) ($dashboardDmsForm['dms_summary'] ?? '')) ?></textarea>
+
+                                <label for="dms-change-note">Versionshinweis</label>
+                                <input id="dms-change-note" type="text" name="dms_change_note" value="<?= $e((string) ($dashboardDmsForm['dms_change_note'] ?? 'Initiale Fassung')) ?>">
+
+                                <label for="dms-file">Datei</label>
+                                <input id="dms-file" type="file" name="document_file" required>
+                                <p class="form-help">PDF, Office-Dateien, Bilder oder Textdokumente werden als erste Version im DMS gespeichert.</p>
+
+                                <div class="dashboard-action-row">
+                                    <button class="btn btn-primary" type="submit">Dokument anlegen + Version 1 hochladen</button>
+                                </div>
+                            </form>
+                        <?php endif; ?>
+                    </article>
+
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-detail-card-head">
+                            <div>
+                                <h2>Versionierung und Freigabe</h2>
+                                <p>Neue Versionen setzen den Status wieder auf Draft, bis das Dokument erneut eingereicht und freigegeben wird.</p>
+                            </div>
+                            <span class="tag"><?= is_array($dashboardSelectedDmsDocument) ? $e((string) ($dashboardSelectedDmsDocument['status'] ?? 'draft')) : 'draft' ?></span>
+                        </div>
+
+                        <?php if (is_array($dashboardSelectedDmsDocument)): ?>
+                            <div class="dashboard-action-row" style="margin-bottom:12px">
+                                <span class="tag">Versionen: <?= $e((string) ($dashboardSelectedDmsDocument['version_count'] ?? 0)) ?></span>
+                                <span class="tag">Ereignisse: <?= $e((string) ($dashboardSelectedDmsDocument['event_count'] ?? 0)) ?></span>
+                                <?php if (($dashboardSelectedDmsDocument['approved_at'] ?? '') !== ''): ?>
+                                    <span class="tag">Freigabe: <?= $e((string) $dashboardSelectedDmsDocument['approved_at']) ?><?= ($dashboardSelectedDmsDocument['approved_by_display_name'] ?? '') !== '' ? ' · ' . $e((string) $dashboardSelectedDmsDocument['approved_by_display_name']) : '' ?></span>
+                                <?php endif; ?>
+                            </div>
+
+                            <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" enctype="multipart/form-data" class="auth-form-stack dashboard-form-stack">
+                                <input type="hidden" name="_action" value="dashboard.dms.upload_version">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+
+                                <label for="dms-version-note">Versionshinweis</label>
+                                <input id="dms-version-note" type="text" name="dms_change_note" value="<?= $e((string) ($dashboardDmsForm['dms_change_note'] ?? '')) ?>" placeholder="z. B. Korrektur nach Kundenfeedback">
+
+                                <label for="dms-version-file">Neue Datei hochladen</label>
+                                <input id="dms-version-file" type="file" name="document_file" required>
+
+                                <div class="dashboard-action-row">
+                                    <button class="btn btn-primary" type="submit">Neue Version hochladen</button>
+                                </div>
+                            </form>
+
+                            <div class="dashboard-action-row" style="margin-top:12px">
+                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.dms.submit">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+                                    <button class="btn btn-ghost" type="submit"<?= (int) ($dashboardSelectedDmsDocument['current_version_id'] ?? 0) > 0 ? '' : ' disabled' ?>>Zur Freigabe einreichen</button>
+                                </form>
+
+                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.dms.approve">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+                                    <button class="btn btn-primary" type="submit"<?= (string) ($dashboardSelectedDmsDocument['status'] ?? '') === 'in_review' ? '' : ' disabled' ?>>Freigeben</button>
+                                </form>
+
+                                <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.dms.reset">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
+                                    <button class="btn btn-danger" type="submit">Auf Draft zurücksetzen</button>
+                                </form>
+                            </div>
+                        <?php else: ?>
+                            <p>Lege zuerst ein Dokument an, damit Versionierung, Download und Freigabe aktiviert werden.</p>
+                        <?php endif; ?>
+                    </article>
+
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-list-card-head">
+                            <h2>Versionen</h2>
+                            <span class="tag"><?= $e((string) count($dashboardDmsVersions ?? [])) ?> Einträge</span>
+                        </div>
+                        <?php if (($dashboardDmsVersions ?? []) === []): ?>
+                            <p>Noch keine Versionen vorhanden.</p>
+                        <?php else: ?>
+                            <div class="dashboard-reply-history">
+                                <?php foreach ($dashboardDmsVersions as $version): ?>
+                                    <article class="dashboard-reply-item">
+                                        <div class="dashboard-reply-item-head">
+                                            <strong>Version <?= $e((string) $version['version_number']) ?></strong>
+                                            <span class="tag"><?= $e((string) $version['mime_type']) ?></span>
+                                        </div>
+                                        <p><?= $e((string) $version['original_filename']) ?></p>
+                                        <?php if (($version['change_note'] ?? '') !== ''): ?>
+                                            <p><?= $e((string) $version['change_note']) ?></p>
+                                        <?php endif; ?>
+                                        <p>Größe: <?= $e((string) $version['file_size']) ?> Bytes<?= ($version['uploaded_by_display_name'] ?? '') !== '' ? ' · Von: ' . $e((string) $version['uploaded_by_display_name']) : '' ?></p>
+                                        <div class="dashboard-action-row">
+                                            <a class="btn btn-ghost btn-sm" href="/dashboard/dms/download?version=<?= $e((string) $version['id']) ?>">Download</a>
+                                        </div>
+                                        <small><?= $e((string) ($version['created_at'] ?? '')) ?></small>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </article>
+
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-list-card-head">
+                            <h2>Audit / Verlauf</h2>
+                            <span class="tag"><?= $e((string) count($dashboardDmsEvents ?? [])) ?> Ereignisse</span>
+                        </div>
+                        <?php if (($dashboardDmsEvents ?? []) === []): ?>
+                            <p>Noch keine Historie vorhanden.</p>
+                        <?php else: ?>
+                            <div class="dashboard-reply-history">
+                                <?php foreach ($dashboardDmsEvents as $event): ?>
+                                    <article class="dashboard-reply-item">
+                                        <div class="dashboard-reply-item-head">
+                                            <strong><?= $e((string) ($event['summary'] ?? 'Ereignis')) ?></strong>
+                                            <span class="tag"><?= $e((string) ($event['event_type'] ?? '')) ?></span>
+                                        </div>
+                                        <p><?= ($event['user_display_name'] ?? '') !== '' ? 'Von: ' . $e((string) $event['user_display_name']) : 'System' ?></p>
+                                        <?php if (!empty($event['details']['version_number'])): ?>
+                                            <p>Version: <?= $e((string) $event['details']['version_number']) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($event['details']['original_filename'])): ?>
+                                            <p>Datei: <?= $e((string) $event['details']['original_filename']) ?></p>
                                         <?php endif; ?>
                                         <small><?= $e((string) ($event['created_at'] ?? '')) ?></small>
                                     </article>
