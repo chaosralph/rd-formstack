@@ -6,7 +6,9 @@
   "require": {
     "php": "^8.2",
     "ext-pdo": "*",
-    "ext-pdo_mysql": "*"
+    "ext-pdo_mysql": "*",
+    "phpmailer/phpmailer": "^6.9",
+    "webklex/php-imap": "^5.5"
   },
   "autoload": {
     "psr-4": {

@@ -64,6 +64,18 @@ final class RouteCatalog
                 'intro' => 'Alle Anfragen aus dem Kontaktformular werden hier mit Status, Notizen und Antwortverlauf zentral bearbeitet.',
                 'description' => 'Geschützte Postbox für eingehende Kontaktanfragen mit Statuspflege und E-Mail-Antworten.',
             ],
+            '/dashboard/inbox' => [
+                'title' => 'Inbox',
+                'headline' => 'IMAP-Inbox als Lead-Quelle anbinden',
+                'intro' => 'Neue E-Mails können aus dem Postfach importiert und als Leads in der Postbox weiterbearbeitet werden.',
+                'description' => 'IMAP-basierter Lead-Import für den geschützten Bereich von rddigital.de.',
+            ],
+            '/dashboard/outreach' => [
+                'title' => 'Outreach',
+                'headline' => 'Anschreiben und Empfängerliste vor Versand freigeben',
+                'intro' => 'Eigene Outreach-Kampagnen werden hier als Entwurf gespeichert, erst nach Freigabe von Anschreiben und Empfängerliste versendet und danach mit Versandstatus protokolliert.',
+                'description' => 'Geschütztes Outreach-Modul mit Entwurf, Empfängerfreigabe und kontrolliertem Mailversand.',
+            ],
             '/dashboard/references' => [
                 'title' => 'Referenzen verwalten',
                 'headline' => 'Referenzen pflegen und live auf der Landingpage ausgeben',

@@ -1,7 +1,16 @@
 <?php
+$imapConfigured = trim((string) \App\Config\Env::get('IMAP_HOST', '')) !== ''
+    && trim((string) \App\Config\Env::get('IMAP_USERNAME', '')) !== ''
+    && trim((string) \App\Config\Env::get('IMAP_PASSWORD', '')) !== '';
+$imapReady = $imapConfigured && class_exists(\Webklex\PHPIMAP\ClientManager::class);
+$smtpConfigured = \App\Mail\NativeMailTransport::smtpConfigured();
+$smtpReady = \App\Mail\NativeMailTransport::smtpReady();
+
 $dashboardNavItems = [
     '/dashboard' => 'Übersicht',
     '/dashboard/postbox' => 'Postbox',
+    '/dashboard/inbox' => 'Inbox',
+    '/dashboard/outreach' => 'Outreach',
     '/dashboard/references' => 'Referenzen',
     '/dashboard/profile' => 'Profil',
 ];
@@ -36,6 +45,10 @@ $dashboardNavItems = [
                 <span class="tag">Rolle: <?= $e((string) (($authUser['role'] ?? 'admin'))) ?></span>
                 <span class="tag">E-Mail: <?= $e((string) (($authUser['email'] ?? ''))) ?></span>
                 <span class="tag">Offene Anfragen: <?= $e((string) ($dashboardStats['open_contacts'] ?? 0)) ?></span>
+                <span class="tag">IMAP-Leads: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
+                <span class="tag">Outreach-Entwürfe: <?= $e((string) ($dashboardStats['outreach_drafts'] ?? 0)) ?></span>
+                <span class="tag">Outreach gesendet: <?= $e((string) ($dashboardStats['outreach_sent'] ?? 0)) ?></span>
+                <span class="tag">Outreach mit Fehlern: <?= $e((string) ($dashboardStats['outreach_failed'] ?? 0)) ?></span>
                 <span class="tag">Sichtbare Referenzen: <?= $e((string) ($dashboardStats['references_visible'] ?? 0)) ?></span>
             </div>
         </article>
@@ -77,6 +90,28 @@ $dashboardNavItems = [
                         <li>E-Mail: <?= $e((string) (($dashboardProfileUser['email'] ?? $authUser['email'] ?? ''))) ?></li>
                     </ul>
                     <a class="btn btn-primary" href="/dashboard/profile">Profil öffnen</a>
+                </article>
+
+                <article class="service-card dashboard-module-card">
+                    <h2>Inbox</h2>
+                    <p>IMAP-Mails als Leads lesen und mit einem Klick in die Postbox übernehmen.</p>
+                    <ul>
+                        <li>Importiert: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></li>
+                        <li>Sync im geschützten Bereich, ohne Formularspam zu vermischen.</li>
+                    </ul>
+                    <a class="btn btn-primary" href="/dashboard/inbox">Inbox öffnen</a>
+                </article>
+
+                <article class="service-card dashboard-module-card">
+                    <h2>Outreach</h2>
+                    <p>Anschreiben und Empfängerliste erst freigeben, dann kontrolliert versenden.</p>
+                    <ul>
+                        <li>Entwürfe: <?= $e((string) ($dashboardStats['outreach_drafts'] ?? 0)) ?></li>
+                        <li>Freigegeben: <?= $e((string) ($dashboardStats['outreach_approved'] ?? 0)) ?></li>
+                        <li>Gesendet: <?= $e((string) ($dashboardStats['outreach_sent'] ?? 0)) ?></li>
+                        <li>Fehler/Teilversand: <?= $e((string) ($dashboardStats['outreach_failed'] ?? 0)) ?></li>
+                    </ul>
+                    <a class="btn btn-primary" href="/dashboard/outreach">Outreach öffnen</a>
                 </article>
 
                 <article class="service-card dashboard-module-card placeholder-card">
@@ -195,6 +230,289 @@ $dashboardNavItems = [
                             <p>Wählen Sie links eine Kontaktanfrage aus, um Details, Notizen und den Antwortverlauf zu sehen.</p>
                         </article>
                     <?php endif; ?>
+                </div>
+            </div>
+        <?php elseif ($dashboardSection === 'inbox'): ?>
+            <div class="dashboard-postbox-layout dashboard-references-layout">
+                <article class="service-card dashboard-detail-card">
+                    <div class="dashboard-detail-card-head">
+                        <div>
+                            <h2>IMAP-Inbox synchronisieren</h2>
+                            <p>Neue Nachrichten werden aus dem Postfach gelesen und als Leads in die Postbox übernommen.</p>
+                        </div>
+                        <span class="tag">IMAP</span>
+                    </div>
+
+                    <div class="dashboard-action-row" style="margin-top:12px">
+                        <form method="post" action="/dashboard/inbox" class="dashboard-inline-danger-form" style="margin-top:0">
+                            <input type="hidden" name="_action" value="dashboard.inbox.sync">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                            <button class="btn btn-primary" type="submit">Jetzt synchronisieren</button>
+                        </form>
+                        <span class="tag">Inbox-Leads: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
+                        <span class="tag"><?= $imapReady ? 'IMAP bereit' : ($imapConfigured ? 'IMAP-Bibliothek fehlt' : 'IMAP unvollständig konfiguriert') ?></span>
+                        <span class="tag"><?= $smtpReady ? 'SMTP bereit' : ($smtpConfigured ? 'SMTP unvollständig konfiguriert' : 'SMTP nicht konfiguriert') ?></span>
+                    </div>
+
+                    <p style="margin-top:12px">Konfiguration: Host, Port, Verschlüsselung, Benutzer und Passwort werden aus .env gelesen.</p>
+                </article>
+
+                <aside class="service-card dashboard-list-card">
+                    <div class="dashboard-list-card-head">
+                        <h2>Neueste importierte Leads</h2>
+                        <span class="tag"><?= $e((string) count($dashboardInboxLeads)) ?> Einträge</span>
+                    </div>
+                    <?php if ($dashboardInboxLeads === []): ?>
+                        <p>Noch keine importierten IMAP-Leads vorhanden.</p>
+                    <?php else: ?>
+                        <div class="dashboard-contact-list">
+                            <?php foreach ($dashboardInboxLeads as $lead): ?>
+                                <article class="dashboard-contact-item">
+                                    <div class="dashboard-contact-item-head">
+                                        <strong><?= $e((string) ($lead['name'] !== '' ? $lead['name'] : $lead['email'])) ?></strong>
+                                        <span class="tag tag-status tag-status-<?= $e((string) $lead['status']) ?>"><?= $e((string) $lead['status']) ?></span>
+                                    </div>
+                                    <p><?= $e((string) $lead['email']) ?></p>
+                                    <small>
+                                        <?= $e((string) ($lead['source_received_at'] !== '' ? $lead['source_received_at'] : $lead['created_at'])) ?>
+                                        · UID: <?= $e((string) $lead['source_uid']) ?>
+                                    </small>
+                                    <?php if (($lead['source_subject'] ?? '') !== ''): ?>
+                                        <p><strong>Betreff:</strong> <?= $e((string) $lead['source_subject']) ?></p>
+                                    <?php endif; ?>
+                                </article>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </aside>
+            </div>
+        <?php elseif ($dashboardSection === 'outreach'): ?>
+            <div class="dashboard-postbox-layout dashboard-references-layout">
+                <aside class="service-card dashboard-list-card">
+                    <div class="dashboard-list-card-head">
+                        <h2>Outreach-Kampagnen</h2>
+                        <a class="btn btn-ghost btn-sm" href="/dashboard/outreach">Neu</a>
+                    </div>
+                    <div class="dashboard-action-row" style="margin-bottom:12px">
+                        <?php foreach (['active' => 'Aktiv', 'all' => 'Alle', 'draft' => 'Draft', 'approved' => 'Freigegeben', 'sent' => 'Gesendet', 'failed' => 'Fehler', 'archived' => 'Archiv'] as $filterValue => $filterLabel): ?>
+                            <a class="btn <?= ($dashboardCampaignFilter ?? 'active') === $filterValue ? 'btn-primary' : 'btn-ghost' ?> btn-sm" href="/dashboard/outreach?status=<?= $e($filterValue) ?>"><?= $e($filterLabel) ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if ($dashboardCampaigns === []): ?>
+                        <p>Noch keine Outreach-Kampagnen vorhanden.</p>
+                    <?php else: ?>
+                        <div class="dashboard-contact-list">
+                            <?php foreach ($dashboardCampaigns as $campaign): ?>
+                                <a class="dashboard-contact-item<?= is_array($dashboardSelectedCampaign) && (int) $dashboardSelectedCampaign['id'] === (int) $campaign['id'] ? ' is-active' : '' ?>" href="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $campaign['id']) ?>">
+                                    <div class="dashboard-contact-item-head">
+                                        <strong><?= $e((string) $campaign['title']) ?></strong>
+                                        <span class="tag tag-status tag-status-<?= $e((string) $campaign['status']) ?>"><?= $e((string) $campaign['status']) ?></span>
+                                    </div>
+                                    <p><?= $e((string) $campaign['subject']) ?></p>
+                                    <small>
+                                        Empfänger: <?= $e((string) $campaign['recipient_count']) ?>
+                                        · Freigegeben: <?= $e((string) $campaign['approved_recipient_count']) ?>
+                                        · Versendet: <?= $e((string) $campaign['sent_recipient_count']) ?>
+                                        · Fehlgeschlagen: <?= $e((string) $campaign['failed_recipient_count']) ?>
+                                    </small>
+                                    <small>
+                                        Läufe: <?= $e((string) ($campaign['send_attempt_count'] ?? 0)) ?>
+                                        <?php if (($campaign['archived_at'] ?? '') !== ''): ?> · Archiviert: <?= $e((string) $campaign['archived_at']) ?><?php endif; ?>
+                                    </small>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </aside>
+
+                <div class="dashboard-detail-stack">
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-detail-card-head">
+                            <div>
+                                <h2><?= is_array($dashboardSelectedCampaign) ? 'Kampagne bearbeiten' : 'Neue Kampagne anlegen' ?></h2>
+                                <p>Format Empfängerliste: E-Mail | Unternehmen | Ansprechpartner | Notiz</p>
+                            </div>
+                            <span class="tag"><?= $smtpReady ? 'SMTP bereit' : ($smtpConfigured ? 'SMTP unvollständig konfiguriert' : 'SMTP nicht konfiguriert') ?></span>
+                        </div>
+
+                        <form method="post" action="/dashboard/outreach<?= is_array($dashboardSelectedCampaign) ? '?status=' . $e((string) ($dashboardCampaignFilter ?? 'active')) . '&campaign=' . $e((string) $dashboardSelectedCampaign['id']) : '' ?>" class="auth-form-stack dashboard-form-stack">
+                            <input type="hidden" name="_action" value="dashboard.outreach.save">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                            <input type="hidden" name="campaign_id" value="<?= $e((string) ($dashboardSelectedCampaign['id'] ?? 0)) ?>">
+
+                            <label for="outreach-title">Kampagne</label>
+                            <input id="outreach-title" type="text" name="title" required value="<?= $e((string) ($dashboardOutreachForm['title'] ?? '')) ?>">
+
+                            <label for="outreach-subject">Betreff</label>
+                            <input id="outreach-subject" type="text" name="subject" required value="<?= $e((string) ($dashboardOutreachForm['subject'] ?? '')) ?>">
+
+                            <label for="outreach-from-name">Absendername</label>
+                            <input id="outreach-from-name" type="text" name="from_name" required value="<?= $e((string) ($dashboardOutreachForm['from_name'] ?? '')) ?>">
+
+                            <label for="outreach-from-email">Absender-E-Mail</label>
+                            <input id="outreach-from-email" type="email" name="from_email" required value="<?= $e((string) ($dashboardOutreachForm['from_email'] ?? '')) ?>">
+
+                            <label for="outreach-body">Anschreiben</label>
+                            <textarea id="outreach-body" name="body" rows="10" required><?= $e((string) ($dashboardOutreachForm['body'] ?? '')) ?></textarea>
+
+                            <label for="outreach-recipients">Empfängerliste</label>
+                            <textarea id="outreach-recipients" name="recipients_raw" rows="10" required><?= $e((string) ($dashboardOutreachForm['recipients_raw'] ?? '')) ?></textarea>
+                            <p class="form-help">Je Zeile: mail@example.de | Firma GmbH | Max Mustermann | optionale Notiz</p>
+
+                            <label class="checkbox-row"><input type="checkbox" name="allow_known_resend" value="1"<?= !empty($dashboardOutreachForm['allow_known_resend']) ? ' checked' : '' ?>> <span>Bewusst auch Adressen zulassen, die bereits in einer anderen Kampagne angeschrieben wurden</span></label>
+
+                            <div class="dashboard-action-row">
+                                <button class="btn btn-primary" type="submit">Entwurf speichern</button>
+                            </div>
+                        </form>
+                    </article>
+
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-detail-card-head">
+                            <div>
+                                <h2>Freigabe und Versand</h2>
+                                <p>Versand erst nach Freigabe von Anschreiben und Empfängerliste.</p>
+                            </div>
+                            <span class="tag"><?= is_array($dashboardSelectedCampaign) ? $e((string) ($dashboardSelectedCampaign['status'] ?? 'draft')) : 'draft' ?></span>
+                        </div>
+
+                        <?php if (is_array($dashboardSelectedCampaign)): ?>
+                            <div class="dashboard-action-row" style="margin-bottom:12px">
+                                <span class="tag">Empfänger: <?= $e((string) count($dashboardOutreachRecipients)) ?></span>
+                                <span class="tag">Freigegeben: <?= $e((string) ($dashboardSelectedCampaign['approved_recipient_count'] ?? 0)) ?></span>
+                                <span class="tag">Versendet: <?= $e((string) ($dashboardSelectedCampaign['sent_recipient_count'] ?? 0)) ?></span>
+                                <span class="tag">Fehlgeschlagen: <?= $e((string) ($dashboardSelectedCampaign['failed_recipient_count'] ?? 0)) ?></span>
+                                <span class="tag">Versandläufe: <?= $e((string) ($dashboardSelectedCampaign['send_attempt_count'] ?? 0)) ?></span>
+                            </div>
+
+                            <div class="dashboard-action-row" style="margin-bottom:12px">
+                                <?php if (($dashboardSelectedCampaign['approved_at'] ?? '') !== ''): ?>
+                                    <span class="tag">Freigabe: <?= $e((string) $dashboardSelectedCampaign['approved_at']) ?><?= ($dashboardSelectedCampaign['approved_by_display_name'] ?? '') !== '' ? ' · ' . $e((string) $dashboardSelectedCampaign['approved_by_display_name']) : '' ?></span>
+                                <?php endif; ?>
+                                <?php if (($dashboardSelectedCampaign['last_send_finished_at'] ?? '') !== ''): ?>
+                                    <span class="tag">Letzter Lauf: <?= $e((string) $dashboardSelectedCampaign['last_send_finished_at']) ?><?= ($dashboardSelectedCampaign['last_sent_by_display_name'] ?? '') !== '' ? ' · ' . $e((string) $dashboardSelectedCampaign['last_sent_by_display_name']) : '' ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($dashboardSelectedCampaign['allow_known_resend'])): ?>
+                                    <span class="tag tag-warning">Resend bewusst erlaubt</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="dashboard-action-row">
+                                <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.outreach.approve">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="campaign_id" value="<?= $e((string) $dashboardSelectedCampaign['id']) ?>">
+                                    <button class="btn btn-ghost" type="submit">Anschreiben + Liste freigeben</button>
+                                </form>
+
+                                <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.outreach.send">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="campaign_id" value="<?= $e((string) $dashboardSelectedCampaign['id']) ?>">
+                                    <button class="btn btn-primary" type="submit"<?= (string) ($dashboardSelectedCampaign['status'] ?? '') === 'approved' ? '' : ' disabled' ?>>Freigegeben jetzt versenden</button>
+                                </form>
+
+                                <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.outreach.retry_failed">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="campaign_id" value="<?= $e((string) $dashboardSelectedCampaign['id']) ?>">
+                                    <button class="btn btn-ghost" type="submit"<?= (int) ($dashboardSelectedCampaign['failed_recipient_count'] ?? 0) > 0 ? '' : ' disabled' ?>>Fehlgeschlagene erneut freigeben</button>
+                                </form>
+                            </div>
+
+                            <div class="dashboard-action-row" style="margin-top:12px">
+                                <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.outreach.reset">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="campaign_id" value="<?= $e((string) $dashboardSelectedCampaign['id']) ?>">
+                                    <button class="btn btn-ghost" type="submit">Auf Entwurf zurücksetzen</button>
+                                </form>
+
+                                <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.outreach.duplicate">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="campaign_id" value="<?= $e((string) $dashboardSelectedCampaign['id']) ?>">
+                                    <button class="btn btn-ghost" type="submit">Als neuen Entwurf duplizieren</button>
+                                </form>
+
+                                <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
+                                    <input type="hidden" name="_action" value="dashboard.outreach.archive">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                    <input type="hidden" name="campaign_id" value="<?= $e((string) $dashboardSelectedCampaign['id']) ?>">
+                                    <button class="btn btn-danger" type="submit"<?= (string) ($dashboardSelectedCampaign['status'] ?? '') === 'archived' ? ' disabled' : '' ?>>Archivieren</button>
+                                </form>
+                            </div>
+                        <?php else: ?>
+                            <p>Speichere zuerst einen Entwurf, damit Freigabe, Historie und Versand aktiviert werden.</p>
+                        <?php endif; ?>
+                    </article>
+
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-list-card-head">
+                            <h2>Empfängerliste</h2>
+                            <span class="tag"><?= $e((string) count($dashboardOutreachRecipients)) ?> Einträge</span>
+                        </div>
+                        <?php if ($dashboardOutreachRecipients === []): ?>
+                            <p>Noch keine Empfänger vorhanden.</p>
+                        <?php else: ?>
+                            <div class="dashboard-reply-history">
+                                <?php foreach ($dashboardOutreachRecipients as $recipient): ?>
+                                    <article class="dashboard-reply-item">
+                                        <div class="dashboard-reply-item-head">
+                                            <strong><?= $e((string) $recipient['email']) ?></strong>
+                                            <span class="tag<?= (string) ($recipient['status'] ?? '') === 'failed' ? ' tag-warning' : '' ?>"><?= $e((string) $recipient['status']) ?></span>
+                                        </div>
+                                        <p>
+                                            <?= $e((string) ($recipient['company_name'] !== '' ? $recipient['company_name'] : 'ohne Unternehmen')) ?>
+                                            <?php if (($recipient['contact_name'] ?? '') !== ''): ?> · <?= $e((string) $recipient['contact_name']) ?><?php endif; ?>
+                                        </p>
+                                        <?php if (($recipient['notes'] ?? '') !== ''): ?>
+                                            <p><?= nl2br($e((string) $recipient['notes'])) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (($recipient['error_message'] ?? '') !== ''): ?>
+                                            <p class="form-help form-help-error">Fehler: <?= $e((string) $recipient['error_message']) ?></p>
+                                        <?php endif; ?>
+                                        <small><?= $e((string) (($recipient['sent_at'] ?? '') !== '' ? $recipient['sent_at'] : $recipient['updated_at'])) ?></small>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </article>
+
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-list-card-head">
+                            <h2>Audit / Verlauf</h2>
+                            <span class="tag"><?= $e((string) count($dashboardOutreachEvents ?? [])) ?> Ereignisse</span>
+                        </div>
+                        <?php if (($dashboardOutreachEvents ?? []) === []): ?>
+                            <p>Noch keine Historie vorhanden.</p>
+                        <?php else: ?>
+                            <div class="dashboard-reply-history">
+                                <?php foreach ($dashboardOutreachEvents as $event): ?>
+                                    <article class="dashboard-reply-item">
+                                        <div class="dashboard-reply-item-head">
+                                            <strong><?= $e((string) ($event['summary'] ?? 'Ereignis')) ?></strong>
+                                            <span class="tag"><?= $e((string) ($event['event_type'] ?? '')) ?></span>
+                                        </div>
+                                        <p><?= ($event['user_display_name'] ?? '') !== '' ? 'Von: ' . $e((string) $event['user_display_name']) : 'System' ?></p>
+                                        <?php if (!empty($event['details']['recipient_count'])): ?>
+                                            <p>Empfänger: <?= $e((string) $event['details']['recipient_count']) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($event['details']['sent_count']) || !empty($event['details']['failed_count'])): ?>
+                                            <p>Versendet: <?= $e((string) ($event['details']['sent_count'] ?? 0)) ?> · Fehlgeschlagen: <?= $e((string) ($event['details']['failed_count'] ?? 0)) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($event['details']['failed_emails']) && is_array($event['details']['failed_emails'])): ?>
+                                            <p class="form-help form-help-error">Fehlgeschlagen: <?= $e(implode(', ', $event['details']['failed_emails'])) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($event['details']['source_campaign_id'])): ?>
+                                            <p>Quelle: Kampagne #<?= $e((string) $event['details']['source_campaign_id']) ?></p>
+                                        <?php endif; ?>
+                                        <small><?= $e((string) ($event['created_at'] ?? '')) ?></small>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </article>
                 </div>
             </div>
         <?php elseif ($dashboardSection === 'references'): ?>

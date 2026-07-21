@@ -18,6 +18,14 @@ docker compose -f docker-compose.live.yml up -d --build
 echo "== status =="
 docker ps --format '{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}' | grep '^rddigital-' || true
 
+echo "== database migrations =="
+if [ -f scripts/apply-imap-lead-migration.php ]; then
+  docker compose -f docker-compose.live.yml exec -T rddigital-web php scripts/apply-imap-lead-migration.php
+fi
+if [ -f scripts/apply-outreach-audit-migration.php ]; then
+  docker compose -f docker-compose.live.yml exec -T rddigital-web php scripts/apply-outreach-audit-migration.php
+fi
+
 echo "== next verification =="
 echo "curl -I https://rddigital.de"
 echo "curl -I https://www.rddigital.de"

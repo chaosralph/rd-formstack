@@ -12,11 +12,28 @@ final class ContactRepository
     {
     }
 
-    public function create(string $name, string $company, string $email, string $phone, string $message): int
-    {
+    public function create(
+        string $name,
+        string $company,
+        string $email,
+        string $phone,
+        string $message,
+        string $sourceType = 'form',
+        ?string $sourceMailbox = null,
+        ?string $sourceUid = null,
+        ?string $sourceSubject = null,
+        ?string $sourceReceivedAt = null,
+        ?string $sourceMeta = null,
+    ): int {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO contacts (name, company, email, phone, message, status, created_at, updated_at)
-             VALUES (:name, :company, :email, :phone, :message, :status, NOW(), NOW())'
+            'INSERT INTO contacts (
+                name, company, email, phone, message, status, created_at, updated_at,
+                source_type, source_mailbox, source_uid, source_subject, source_received_at, source_meta
+             )
+             VALUES (
+                :name, :company, :email, :phone, :message, :status, NOW(), NOW(),
+                :source_type, :source_mailbox, :source_uid, :source_subject, :source_received_at, :source_meta
+             )'
         );
 
         $stmt->execute([
@@ -26,9 +43,56 @@ final class ContactRepository
             ':phone' => $phone !== '' ? trim($phone) : null,
             ':message' => trim($message),
             ':status' => 'new',
+            ':source_type' => $sourceType !== '' ? $sourceType : 'form',
+            ':source_mailbox' => $sourceMailbox !== null && trim($sourceMailbox) !== '' ? trim($sourceMailbox) : null,
+            ':source_uid' => $sourceUid !== null && trim($sourceUid) !== '' ? trim($sourceUid) : null,
+            ':source_subject' => $sourceSubject !== null && trim($sourceSubject) !== '' ? trim($sourceSubject) : null,
+            ':source_received_at' => $sourceReceivedAt !== null && trim($sourceReceivedAt) !== '' ? trim($sourceReceivedAt) : null,
+            ':source_meta' => $sourceMeta !== null && trim($sourceMeta) !== '' ? trim($sourceMeta) : null,
         ]);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    /** @param array{ name:string, company:string, email:string, phone:string, message:string, source_type:string, source_mailbox:?string, source_uid:?string, source_subject:?string, source_received_at:?string, source_meta:?string } $payload */
+    public function upsertInboundLead(array $payload): bool
+    {
+        $sourceType = trim($payload['source_type'] ?? 'imap');
+        $sourceMailbox = $payload['source_mailbox'] ?? null;
+        $sourceUid = $payload['source_uid'] ?? null;
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id FROM contacts
+             WHERE source_type = :source_type
+               AND source_mailbox <=> :source_mailbox
+               AND source_uid <=> :source_uid
+             LIMIT 1'
+        );
+        $stmt->execute([
+            ':source_type' => $sourceType,
+            ':source_mailbox' => $sourceMailbox,
+            ':source_uid' => $sourceUid,
+        ]);
+
+        if ($stmt->fetchColumn()) {
+            return false;
+        }
+
+        $this->create(
+            $payload['name'],
+            $payload['company'],
+            $payload['email'],
+            $payload['phone'],
+            $payload['message'],
+            $sourceType,
+            $sourceMailbox,
+            $sourceUid,
+            $payload['source_subject'] ?? null,
+            $payload['source_received_at'] ?? null,
+            $payload['source_meta'] ?? null,
+        );
+
+        return true;
     }
 
     /** @return list<array<string,mixed>> */
@@ -36,6 +100,7 @@ final class ContactRepository
     {
         $stmt = $this->pdo->query(
             'SELECT c.id, c.name, c.company, c.email, c.phone, c.message, c.status, c.admin_note, c.replied_at, c.created_at, c.updated_at,
+                    c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta,
                     (SELECT COUNT(*) FROM contact_replies r WHERE r.contact_id = c.id) AS reply_count
              FROM contacts c
              ORDER BY
@@ -48,6 +113,25 @@ final class ContactRepository
                 END,
                 c.created_at DESC'
         );
+
+        return array_map([$this, 'hydrateContact'], $stmt->fetchAll());
+    }
+
+    /** @return list<array<string,mixed>> */
+    public function listInboundLeads(int $limit = 25): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT c.id, c.name, c.company, c.email, c.phone, c.message, c.status, c.admin_note, c.replied_at, c.created_at, c.updated_at,
+                    c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta,
+                    (SELECT COUNT(*) FROM contact_replies r WHERE r.contact_id = c.id) AS reply_count
+             FROM contacts c
+             WHERE c.source_type = :source_type
+             ORDER BY COALESCE(c.source_received_at, c.created_at) DESC, c.id DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue(':source_type', 'imap');
+        $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
+        $stmt->execute();
 
         return array_map([$this, 'hydrateContact'], $stmt->fetchAll());
     }
@@ -155,6 +239,12 @@ final class ContactRepository
         return (int) $stmt->fetchColumn();
     }
 
+    public function countInbound(): int
+    {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM contacts WHERE source_type = 'imap'");
+        return (int) $stmt->fetchColumn();
+    }
+
     /** @param array<string,mixed> $row @return array<string,mixed> */
     private function hydrateContact(array $row): array
     {
@@ -170,6 +260,12 @@ final class ContactRepository
             'replied_at' => (string) ($row['replied_at'] ?? ''),
             'created_at' => (string) ($row['created_at'] ?? ''),
             'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'source_type' => (string) ($row['source_type'] ?? 'form'),
+            'source_mailbox' => (string) ($row['source_mailbox'] ?? ''),
+            'source_uid' => (string) ($row['source_uid'] ?? ''),
+            'source_subject' => (string) ($row['source_subject'] ?? ''),
+            'source_received_at' => (string) ($row['source_received_at'] ?? ''),
+            'source_meta' => (string) ($row['source_meta'] ?? ''),
             'reply_count' => (int) ($row['reply_count'] ?? 0),
         ];
     }

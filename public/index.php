@@ -2,9 +2,15 @@
 
 declare(strict_types=1);
 
+$vendorAutoload = __DIR__ . '/../vendor/autoload.php';
+if (is_file($vendorAutoload)) {
+    require_once $vendorAutoload;
+}
+
 use App\Application\Auth\AdminSetupService;
 use App\Application\Auth\LoginService;
 use App\Application\Contact\ContactSubmissionService;
+use App\Application\Lead\LeadInboxSyncService;
 use App\Bootstrap\AppBootstrap;
 use App\Config\Env;
 use App\Controller\AuthController;
@@ -13,8 +19,10 @@ use App\Database\Connection;
 use App\Http\ErrorHandler;
 use App\Http\Request;
 use App\Http\Routing\RouteCatalog;
+use App\Mail\ImapMailboxReader;
 use App\Mail\NativeMailTransport;
 use App\Repository\ContactRepository;
+use App\Repository\OutreachRepository;
 use App\Repository\ReferenceRepository;
 use App\Repository\UserRepository;
 use App\Security\AuthSession;
@@ -78,8 +86,10 @@ $resolvePdo = static function () use ($projectRoot) {
 
 $users = static fn (): UserRepository => new UserRepository($resolvePdo());
 $contacts = static fn (): ContactRepository => new ContactRepository($resolvePdo());
+$outreach = static fn (): OutreachRepository => new OutreachRepository($resolvePdo());
 $referencesRepo = static fn (): ReferenceRepository => new ReferenceRepository($resolvePdo());
 $mailer = static fn (): NativeMailTransport => new NativeMailTransport();
+$leadInboxSync = static fn (): LeadInboxSyncService => new LeadInboxSyncService($contacts(), new ImapMailboxReader());
 
 $buildAuthController = static function () use ($users): AuthController {
     $userRepository = $users();
@@ -96,6 +106,8 @@ $dashboardSectionForPath = static function (string $path): string {
         '/dashboard/postbox' => 'postbox',
         '/dashboard/references' => 'references',
         '/dashboard/profile' => 'profile',
+        '/dashboard/inbox' => 'inbox',
+        '/dashboard/outreach' => 'outreach',
         default => 'home',
     };
 };
@@ -118,6 +130,113 @@ $requireCsrf = static function (string $fallback) use ($redirect): void {
         $_SESSION['flash_error'] = 'Ungültige Anfrage. Bitte erneut versuchen.';
         $redirect($fallback);
     }
+};
+
+$normalizeOutreachPayload = static function (): array {
+    return [
+        'title' => trim(Request::post('title')),
+        'subject' => trim(Request::post('subject')),
+        'body' => trim(Request::post('body')),
+        'from_email' => trim(Request::post('from_email')),
+        'from_name' => trim(Request::post('from_name')),
+        'recipients_raw' => trim(Request::post('recipients_raw')),
+        'allow_known_resend' => Request::post('allow_known_resend') === '1' || Request::post('allow_known_resend') === 'on',
+    ];
+};
+
+$parseOutreachRecipients = static function (string $raw): array {
+    $lines = preg_split('/\r\n|\r|\n/', $raw) ?: [];
+    $items = [];
+
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+        if ($trimmed === '') {
+            continue;
+        }
+
+        $parts = array_map('trim', explode('|', $trimmed));
+        $items[] = [
+            'email' => $parts[0] ?? '',
+            'company_name' => $parts[1] ?? '',
+            'contact_name' => $parts[2] ?? '',
+            'notes' => $parts[3] ?? '',
+        ];
+    }
+
+    return $items;
+};
+
+$findDuplicateRecipientEmails = static function (array $recipients): array {
+    $seen = [];
+    $duplicates = [];
+
+    foreach ($recipients as $recipient) {
+        $email = strtolower(trim((string) ($recipient['email'] ?? '')));
+        if ($email === '') {
+            continue;
+        }
+
+        if (isset($seen[$email])) {
+            $duplicates[$email] = true;
+            continue;
+        }
+
+        $seen[$email] = true;
+    }
+
+    return array_keys($duplicates);
+};
+
+$formatResendConflictList = static function (array $matches): string {
+    if ($matches === []) {
+        return '';
+    }
+
+    $items = [];
+    foreach ($matches as $match) {
+        $items[] = sprintf(
+            '%s (Kampagne #%d "%s" am %s)',
+            (string) ($match['email'] ?? ''),
+            (int) ($match['campaign_id'] ?? 0),
+            (string) ($match['title'] ?? ''),
+            (string) ($match['sent_at'] ?? '')
+        );
+    }
+
+    return implode('; ', $items);
+};
+
+$outreachValidationErrors = static function (array $payload, array $recipients): array {
+    $errors = [];
+
+    if ($payload['title'] === '') {
+        $errors['title'] = 'Bitte einen Kampagnentitel angeben.';
+    }
+    if ($payload['subject'] === '') {
+        $errors['subject'] = 'Bitte einen Betreff angeben.';
+    }
+    if ($payload['body'] === '') {
+        $errors['body'] = 'Bitte ein Anschreiben angeben.';
+    }
+    if ($payload['from_name'] === '') {
+        $errors['from_name'] = 'Bitte einen Absendernamen angeben.';
+    }
+    if ($payload['from_email'] === '' || filter_var($payload['from_email'], FILTER_VALIDATE_EMAIL) === false) {
+        $errors['from_email'] = 'Bitte eine gültige Absender-E-Mail angeben.';
+    }
+    if ($recipients === []) {
+        $errors['recipients_raw'] = 'Bitte mindestens einen Empfänger eintragen.';
+        return $errors;
+    }
+
+    foreach ($recipients as $index => $recipient) {
+        if (($recipient['email'] ?? '') === '' || filter_var((string) $recipient['email'], FILTER_VALIDATE_EMAIL) === false) {
+            $errors['recipients_raw'] = 'Mindestens eine Empfängerzeile enthält keine gültige E-Mail-Adresse (Zeile ' . ($index + 1) . ').';
+            break;
+        }
+    }
+
+    return $errors;
 };
 
 $normalizeReferencePayload = static function (): array {
@@ -321,6 +440,257 @@ if (Request::method() === 'POST' && $action === 'dashboard.contact.reply') {
     $redirect($fallback);
 }
 
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.save') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $payload = $normalizeOutreachPayload();
+    $recipients = $parseOutreachRecipients($payload['recipients_raw']);
+    $errors = $outreachValidationErrors($payload, $recipients);
+
+    $duplicateEmails = $findDuplicateRecipientEmails($recipients);
+    if ($duplicateEmails !== []) {
+        $errors['recipients_raw'] = 'Doppelte Empfänger in der Liste sind nicht erlaubt: ' . implode(', ', $duplicateEmails);
+    }
+
+    $previouslySent = $outreach()->findPreviouslySentRecipientUsage(
+        array_map(static fn (array $recipient): string => (string) ($recipient['email'] ?? ''), $recipients),
+        $campaignId > 0 ? $campaignId : null
+    );
+    if ($previouslySent !== [] && empty($payload['allow_known_resend'])) {
+        $errors['allow_known_resend'] = 'Mindestens eine Adresse wurde bereits angeschrieben. Für ein bewusstes Re-Send bitte aktiv bestätigen: ' . $formatResendConflictList(array_values($previouslySent));
+    }
+
+    if ($errors !== []) {
+        $_SESSION['flash_error'] = 'Bitte prüfen Sie Anschreiben und Empfängerliste.';
+        $_SESSION['flash_errors'] = $errors;
+        $_SESSION['old'] = $payload;
+        $redirect($fallback);
+    }
+
+    if ($campaignId > 0 && $outreach()->findCampaignById($campaignId) !== null) {
+        $outreach()->updateCampaign(
+            $campaignId,
+            $payload['title'],
+            $payload['subject'],
+            $payload['body'],
+            $payload['from_email'],
+            $payload['from_name'],
+            !empty($payload['allow_known_resend']),
+            (int) ($authUser['id'] ?? 0)
+        );
+    } else {
+        $campaignId = $outreach()->createCampaign(
+            (int) ($authUser['id'] ?? 0),
+            $payload['title'],
+            $payload['subject'],
+            $payload['body'],
+            $payload['from_email'],
+            $payload['from_name'],
+            !empty($payload['allow_known_resend'])
+        );
+    }
+
+    $outreach()->replaceRecipients($campaignId, $recipients, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Outreach-Entwurf gespeichert. Versand bleibt blockiert, bis du Anschreiben und Empfängerliste freigibst.';
+    $redirect('/dashboard/outreach?campaign=' . $campaignId);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.approve') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $campaign = $campaignId > 0 ? $outreach()->findCampaignById($campaignId) : null;
+    if ($campaign === null) {
+        $_SESSION['flash_error'] = 'Kampagne wurde nicht gefunden.';
+        $redirect('/dashboard/outreach');
+    }
+
+    $recipients = $outreach()->listRecipients($campaignId);
+    if ($recipients === []) {
+        $_SESSION['flash_error'] = 'Ohne Empfängerliste ist keine Freigabe möglich.';
+        $redirect($fallback);
+    }
+
+    $outreach()->approveCampaign($campaignId, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Anschreiben und Empfängerliste wurden freigegeben. Erst jetzt ist der Versandbutton aktiv.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.send') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $campaign = $campaignId > 0 ? $outreach()->findCampaignById($campaignId) : null;
+    if ($campaign === null) {
+        $_SESSION['flash_error'] = 'Kampagne wurde nicht gefunden.';
+        $redirect('/dashboard/outreach');
+    }
+    if ((string) ($campaign['status'] ?? '') !== 'approved') {
+        $_SESSION['flash_error'] = 'Versand erst nach Freigabe von Anschreiben und Empfängerliste möglich.';
+        $redirect($fallback);
+    }
+
+    $approvedRecipients = $outreach()->listApprovedRecipients($campaignId);
+    if ($approvedRecipients === []) {
+        $_SESSION['flash_error'] = 'Es gibt keine freigegebenen Empfänger für den Versand.';
+        $redirect($fallback);
+    }
+
+    if (empty($campaign['allow_known_resend'])) {
+        $previouslySent = $outreach()->findPreviouslySentRecipientUsage(
+            array_map(static fn (array $recipient): string => (string) ($recipient['email'] ?? ''), $approvedRecipients),
+            $campaignId
+        );
+        if ($previouslySent !== []) {
+            $_SESSION['flash_error'] = 'Versand gestoppt: Mindestens eine Adresse wurde bereits in einer anderen Kampagne angeschrieben. ' . $formatResendConflictList(array_values($previouslySent));
+            $redirect($fallback);
+        }
+    }
+
+    $outreach()->markSendStarted($campaignId, (int) ($authUser['id'] ?? 0), count($approvedRecipients));
+    $sentCount = 0;
+    $failedCount = 0;
+    $failedEmails = [];
+
+    foreach ($approvedRecipients as $recipient) {
+        $mailResult = $mailer()->send(
+            (string) $recipient['email'],
+            (string) $campaign['subject'],
+            (string) $campaign['body'],
+            (string) $campaign['from_email'],
+            (string) $campaign['from_name']
+        );
+
+        if (($mailResult['ok'] ?? false) === true) {
+            $outreach()->markRecipientSent((int) $recipient['id']);
+            $sentCount++;
+        } else {
+            $outreach()->markRecipientFailed((int) $recipient['id'], $mailResult['error'] ?? 'Unbekannter Fehler');
+            $failedCount++;
+            $failedEmails[] = (string) ($recipient['email'] ?? '');
+        }
+    }
+
+    $finalStatus = $failedCount === 0 ? 'sent' : ($sentCount > 0 ? 'partial' : 'failed');
+    $outreach()->markSendCompleted(
+        $campaignId,
+        (int) ($authUser['id'] ?? 0),
+        $finalStatus,
+        $sentCount,
+        $failedCount,
+        $failedEmails
+    );
+
+    $_SESSION['flash_success'] = sprintf('Outreach-Versand abgeschlossen: %d versendet, %d fehlgeschlagen.', $sentCount, $failedCount);
+    if ($failedCount > 0) {
+        $_SESSION['flash_error'] = 'Mindestens ein Empfänger konnte nicht versendet werden. Details stehen in der Empfängerliste.';
+    }
+
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.reset') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $campaign = $campaignId > 0 ? $outreach()->findCampaignById($campaignId) : null;
+    if ($campaign === null) {
+        $_SESSION['flash_error'] = 'Kampagne wurde nicht gefunden.';
+        $redirect('/dashboard/outreach');
+    }
+
+    $outreach()->resetCampaignToDraft($campaignId, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Kampagne wurde auf Entwurf zurückgesetzt.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.retry_failed') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $campaign = $campaignId > 0 ? $outreach()->findCampaignById($campaignId) : null;
+    if ($campaign === null) {
+        $_SESSION['flash_error'] = 'Kampagne wurde nicht gefunden.';
+        $redirect('/dashboard/outreach');
+    }
+
+    $retryCount = $outreach()->reapproveFailedRecipients($campaignId, (int) ($authUser['id'] ?? 0));
+    if ($retryCount < 1) {
+        $_SESSION['flash_error'] = 'Es gibt keine fehlgeschlagenen Empfänger für einen Retry.';
+    } else {
+        $_SESSION['flash_success'] = sprintf('%d fehlgeschlagene Empfänger wurden erneut freigegeben.', $retryCount);
+    }
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.duplicate') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $newCampaignId = $campaignId > 0 ? $outreach()->duplicateCampaign($campaignId, (int) ($authUser['id'] ?? 0)) : 0;
+    if ($newCampaignId < 1) {
+        $_SESSION['flash_error'] = 'Kampagne konnte nicht dupliziert werden.';
+        $redirect($fallback);
+    }
+
+    $_SESSION['flash_success'] = 'Kampagne wurde als neuer Entwurf dupliziert.';
+    $redirect('/dashboard/outreach?campaign=' . $newCampaignId);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.outreach.archive') {
+    $authUser = $requireAuth('/dashboard/outreach');
+    $campaignId = (int) Request::post('campaign_id');
+    $fallback = '/dashboard/outreach' . ($campaignId > 0 ? '?campaign=' . $campaignId : '');
+    $requireCsrf($fallback);
+
+    $campaign = $campaignId > 0 ? $outreach()->findCampaignById($campaignId) : null;
+    if ($campaign === null) {
+        $_SESSION['flash_error'] = 'Kampagne wurde nicht gefunden.';
+        $redirect('/dashboard/outreach');
+    }
+
+    $outreach()->archiveCampaign($campaignId, (int) ($authUser['id'] ?? 0));
+    $_SESSION['flash_success'] = 'Kampagne wurde archiviert.';
+    $redirect('/dashboard/outreach');
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.inbox.sync') {
+    $requireAuth('/dashboard/inbox');
+    $requireCsrf('/dashboard/inbox');
+
+    $syncResult = $leadInboxSync()->sync();
+    if (($syncResult['ok'] ?? false) === true) {
+        $imported = (int) ($syncResult['imported'] ?? 0);
+        $skipped = (int) ($syncResult['skipped'] ?? 0);
+        $total = (int) ($syncResult['total'] ?? 0);
+        $mailbox = (string) ($syncResult['mailbox'] ?? '');
+        $_SESSION['flash_success'] = sprintf(
+            'IMAP-Import abgeschlossen: %d neu angelegt, %d übersprungen, %d geprüft%s',
+            $imported,
+            $skipped,
+            $total,
+            $mailbox !== '' ? ' (' . $mailbox . ')' : ''
+        );
+    } else {
+        $_SESSION['flash_error'] = (string) ($syncResult['error'] ?? 'IMAP-Import fehlgeschlagen.');
+    }
+
+    $redirect('/dashboard/inbox');
+}
+
 if (Request::method() === 'POST' && $action === 'dashboard.reference.save') {
     $requireAuth('/dashboard/references');
     $referenceId = (int) Request::post('reference_id');
@@ -489,10 +859,27 @@ $authUser = AuthSession::user();
 $dashboardContacts = [];
 $dashboardSelectedContact = null;
 $dashboardReplies = [];
+$dashboardInboxLeads = [];
+$dashboardCampaigns = [];
+$dashboardSelectedCampaign = null;
+$dashboardOutreachRecipients = [];
+$dashboardOutreachEvents = [];
+$dashboardOutreachForm = [];
+$dashboardCampaignFilter = (string) ($_GET['status'] ?? 'active');
 $dashboardReferences = [];
 $dashboardSelectedReference = null;
 $dashboardReferenceForm = [];
-$dashboardStats = ['open_contacts' => 0, 'references_total' => 0, 'references_visible' => 0];
+$dashboardStats = [
+    'open_contacts' => 0,
+    'references_total' => 0,
+    'references_visible' => 0,
+    'inbound_leads' => 0,
+    'outreach_drafts' => 0,
+    'outreach_approved' => 0,
+    'outreach_sent' => 0,
+    'outreach_failed' => 0,
+    'outreach_archived' => 0,
+];
 $dashboardProfileUser = is_array($authUser) ? $users()->findById((int) ($authUser['id'] ?? 0)) : null;
 
 if ($isDashboardRoute && is_array($authUser)) {
@@ -501,6 +888,12 @@ if ($isDashboardRoute && is_array($authUser)) {
         $dashboardReferences = $referencesRepo()->listAll();
         $dashboardStats['references_total'] = count($dashboardReferences);
         $dashboardStats['references_visible'] = count(array_filter($dashboardReferences, static fn (array $item): bool => !empty($item['is_visible'])));
+        $dashboardStats['inbound_leads'] = $contacts()->countInbound();
+        $dashboardStats['outreach_drafts'] = $outreach()->countDraftCampaigns();
+        $dashboardStats['outreach_approved'] = $outreach()->countApprovedCampaigns();
+        $dashboardStats['outreach_sent'] = $outreach()->countSentCampaigns();
+        $dashboardStats['outreach_failed'] = $outreach()->countFailedCampaigns();
+        $dashboardStats['outreach_archived'] = $outreach()->countArchivedCampaigns();
 
         if ($dashboardSection === 'postbox' || $dashboardSection === 'home') {
             $dashboardContacts = $contacts()->listForDashboard();
@@ -511,6 +904,57 @@ if ($isDashboardRoute && is_array($authUser)) {
                     $dashboardReplies = $contacts()->listReplies($selectedContactId);
                 }
             }
+        }
+
+        if ($dashboardSection === 'inbox' || $dashboardSection === 'home') {
+            $dashboardInboxLeads = $contacts()->listInboundLeads(25);
+        }
+
+        if ($dashboardSection === 'outreach' || $dashboardSection === 'home') {
+            $allowedCampaignFilters = ['active', 'all', 'draft', 'approved', 'sending', 'sent', 'partial', 'failed', 'archived'];
+            if (!in_array($dashboardCampaignFilter, $allowedCampaignFilters, true)) {
+                $dashboardCampaignFilter = 'active';
+            }
+
+            $dashboardCampaigns = $outreach()->listCampaigns($dashboardCampaignFilter);
+            $selectedCampaignId = isset($_GET['campaign']) ? (int) $_GET['campaign'] : (isset($dashboardCampaigns[0]['id']) ? (int) $dashboardCampaigns[0]['id'] : 0);
+            if ($selectedCampaignId > 0) {
+                $dashboardSelectedCampaign = $outreach()->findCampaignById($selectedCampaignId);
+                if (is_array($dashboardSelectedCampaign)) {
+                    $dashboardOutreachRecipients = $outreach()->listRecipients($selectedCampaignId);
+                    $dashboardOutreachEvents = $outreach()->listEvents($selectedCampaignId);
+                }
+            }
+
+            $dashboardOutreachForm = is_array($old) && isset($old['recipients_raw']) ? $old : (
+                is_array($dashboardSelectedCampaign)
+                    ? [
+                        'title' => (string) $dashboardSelectedCampaign['title'],
+                        'subject' => (string) $dashboardSelectedCampaign['subject'],
+                        'body' => (string) $dashboardSelectedCampaign['body'],
+                        'from_email' => (string) $dashboardSelectedCampaign['from_email'],
+                        'from_name' => (string) $dashboardSelectedCampaign['from_name'],
+                        'allow_known_resend' => !empty($dashboardSelectedCampaign['allow_known_resend']),
+                        'recipients_raw' => implode(PHP_EOL, array_map(
+                            static fn (array $recipient): string => implode(' | ', array_filter([
+                                (string) ($recipient['email'] ?? ''),
+                                (string) ($recipient['company_name'] ?? ''),
+                                (string) ($recipient['contact_name'] ?? ''),
+                                (string) ($recipient['notes'] ?? ''),
+                            ], static fn (string $value): bool => $value !== '')),
+                            $dashboardOutreachRecipients
+                        )),
+                    ]
+                    : [
+                        'title' => '',
+                        'subject' => '',
+                        'body' => '',
+                        'from_email' => trim((string) Env::get('MAIL_FROM_ADDRESS', 'info@rddigital.de')),
+                        'from_name' => trim((string) Env::get('MAIL_FROM_NAME', 'RD Formstack Solutions')),
+                        'allow_known_resend' => false,
+                        'recipients_raw' => '',
+                    ]
+            );
         }
 
         if ($dashboardSection === 'references') {
@@ -593,15 +1037,22 @@ SiteRenderer::render('layout.php', [
     'canonicalUrl' => $canonicalUrl,
     'contactHighlights' => $contactHighlights,
     'csrfToken' => Csrf::token(),
+    'dashboardCampaigns' => $dashboardCampaigns,
+    'dashboardCampaignFilter' => $dashboardCampaignFilter,
     'dashboardContacts' => $dashboardContacts,
+    'dashboardOutreachEvents' => $dashboardOutreachEvents,
+    'dashboardOutreachForm' => $dashboardOutreachForm,
+    'dashboardOutreachRecipients' => $dashboardOutreachRecipients,
     'dashboardProfileUser' => $dashboardProfileUser,
     'dashboardReferenceForm' => $dashboardReferenceForm,
     'dashboardReferences' => $dashboardReferences,
     'dashboardReplies' => $dashboardReplies,
     'dashboardSection' => $dashboardSection,
+    'dashboardSelectedCampaign' => $dashboardSelectedCampaign,
     'dashboardSelectedContact' => $dashboardSelectedContact,
     'dashboardSelectedReference' => $dashboardSelectedReference,
     'dashboardStats' => $dashboardStats,
+    'dashboardInboxLeads' => $dashboardInboxLeads,
     'e' => $e,
     'flashError' => $flashError,
     'flashErrors' => $flashErrors,
