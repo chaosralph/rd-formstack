@@ -554,7 +554,7 @@ $dashboardRoleLabels = [
                 <aside class="service-card dashboard-list-card">
                     <div class="dashboard-list-card-head">
                         <h2>DMS-Dokumente</h2>
-                        <a class="btn btn-ghost btn-sm" href="/dashboard/dms">Neu</a>
+                        <a class="btn btn-ghost btn-sm" href="/dashboard/dms?status=<?= $e((string) ($dashboardDmsStatusFilter ?? 'all')) ?>&q=<?= urlencode((string) ($dashboardDmsSearch ?? '')) ?>&document=new">Neu</a>
                     </div>
                     <form method="get" action="/dashboard/dms" class="auth-form-stack dashboard-form-stack" style="margin-top:0; gap:10px;">
                         <label for="dms-search">Suche</label>

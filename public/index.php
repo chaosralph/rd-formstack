@@ -815,7 +815,7 @@ if (Request::method() === 'POST' && $action === 'dashboard.dms.create') {
         $_SESSION['flash_error'] = 'Bitte DMS-Titel, Kategorie und Datei prüfen.';
         $_SESSION['flash_errors'] = $errors;
         $_SESSION['old'] = $payload;
-        $redirect('/dashboard/dms');
+        $redirect('/dashboard/dms?document=new');
     }
 
     $documentId = $dms()->createDocument(
@@ -1314,7 +1314,17 @@ if ($isDashboardRoute && is_array($authUser)) {
 
             if ($dashboardSection === 'dms') {
                 $dashboardDmsDocuments = $dms()->listDocuments($dashboardDmsSearch, $dashboardDmsStatusFilter);
-                $selectedDmsDocumentId = isset($_GET['document']) ? (int) $_GET['document'] : (isset($dashboardDmsDocuments[0]['id']) ? (int) $dashboardDmsDocuments[0]['id'] : 0);
+                $selectedDmsDocumentRaw = $_GET['document'] ?? null;
+                $selectedDmsDocumentId = 0;
+
+                if ($selectedDmsDocumentRaw === 'new') {
+                    $dashboardSelectedDmsDocument = null;
+                } elseif (is_string($selectedDmsDocumentRaw) && ctype_digit($selectedDmsDocumentRaw)) {
+                    $selectedDmsDocumentId = (int) $selectedDmsDocumentRaw;
+                } elseif ($selectedDmsDocumentRaw === null && isset($dashboardDmsDocuments[0]['id'])) {
+                    $selectedDmsDocumentId = (int) $dashboardDmsDocuments[0]['id'];
+                }
+
                 if ($selectedDmsDocumentId > 0) {
                     $dashboardSelectedDmsDocument = $dms()->findDocumentById($selectedDmsDocumentId);
                     if (is_array($dashboardSelectedDmsDocument)) {
