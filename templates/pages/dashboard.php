@@ -429,6 +429,10 @@ $dashboardNavItems = [
                                 </form>
                             </div>
 
+                            <?php if (empty($dashboardCanApproveDms)): ?>
+                                <p class="form-help">Dein Account kann Dokumente anlegen, hochladen und einreichen. Freigaben sind aktuell nur für Admins aktiv.</p>
+                            <?php endif; ?>
+
                             <div class="dashboard-action-row" style="margin-top:12px">
                                 <form method="post" action="/dashboard/outreach?status=<?= $e((string) ($dashboardCampaignFilter ?? 'active')) ?>&campaign=<?= $e((string) $dashboardSelectedCampaign['id']) ?>" style="margin-top:0">
                                     <input type="hidden" name="_action" value="dashboard.outreach.reset">
@@ -672,14 +676,14 @@ $dashboardNavItems = [
                                     <input type="hidden" name="_action" value="dashboard.dms.approve">
                                     <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
                                     <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
-                                    <button class="btn btn-primary" type="submit"<?= (string) ($dashboardSelectedDmsDocument['status'] ?? '') === 'in_review' ? '' : ' disabled' ?>>Freigeben</button>
+                                    <button class="btn btn-primary" type="submit"<?= ((string) ($dashboardSelectedDmsDocument['status'] ?? '') === 'in_review' && !empty($dashboardCanApproveDms)) ? '' : ' disabled' ?>>Freigeben</button>
                                 </form>
 
                                 <form method="post" action="/dashboard/dms?document=<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>" style="margin-top:0">
                                     <input type="hidden" name="_action" value="dashboard.dms.reset">
                                     <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
                                     <input type="hidden" name="document_id" value="<?= $e((string) $dashboardSelectedDmsDocument['id']) ?>">
-                                    <button class="btn btn-danger" type="submit">Auf Draft zurücksetzen</button>
+                                    <button class="btn btn-danger" type="submit"<?= !empty($dashboardCanApproveDms) ? '' : ' disabled' ?>>Auf Draft zurücksetzen</button>
                                 </form>
                             </div>
                         <?php else: ?>

@@ -193,6 +193,18 @@ $readUploadedDmsFile = static function (string $field): array {
     ];
 };
 
+$isDmsApprover = static function (array $user): bool {
+    $role = strtolower(trim((string) ($user['role'] ?? '')));
+    return in_array($role, ['admin'], true);
+};
+
+$requireDmsApprover = static function (array $user, string $fallback) use ($redirect, $isDmsApprover): void {
+    if (!$isDmsApprover($user)) {
+        $_SESSION['flash_error'] = 'Für diese DMS-Freigabeaktion fehlen die Rechte.';
+        $redirect($fallback);
+    }
+};
+
 $normalizeOutreachPayload = static function (): array {
     return [
         'title' => trim(Request::post('title')),
@@ -902,6 +914,7 @@ if (Request::method() === 'POST' && $action === 'dashboard.dms.approve') {
     $documentId = (int) Request::post('document_id');
     $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
     $requireCsrf($fallback);
+    $requireDmsApprover($authUser, $fallback);
 
     $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
     if (!is_array($document)) {
@@ -919,6 +932,7 @@ if (Request::method() === 'POST' && $action === 'dashboard.dms.reset') {
     $documentId = (int) Request::post('document_id');
     $fallback = '/dashboard/dms' . ($documentId > 0 ? '?document=' . $documentId : '');
     $requireCsrf($fallback);
+    $requireDmsApprover($authUser, $fallback);
 
     $document = $documentId > 0 ? $dms()->findDocumentById($documentId) : null;
     if (!is_array($document)) {
@@ -1155,6 +1169,7 @@ $dashboardStats = [
     'outreach_archived' => 0,
 ];
 $dashboardProfileUser = is_array($authUser) ? $users()->findById((int) ($authUser['id'] ?? 0)) : null;
+$dashboardCanApproveDms = is_array($authUser) ? $isDmsApprover($authUser) : false;
 
 if ($isDashboardRoute && is_array($authUser)) {
     try {
@@ -1351,6 +1366,7 @@ SiteRenderer::render('layout.php', [
     'csrfToken' => Csrf::token(),
     'dashboardCampaigns' => $dashboardCampaigns,
     'dashboardCampaignFilter' => $dashboardCampaignFilter,
+    'dashboardCanApproveDms' => $dashboardCanApproveDms,
     'dashboardContacts' => $dashboardContacts,
     'dashboardDmsDocuments' => $dashboardDmsDocuments,
     'dashboardDmsEvents' => $dashboardDmsEvents,

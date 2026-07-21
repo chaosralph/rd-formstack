@@ -46,6 +46,27 @@ final class AuthSession
         return is_array($user) ? $user : null;
     }
 
+    public static function hasRole(string ...$roles): bool
+    {
+        $user = self::user();
+        if (!is_array($user)) {
+            return false;
+        }
+
+        $role = strtolower(trim((string) ($user['role'] ?? '')));
+        if ($role == '') {
+            return false;
+        }
+
+        foreach ($roles as $allowedRole) {
+            if ($role === strtolower(trim($allowedRole))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static function rememberIntendedPath(string $path): void
     {
         $_SESSION[self::INTENDED_PATH_KEY] = $path;
