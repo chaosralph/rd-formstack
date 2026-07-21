@@ -263,41 +263,46 @@ $dashboardRoleLabels = [
                 </div>
             </div>
         <?php elseif ($dashboardSection === 'inbox'): ?>
-            <div class="dashboard-postbox-layout dashboard-references-layout">
-                <article class="service-card dashboard-detail-card">
-                    <div class="dashboard-detail-card-head">
-                        <div>
-                            <h2>IMAP-Inbox synchronisieren</h2>
-                            <p>Neue Nachrichten werden aus dem Postfach gelesen und als Leads in die Postbox übernommen.</p>
-                        </div>
-                        <span class="tag">IMAP</span>
-                    </div>
-
-                    <div class="dashboard-action-row" style="margin-top:12px">
-                        <form method="post" action="/dashboard/inbox" class="dashboard-inline-danger-form" style="margin-top:0">
-                            <input type="hidden" name="_action" value="dashboard.inbox.sync">
-                            <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
-                            <button class="btn btn-primary" type="submit">Jetzt synchronisieren</button>
-                        </form>
-                        <span class="tag">Inbox-Leads: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
-                        <span class="tag"><?= $imapReady ? 'IMAP bereit' : ($imapConfigured ? 'IMAP-Bibliothek fehlt' : 'IMAP unvollständig konfiguriert') ?></span>
-                        <span class="tag"><?= $smtpReady ? 'SMTP bereit' : ($smtpConfigured ? 'SMTP unvollständig konfiguriert' : 'SMTP nicht konfiguriert') ?></span>
-                    </div>
-
-                    <p style="margin-top:12px">Konfiguration: Host, Port, Verschlüsselung, Benutzer und Passwort werden aus .env gelesen.</p>
-                </article>
-
+            <div class="dashboard-postbox-layout">
                 <aside class="service-card dashboard-list-card">
                     <div class="dashboard-list-card-head">
-                        <h2>Neueste importierte Leads</h2>
-                        <span class="tag"><?= $e((string) count($dashboardInboxLeads)) ?> Einträge</span>
+                        <div>
+                            <h2>Inbox-Leads</h2>
+                            <p>IMAP-Importierte Nachrichten werden hier bearbeitet. Die Postbox bleibt nur für Website-Kontaktanfragen.</p>
+                        </div>
+                        <span class="tag"><?= $e((string) count($dashboardInboxLeads)) ?> sichtbar</span>
                     </div>
+
+                    <form method="get" action="/dashboard/inbox" class="auth-form-stack dashboard-form-stack dashboard-filter-form">
+                        <label for="inbox-status-filter">Status</label>
+                        <select id="inbox-status-filter" name="status">
+                            <?php foreach (['active' => 'Aktiv', 'all' => 'Alle', 'new' => 'Neu', 'in_progress' => 'In Bearbeitung', 'answered' => 'Beantwortet', 'archived' => 'Archiviert', 'spam' => 'Spam'] as $value => $label): ?>
+                                <option value="<?= $e($value) ?>"<?= $dashboardInboxStatusFilter === $value ? ' selected' : '' ?>><?= $e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <label for="inbox-label-filter">Label</label>
+                        <select id="inbox-label-filter" name="label">
+                            <option value="all"<?= $dashboardInboxLabelFilter === 'all' ? ' selected' : '' ?>>Alle Labels</option>
+                            <option value="unlabeled"<?= $dashboardInboxLabelFilter === 'unlabeled' ? ' selected' : '' ?>>Ohne Label</option>
+                            <?php foreach ($dashboardInboxLabels as $label): ?>
+                                <option value="<?= $e($label) ?>"<?= $dashboardInboxLabelFilter === $label ? ' selected' : '' ?>><?= $e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <div class="dashboard-action-row">
+                            <button class="btn btn-primary" type="submit">Filter anwenden</button>
+                            <a class="btn btn-ghost" href="/dashboard/inbox">Zurücksetzen</a>
+                        </div>
+                    </form>
+
                     <?php if ($dashboardInboxLeads === []): ?>
-                        <p>Noch keine importierten IMAP-Leads vorhanden.</p>
+                        <p>Für den aktuellen Filter liegen keine IMAP-Leads vor.</p>
                     <?php else: ?>
                         <div class="dashboard-contact-list">
                             <?php foreach ($dashboardInboxLeads as $lead): ?>
-                                <article class="dashboard-contact-item">
+                                <?php $leadHref = '/dashboard/inbox?' . http_build_query(['status' => $dashboardInboxStatusFilter, 'label' => $dashboardInboxLabelFilter, 'lead' => (string) $lead['id']]); ?>
+                                <a class="dashboard-contact-item<?= is_array($dashboardSelectedInboxLead) && (int) $dashboardSelectedInboxLead['id'] === (int) $lead['id'] ? ' is-active' : '' ?>" href="<?= $e($leadHref) ?>">
                                     <div class="dashboard-contact-item-head">
                                         <strong><?= $e((string) ($lead['name'] !== '' ? $lead['name'] : $lead['email'])) ?></strong>
                                         <span class="tag tag-status tag-status-<?= $e((string) $lead['status']) ?>"><?= $e((string) $lead['status']) ?></span>
@@ -305,16 +310,156 @@ $dashboardRoleLabels = [
                                     <p><?= $e((string) $lead['email']) ?></p>
                                     <small>
                                         <?= $e((string) ($lead['source_received_at'] !== '' ? $lead['source_received_at'] : $lead['created_at'])) ?>
-                                        · UID: <?= $e((string) $lead['source_uid']) ?>
+                                        <?php if (($lead['source_uid'] ?? '') !== ''): ?> · UID: <?= $e((string) $lead['source_uid']) ?><?php endif; ?>
+                                        · Antworten: <?= $e((string) $lead['reply_count']) ?>
                                     </small>
+                                    <?php if (($lead['inbox_label'] ?? '') !== ''): ?>
+                                        <small>Label: <?= $e((string) $lead['inbox_label']) ?></small>
+                                    <?php endif; ?>
                                     <?php if (($lead['source_subject'] ?? '') !== ''): ?>
                                         <p><strong>Betreff:</strong> <?= $e((string) $lead['source_subject']) ?></p>
                                     <?php endif; ?>
-                                </article>
+                                </a>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
                 </aside>
+
+                <div class="dashboard-detail-stack">
+                    <article class="service-card dashboard-detail-card">
+                        <div class="dashboard-detail-card-head">
+                            <div>
+                                <h2>IMAP-Inbox synchronisieren</h2>
+                                <p>Neue Nachrichten werden aus dem Postfach gelesen und direkt in diese Arbeits-Inbox übernommen.</p>
+                            </div>
+                            <span class="tag">IMAP</span>
+                        </div>
+
+                        <div class="dashboard-action-row" style="margin-top:12px">
+                            <form method="post" action="/dashboard/inbox" class="dashboard-inline-danger-form" style="margin-top:0">
+                                <input type="hidden" name="_action" value="dashboard.inbox.sync">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                <button class="btn btn-primary" type="submit">Jetzt synchronisieren</button>
+                            </form>
+                            <span class="tag">Inbox-Leads gesamt: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
+                            <span class="tag"><?= $imapReady ? 'IMAP bereit' : ($imapConfigured ? 'IMAP-Bibliothek fehlt' : 'IMAP unvollständig konfiguriert') ?></span>
+                            <span class="tag"><?= $smtpReady ? 'SMTP bereit' : ($smtpConfigured ? 'SMTP unvollständig konfiguriert' : 'SMTP nicht konfiguriert') ?></span>
+                        </div>
+
+                        <p style="margin-top:12px">Konfiguration: Host, Port, Verschlüsselung, Benutzer und Passwort werden aus .env gelesen.</p>
+                    </article>
+
+                    <?php if (is_array($dashboardSelectedInboxLead)): ?>
+                        <article class="service-card dashboard-detail-card">
+                            <div class="dashboard-detail-card-head">
+                                <div>
+                                    <h2><?= $e((string) ($dashboardSelectedInboxLead['name'] !== '' ? $dashboardSelectedInboxLead['name'] : $dashboardSelectedInboxLead['email'])) ?></h2>
+                                    <p><?= $e((string) $dashboardSelectedInboxLead['email']) ?><?php if (($dashboardSelectedInboxLead['phone'] ?? '') !== ''): ?> · <?= $e((string) $dashboardSelectedInboxLead['phone']) ?><?php endif; ?></p>
+                                    <?php if (($dashboardSelectedInboxLead['company'] ?? '') !== ''): ?><p>Unternehmen: <?= $e((string) $dashboardSelectedInboxLead['company']) ?></p><?php endif; ?>
+                                </div>
+                                <div class="dashboard-detail-badges">
+                                    <span class="tag tag-status tag-status-<?= $e((string) $dashboardSelectedInboxLead['status']) ?>"><?= $e((string) $dashboardSelectedInboxLead['status']) ?></span>
+                                    <?php if (($dashboardSelectedInboxLead['inbox_label'] ?? '') !== ''): ?>
+                                        <span class="tag">Label: <?= $e((string) $dashboardSelectedInboxLead['inbox_label']) ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="dashboard-message-box">
+                                <h3>Metadaten</h3>
+                                <ul class="dashboard-meta-list">
+                                    <li><strong>Empfangen:</strong> <?= $e((string) ($dashboardSelectedInboxLead['source_received_at'] !== '' ? $dashboardSelectedInboxLead['source_received_at'] : $dashboardSelectedInboxLead['created_at'])) ?></li>
+                                    <?php if (($dashboardSelectedInboxLead['source_subject'] ?? '') !== ''): ?><li><strong>Betreff:</strong> <?= $e((string) $dashboardSelectedInboxLead['source_subject']) ?></li><?php endif; ?>
+                                    <?php if (($dashboardSelectedInboxLead['source_mailbox'] ?? '') !== ''): ?><li><strong>Mailbox:</strong> <?= $e((string) $dashboardSelectedInboxLead['source_mailbox']) ?></li><?php endif; ?>
+                                    <?php if (($dashboardSelectedInboxLead['source_uid'] ?? '') !== ''): ?><li><strong>UID:</strong> <?= $e((string) $dashboardSelectedInboxLead['source_uid']) ?></li><?php endif; ?>
+                                </ul>
+                            </div>
+
+                            <div class="dashboard-message-box">
+                                <h3>Nachricht</h3>
+                                <p><?= nl2br($e((string) $dashboardSelectedInboxLead['message'])) ?></p>
+                            </div>
+
+                            <form method="post" action="<?= $e('/dashboard/inbox?' . http_build_query(['status' => $dashboardInboxStatusFilter, 'label' => $dashboardInboxLabelFilter, 'lead' => (string) $dashboardSelectedInboxLead['id']])) ?>" class="auth-form-stack dashboard-form-stack">
+                                <input type="hidden" name="_action" value="dashboard.inbox.update_meta">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                <input type="hidden" name="contact_id" value="<?= $e((string) $dashboardSelectedInboxLead['id']) ?>">
+                                <input type="hidden" name="status_filter" value="<?= $e($dashboardInboxStatusFilter) ?>">
+                                <input type="hidden" name="label_filter" value="<?= $e($dashboardInboxLabelFilter) ?>">
+
+                                <label for="inbox-status">Status</label>
+                                <select id="inbox-status" name="status">
+                                    <?php foreach (['new' => 'Neu', 'in_progress' => 'In Bearbeitung', 'answered' => 'Beantwortet', 'archived' => 'Archiviert', 'spam' => 'Spam'] as $value => $label): ?>
+                                        <option value="<?= $e($value) ?>"<?= (string) $dashboardSelectedInboxLead['status'] === $value ? ' selected' : '' ?>><?= $e($label) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+
+                                <label for="inbox-label">Label</label>
+                                <input id="inbox-label" type="text" name="inbox_label" maxlength="80" value="<?= $e((string) ($old['inbox_label'] ?? $dashboardSelectedInboxLead['inbox_label'])) ?>" placeholder="z. B. Kunde, Partner, Bestand, Spam">
+
+                                <label for="inbox-note">Interne Notiz</label>
+                                <textarea id="inbox-note" name="admin_note" rows="5"><?= $e((string) ($old['inbox_note'] ?? $dashboardSelectedInboxLead['admin_note'])) ?></textarea>
+
+                                <div class="dashboard-action-row">
+                                    <button class="btn btn-ghost" type="submit">Status, Label und Notiz speichern</button>
+                                    <button class="btn btn-ghost" type="submit" name="quick_status" value="archived">Sofort archivieren</button>
+                                    <button class="btn btn-danger" type="submit" name="quick_status" value="spam">Als Spam markieren</button>
+                                </div>
+                            </form>
+                        </article>
+
+                        <article class="service-card dashboard-detail-card">
+                            <h2>Per E-Mail antworten</h2>
+                            <form method="post" action="<?= $e('/dashboard/inbox?' . http_build_query(['status' => $dashboardInboxStatusFilter, 'label' => $dashboardInboxLabelFilter, 'lead' => (string) $dashboardSelectedInboxLead['id']])) ?>" class="auth-form-stack dashboard-form-stack">
+                                <input type="hidden" name="_action" value="dashboard.inbox.reply">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrfToken) ?>">
+                                <input type="hidden" name="contact_id" value="<?= $e((string) $dashboardSelectedInboxLead['id']) ?>">
+                                <input type="hidden" name="status_filter" value="<?= $e($dashboardInboxStatusFilter) ?>">
+                                <input type="hidden" name="label_filter" value="<?= $e($dashboardInboxLabelFilter) ?>">
+
+                                <label for="inbox-reply-subject">Betreff</label>
+                                <input id="inbox-reply-subject" type="text" name="subject" required value="<?= $e((string) ($old['inbox_reply_subject'] ?? (($dashboardSelectedInboxLead['source_subject'] ?? '') !== '' ? 'Re: ' . (string) $dashboardSelectedInboxLead['source_subject'] : 'Ihre Nachricht an RD Formstack Solutions'))) ?>">
+
+                                <label for="inbox-reply-body">Antwort</label>
+                                <textarea id="inbox-reply-body" name="body" rows="9" required><?= $e((string) ($old['inbox_reply_body'] ?? '')) ?></textarea>
+
+                                <button class="btn btn-primary" type="submit">Antwort senden</button>
+                            </form>
+                        </article>
+
+                        <article class="service-card dashboard-detail-card">
+                            <div class="dashboard-list-card-head">
+                                <h2>Antwortverlauf</h2>
+                                <span class="tag"><?= $e((string) count($dashboardInboxReplies)) ?> Antworten</span>
+                            </div>
+                            <?php if ($dashboardInboxReplies === []): ?>
+                                <p>Noch kein Antwortverlauf vorhanden.</p>
+                            <?php else: ?>
+                                <div class="dashboard-reply-history">
+                                    <?php foreach ($dashboardInboxReplies as $reply): ?>
+                                        <article class="dashboard-reply-item">
+                                            <div class="dashboard-reply-item-head">
+                                                <strong><?= $e((string) $reply['subject']) ?></strong>
+                                                <span class="tag<?= $reply['sent_success'] ? '' : ' tag-warning' ?>"><?= $reply['sent_success'] ? 'versendet' : 'fehlgeschlagen' ?></span>
+                                            </div>
+                                            <p>An: <?= $e((string) $reply['recipient_email']) ?> · Von: <?= $e((string) $reply['user_display_name']) ?></p>
+                                            <p><?= nl2br($e((string) $reply['body'])) ?></p>
+                                            <?php if (!$reply['sent_success'] && (string) $reply['error_message'] !== ''): ?>
+                                                <p class="form-help form-help-error">Fehler: <?= $e((string) $reply['error_message']) ?></p>
+                                            <?php endif; ?>
+                                            <small><?= $e((string) ($reply['sent_at'] !== '' ? $reply['sent_at'] : $reply['created_at'])) ?></small>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </article>
+                    <?php else: ?>
+                        <article class="service-card dashboard-detail-card">
+                            <h2>Kein Inbox-Lead ausgewählt</h2>
+                            <p>Wählen Sie links einen importierten Lead aus, um Nachricht, Label, Status und Antwortverlauf zu bearbeiten.</p>
+                        </article>
+                    <?php endif; ?>
+                </div>
             </div>
         <?php elseif ($dashboardSection === 'outreach'): ?>
             <div class="dashboard-postbox-layout dashboard-references-layout">

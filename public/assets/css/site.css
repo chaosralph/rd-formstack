@@ -870,6 +870,26 @@ h3 { font-size: clamp(1.25rem, 2.6vw, 1.45rem); }
     margin-top: 12px;
 }
 
+.dashboard-filter-form {
+    margin: 12px 0 16px;
+}
+
+.dashboard-detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.dashboard-meta-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.dashboard-meta-list li {
+    margin: 4px 0;
+}
+
 .dashboard-profile-grid {
     align-items: start;
 }
@@ -888,6 +908,10 @@ h3 { font-size: clamp(1.25rem, 2.6vw, 1.45rem); }
 
 .tag-status-archived {
     background: #f3f4f6;
+}
+
+.tag-status-spam {
+    background: #fdecec;
 }
 
 .tag-warning {

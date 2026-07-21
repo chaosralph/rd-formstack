@@ -24,15 +24,16 @@ final class ContactRepository
         ?string $sourceSubject = null,
         ?string $sourceReceivedAt = null,
         ?string $sourceMeta = null,
+        ?string $inboxLabel = null,
     ): int {
         $stmt = $this->pdo->prepare(
             'INSERT INTO contacts (
                 name, company, email, phone, message, status, created_at, updated_at,
-                source_type, source_mailbox, source_uid, source_subject, source_received_at, source_meta
+                source_type, source_mailbox, source_uid, source_subject, source_received_at, source_meta, inbox_label
              )
              VALUES (
                 :name, :company, :email, :phone, :message, :status, NOW(), NOW(),
-                :source_type, :source_mailbox, :source_uid, :source_subject, :source_received_at, :source_meta
+                :source_type, :source_mailbox, :source_uid, :source_subject, :source_received_at, :source_meta, :inbox_label
              )'
         );
 
@@ -49,12 +50,13 @@ final class ContactRepository
             ':source_subject' => $sourceSubject !== null && trim($sourceSubject) !== '' ? trim($sourceSubject) : null,
             ':source_received_at' => $sourceReceivedAt !== null && trim($sourceReceivedAt) !== '' ? trim($sourceReceivedAt) : null,
             ':source_meta' => $sourceMeta !== null && trim($sourceMeta) !== '' ? trim($sourceMeta) : null,
+            ':inbox_label' => $inboxLabel !== null && trim($inboxLabel) !== '' ? trim($inboxLabel) : null,
         ]);
 
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array{ name:string, company:string, email:string, phone:string, message:string, source_type:string, source_mailbox:?string, source_uid:?string, source_subject:?string, source_received_at:?string, source_meta:?string } $payload */
+    /** @param array{ name:string, company:string, email:string, phone:string, message:string, source_type:string, source_mailbox:?string, source_uid:?string, source_subject:?string, source_received_at:?string, source_meta:?string, inbox_label?:?string } $payload */
     public function upsertInboundLead(array $payload): bool
     {
         $sourceType = trim($payload['source_type'] ?? 'imap');
@@ -90,6 +92,7 @@ final class ContactRepository
             $payload['source_subject'] ?? null,
             $payload['source_received_at'] ?? null,
             $payload['source_meta'] ?? null,
+            $payload['inbox_label'] ?? null,
         );
 
         return true;
@@ -100,9 +103,10 @@ final class ContactRepository
     {
         $stmt = $this->pdo->query(
             'SELECT c.id, c.name, c.company, c.email, c.phone, c.message, c.status, c.admin_note, c.replied_at, c.created_at, c.updated_at,
-                    c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta,
+                    c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta, c.inbox_label,
                     (SELECT COUNT(*) FROM contact_replies r WHERE r.contact_id = c.id) AS reply_count
              FROM contacts c
+             WHERE c.source_type = "form"
              ORDER BY
                 CASE c.status
                     WHEN "new" THEN 0
@@ -118,22 +122,59 @@ final class ContactRepository
     }
 
     /** @return list<array<string,mixed>> */
-    public function listInboundLeads(int $limit = 25): array
+    public function listInboundLeads(int $limit = 25, string $statusFilter = 'active', string $labelFilter = 'all'): array
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT c.id, c.name, c.company, c.email, c.phone, c.message, c.status, c.admin_note, c.replied_at, c.created_at, c.updated_at,
-                    c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta,
-                    (SELECT COUNT(*) FROM contact_replies r WHERE r.contact_id = c.id) AS reply_count
-             FROM contacts c
-             WHERE c.source_type = :source_type
-             ORDER BY COALESCE(c.source_received_at, c.created_at) DESC, c.id DESC
-             LIMIT :limit'
-        );
-        $stmt->bindValue(':source_type', 'imap');
+        $sql = 'SELECT c.id, c.name, c.company, c.email, c.phone, c.message, c.status, c.admin_note, c.replied_at, c.created_at, c.updated_at,
+                       c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta, c.inbox_label,
+                       (SELECT COUNT(*) FROM contact_replies r WHERE r.contact_id = c.id) AS reply_count
+                FROM contacts c
+                WHERE c.source_type = :source_type';
+        $params = [':source_type' => 'imap'];
+
+        $allowedStatusFilters = ['active', 'all', 'new', 'in_progress', 'answered', 'archived', 'spam'];
+        if (!in_array($statusFilter, $allowedStatusFilters, true)) {
+            $statusFilter = 'active';
+        }
+
+        if ($statusFilter === 'active') {
+            $sql .= ' AND c.status IN ("new", "in_progress", "answered")';
+        } elseif ($statusFilter !== 'all') {
+            $sql .= ' AND c.status = :status_filter';
+            $params[':status_filter'] = $statusFilter;
+        }
+
+        if ($labelFilter === 'unlabeled') {
+            $sql .= ' AND COALESCE(NULLIF(TRIM(c.inbox_label), ""), "") = ""';
+        } elseif ($labelFilter !== 'all' && trim($labelFilter) !== '') {
+            $sql .= ' AND c.inbox_label = :label_filter';
+            $params[':label_filter'] = trim($labelFilter);
+        }
+
+        $sql .= ' ORDER BY COALESCE(c.source_received_at, c.created_at) DESC, c.id DESC LIMIT :limit';
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $name => $value) {
+            $stmt->bindValue($name, $value);
+        }
         $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
         $stmt->execute();
 
         return array_map([$this, 'hydrateContact'], $stmt->fetchAll());
+    }
+
+    /** @return list<string> */
+    public function listInboundLabels(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT DISTINCT TRIM(inbox_label) AS inbox_label
+             FROM contacts
+             WHERE source_type = "imap"
+               AND inbox_label IS NOT NULL
+               AND TRIM(inbox_label) <> ""
+             ORDER BY inbox_label ASC'
+        );
+
+        return array_values(array_filter(array_map(static fn (mixed $value): string => trim((string) $value), $stmt->fetchAll(PDO::FETCH_COLUMN))));
     }
 
     /** @return array<string,mixed>|null */
@@ -141,6 +182,7 @@ final class ContactRepository
     {
         $stmt = $this->pdo->prepare(
             'SELECT c.id, c.name, c.company, c.email, c.phone, c.message, c.status, c.admin_note, c.replied_at, c.created_at, c.updated_at,
+                    c.source_type, c.source_mailbox, c.source_uid, c.source_subject, c.source_received_at, c.source_meta, c.inbox_label,
                     (SELECT COUNT(*) FROM contact_replies r WHERE r.contact_id = c.id) AS reply_count
              FROM contacts c
              WHERE c.id = :id
@@ -165,6 +207,24 @@ final class ContactRepository
             ':id' => $id,
             ':status' => $status,
             ':admin_note' => trim($adminNote) !== '' ? trim($adminNote) : null,
+        ]);
+    }
+
+    public function updateInboxMeta(int $id, string $status, string $adminNote, string $inboxLabel): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE contacts
+             SET status = :status,
+                 admin_note = :admin_note,
+                 inbox_label = :inbox_label,
+                 updated_at = NOW()
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            ':id' => $id,
+            ':status' => $status,
+            ':admin_note' => trim($adminNote) !== '' ? trim($adminNote) : null,
+            ':inbox_label' => trim($inboxLabel) !== '' ? trim($inboxLabel) : null,
         ]);
     }
 
@@ -235,7 +295,7 @@ final class ContactRepository
 
     public function countOpen(): int
     {
-        $stmt = $this->pdo->query("SELECT COUNT(*) FROM contacts WHERE status IN ('new', 'in_progress')");
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM contacts WHERE source_type = 'form' AND status IN ('new', 'in_progress')");
         return (int) $stmt->fetchColumn();
     }
 
@@ -266,6 +326,7 @@ final class ContactRepository
             'source_subject' => (string) ($row['source_subject'] ?? ''),
             'source_received_at' => (string) ($row['source_received_at'] ?? ''),
             'source_meta' => (string) ($row['source_meta'] ?? ''),
+            'inbox_label' => (string) ($row['inbox_label'] ?? ''),
             'reply_count' => (int) ($row['reply_count'] ?? 0),
         ];
     }

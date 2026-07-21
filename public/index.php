@@ -136,6 +136,22 @@ $requireCsrf = static function (string $fallback) use ($redirect): void {
     }
 };
 
+$buildInboxUrl = static function (int $leadId = 0, ?string $statusFilter = null, ?string $labelFilter = null): string {
+    $statusFilter = trim((string) ($statusFilter ?? ($_POST['status_filter'] ?? $_GET['status'] ?? 'active')));
+    $labelFilter = trim((string) ($labelFilter ?? ($_POST['label_filter'] ?? $_GET['label'] ?? 'all')));
+
+    $params = [
+        'status' => $statusFilter !== '' ? $statusFilter : 'active',
+        'label' => $labelFilter !== '' ? $labelFilter : 'all',
+    ];
+
+    if ($leadId > 0) {
+        $params['lead'] = (string) $leadId;
+    }
+
+    return '/dashboard/inbox?' . http_build_query($params);
+};
+
 $normalizeDmsPayload = static function (): array {
     return [
         'dms_title' => trim(Request::post('dms_title')),
@@ -465,7 +481,7 @@ if (Request::method() === 'POST' && $action === 'dashboard.contact.update_meta')
     $requireCsrf($fallback);
 
     $contact = $contacts()->findById($contactId);
-    if ($contact === null) {
+    if ($contact === null || (string) ($contact['source_type'] ?? '') !== 'form') {
         $_SESSION['flash_error'] = 'Kontaktanfrage wurde nicht gefunden.';
         $redirect('/dashboard/postbox');
     }
@@ -489,7 +505,7 @@ if (Request::method() === 'POST' && $action === 'dashboard.contact.reply') {
     $requireCsrf($fallback);
 
     $contact = $contacts()->findById($contactId);
-    if ($contact === null) {
+    if ($contact === null || (string) ($contact['source_type'] ?? '') !== 'form') {
         $_SESSION['flash_error'] = 'Kontaktanfrage wurde nicht gefunden.';
         $redirect('/dashboard/postbox');
     }
@@ -536,6 +552,110 @@ if (Request::method() === 'POST' && $action === 'dashboard.contact.reply') {
         $_SESSION['old'] = [
             'reply_subject' => $subject,
             'reply_body' => $body,
+        ];
+    }
+
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.inbox.update_meta') {
+    $requireAuth('/dashboard/inbox');
+    $contactId = (int) Request::post('contact_id');
+    $fallback = $buildInboxUrl($contactId);
+    $requireCsrf($fallback);
+
+    $contact = $contacts()->findById($contactId);
+    if ($contact === null || (string) ($contact['source_type'] ?? '') !== 'imap') {
+        $_SESSION['flash_error'] = 'Inbox-Lead wurde nicht gefunden.';
+        $redirect('/dashboard/inbox');
+    }
+
+    $status = trim(Request::post('quick_status'));
+    if ($status === '') {
+        $status = trim(Request::post('status'));
+    }
+
+    $allowedStatuses = ['new', 'in_progress', 'answered', 'archived', 'spam'];
+    if (!in_array($status, $allowedStatuses, true)) {
+        $_SESSION['flash_error'] = 'Ungültiger Inbox-Status.';
+        $_SESSION['old'] = [
+            'inbox_label' => Request::post('inbox_label'),
+            'inbox_note' => Request::post('admin_note'),
+        ];
+        $redirect($fallback);
+    }
+
+    $inboxLabel = trim(Request::post('inbox_label'));
+    if (strlen($inboxLabel) > 80) {
+        $_SESSION['flash_error'] = 'Das Label darf maximal 80 Zeichen lang sein.';
+        $_SESSION['old'] = [
+            'inbox_label' => $inboxLabel,
+            'inbox_note' => Request::post('admin_note'),
+        ];
+        $redirect($fallback);
+    }
+
+    $contacts()->updateInboxMeta($contactId, $status, Request::post('admin_note'), $inboxLabel);
+    $_SESSION['flash_success'] = $status === 'spam'
+        ? 'Inbox-Lead wurde als Spam markiert.'
+        : 'Inbox-Lead wurde aktualisiert.';
+    $redirect($fallback);
+}
+
+if (Request::method() === 'POST' && $action === 'dashboard.inbox.reply') {
+    $authUser = $requireAuth('/dashboard/inbox');
+    $contactId = (int) Request::post('contact_id');
+    $fallback = $buildInboxUrl($contactId);
+    $requireCsrf($fallback);
+
+    $contact = $contacts()->findById($contactId);
+    if ($contact === null || (string) ($contact['source_type'] ?? '') !== 'imap') {
+        $_SESSION['flash_error'] = 'Inbox-Lead wurde nicht gefunden.';
+        $redirect('/dashboard/inbox');
+    }
+
+    $subject = trim(Request::post('subject'));
+    $body = trim(Request::post('body'));
+    $errors = [];
+    if ($subject === '') {
+        $errors['subject'] = 'Bitte einen Betreff angeben.';
+    }
+    if ($body === '') {
+        $errors['body'] = 'Bitte eine Antwort eingeben.';
+    }
+
+    if ($errors !== []) {
+        $_SESSION['flash_error'] = 'Bitte prüfen Sie die markierten Eingaben.';
+        $_SESSION['flash_errors'] = $errors;
+        $_SESSION['old'] = [
+            'inbox_reply_subject' => $subject,
+            'inbox_reply_body' => $body,
+        ];
+        $redirect($fallback);
+    }
+
+    $fromAddress = trim((string) Env::get('MAIL_FROM_ADDRESS', 'info@rddigital.de'));
+    $fromName = trim((string) Env::get('MAIL_FROM_NAME', 'RD Formstack Solutions'));
+    $mailResult = $mailer()->send((string) $contact['email'], $subject, $body, $fromAddress, $fromName);
+    $contacts()->addReply(
+        $contactId,
+        (int) ($authUser['id'] ?? 0),
+        (string) $contact['email'],
+        $subject,
+        $body,
+        $mailResult['ok'] === true,
+        $mailResult['error'] ?? null,
+    );
+
+    if ($mailResult['ok'] === true) {
+        $contacts()->markAnswered($contactId);
+        $_SESSION['flash_success'] = 'Antwort wurde an den Inbox-Lead versendet.';
+        unset($_SESSION['old']);
+    } else {
+        $_SESSION['flash_error'] = 'Antwort gespeichert, aber Mailversand fehlgeschlagen: ' . ($mailResult['error'] ?? 'Unbekannter Fehler.');
+        $_SESSION['old'] = [
+            'inbox_reply_subject' => $subject,
+            'inbox_reply_body' => $body,
         ];
     }
 
@@ -1238,6 +1358,11 @@ $dashboardContacts = [];
 $dashboardSelectedContact = null;
 $dashboardReplies = [];
 $dashboardInboxLeads = [];
+$dashboardInboxLabels = [];
+$dashboardSelectedInboxLead = null;
+$dashboardInboxReplies = [];
+$dashboardInboxStatusFilter = (string) ($_GET['status'] ?? 'active');
+$dashboardInboxLabelFilter = trim((string) ($_GET['label'] ?? 'all'));
 $dashboardCampaigns = [];
 $dashboardSelectedCampaign = null;
 $dashboardOutreachRecipients = [];
@@ -1303,7 +1428,31 @@ if ($isDashboardRoute && is_array($authUser)) {
         }
 
         if ($dashboardSection === 'inbox' || $dashboardSection === 'home') {
-            $dashboardInboxLeads = $contacts()->listInboundLeads(25);
+            $allowedInboxStatusFilters = ['active', 'all', 'new', 'in_progress', 'answered', 'archived', 'spam'];
+            if (!in_array($dashboardInboxStatusFilter, $allowedInboxStatusFilters, true)) {
+                $dashboardInboxStatusFilter = 'active';
+            }
+
+            $dashboardInboxLabels = $contacts()->listInboundLabels();
+            $allowedInboxLabelFilters = array_merge(['all', 'unlabeled'], $dashboardInboxLabels);
+            if (!in_array($dashboardInboxLabelFilter, $allowedInboxLabelFilters, true)) {
+                $dashboardInboxLabelFilter = 'all';
+            }
+
+            if ($dashboardSection === 'inbox') {
+                $dashboardInboxLeads = $contacts()->listInboundLeads(50, $dashboardInboxStatusFilter, $dashboardInboxLabelFilter);
+                $selectedLeadId = isset($_GET['lead']) ? (int) $_GET['lead'] : (isset($dashboardInboxLeads[0]['id']) ? (int) $dashboardInboxLeads[0]['id'] : 0);
+                if ($selectedLeadId > 0) {
+                    $dashboardSelectedInboxLead = $contacts()->findById($selectedLeadId);
+                    if (is_array($dashboardSelectedInboxLead) && (string) ($dashboardSelectedInboxLead['source_type'] ?? '') === 'imap') {
+                        $dashboardInboxReplies = $contacts()->listReplies($selectedLeadId);
+                    } else {
+                        $dashboardSelectedInboxLead = null;
+                    }
+                }
+            } else {
+                $dashboardInboxLeads = $contacts()->listInboundLeads(25, 'active', 'all');
+            }
         }
 
         if ($dashboardSection === 'dms' || $dashboardSection === 'home') {

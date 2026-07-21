@@ -28,6 +28,9 @@ fi
 if [ -f scripts/apply-dms-migration.php ]; then
   docker compose -f docker-compose.live.yml exec -T rddigital-web php scripts/apply-dms-migration.php
 fi
+if [ -f scripts/apply-inbox-label-migration.php ]; then
+  docker compose -f docker-compose.live.yml exec -T rddigital-web php scripts/apply-inbox-label-migration.php
+fi
 
 echo "== next verification =="
 echo "curl -I https://rddigital.de"
