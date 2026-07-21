@@ -55,7 +55,7 @@ $dashboardRoleLabels = [
                 <span class="tag">Rolle: <?= $e((string) (($authUser['role'] ?? 'admin'))) ?></span>
                 <span class="tag">E-Mail: <?= $e((string) (($authUser['email'] ?? ''))) ?></span>
                 <span class="tag">Offene Anfragen: <?= $e((string) ($dashboardStats['open_contacts'] ?? 0)) ?></span>
-                <span class="tag">IMAP-Leads: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
+                <span class="tag">IMAP-Leads gesamt: <?= $e((string) ($dashboardStats['inbound_leads'] ?? 0)) ?></span>
                 <span class="tag">DMS gesamt: <?= $e((string) ($dashboardStats['dms_total'] ?? 0)) ?></span>
                 <span class="tag">DMS in Review: <?= $e((string) ($dashboardStats['dms_in_review'] ?? 0)) ?></span>
                 <span class="tag">DMS freigegeben: <?= $e((string) ($dashboardStats['dms_approved'] ?? 0)) ?></span>
@@ -270,7 +270,7 @@ $dashboardRoleLabels = [
                             <h2>Inbox-Leads</h2>
                             <p>IMAP-Importierte Nachrichten werden hier bearbeitet. Die Postbox bleibt nur für Website-Kontaktanfragen.</p>
                         </div>
-                        <span class="tag"><?= $e((string) count($dashboardInboxLeads)) ?> sichtbar</span>
+                        <span class="tag"><?= $e((string) count($dashboardInboxLeads)) ?> im aktuellen Filter sichtbar</span>
                     </div>
 
                     <form method="get" action="/dashboard/inbox" class="auth-form-stack dashboard-form-stack dashboard-filter-form">
